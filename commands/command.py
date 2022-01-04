@@ -208,6 +208,27 @@ class CmdAbilities(BaseCommand):
             self.caller.msg(string)
 
 
+class CmdAbilities(BaseCommand):
+        """
+        List abilities
+
+        Usage:
+        abilities
+
+        Displays a list of your current ability values.
+        """
+        key = "abilities"
+        aliases = ["abi"]
+        lock = "cmd:all()"
+        help_category = "General"
+
+        def func(self):
+            """implements the actual functionality"""
+
+            pow = self.caller.get_abilities()
+            string = "STR: %s" % (pow)
+            self.caller.msg(string)
+
 
 
 class CmdSetPower(Command):
@@ -241,3 +262,26 @@ class CmdSetPower(Command):
         # at this point the argument is tested as valid. Let's set it.
         self.caller.db.power = power
         self.caller.msg("Your Power was set to %i." % power)
+
+
+
+class CmdThink(BaseCommand):
+    """
+    This is just for thinking out loud.
+    """
+    key = "think"
+    lock = "cmd:all()"
+    help_category = "General"
+
+    def func(self):
+        "This performs the actual command"
+        errmsg = "You can't think of anything."
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+        try:
+            self.caller.msg("You think: '%s'"% self.args)
+        except ValueError:
+            self.caller.msg(errmsg)
+            return
+        
