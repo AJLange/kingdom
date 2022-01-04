@@ -16,6 +16,8 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 from commands.command import CmdAbilities
+from evennia import CmdSet
+from commands import command
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -88,10 +90,21 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
         This is the only method defined in a cmdset, called during
         its creation. It should populate the set with command instances.
 
-        As and example we just add the empty base `Command` object.
+        As an example we just add the empty base `Command` object.
         It prints some info.
         """
         super().at_cmdset_creation()
         #
         # any commands you add below will overload the default ones.
         #
+
+
+
+class ChargenCmdset(CmdSet):
+    """
+    This cmdset is used in character generation areas.
+    """
+    key = "Chargen"
+    def at_cmdset_creation(self):
+        "This is called at initialization"
+        self.add(command.CmdSetPower())
