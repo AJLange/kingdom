@@ -1,4 +1,4 @@
-r"""
+"""
 Evennia settings file.
 
 The available options are found in the default settings file found
@@ -32,8 +32,27 @@ from evennia.settings_default import *
 ######################################################################
 
 # This is the name of your game. Make it catchy!
-SERVERNAME = "kingdom"
+SERVERNAME = "Kingdom"
+GAME_SLOGAN = "The Kingdom of Testing"
 
+######################################################################
+# Guest Accounts Unlocked
+######################################################################
+
+GUEST_ENABLED = True
+# Typeclass for guest account objects (linked to a character)
+BASE_GUEST_TYPECLASS = "typeclasses.accounts.Guest"
+# The permission given to guests
+PERMISSION_GUEST_DEFAULT = "Guests"
+# The default home location used for guests.
+GUEST_HOME = 6
+# The start position used for guest characters.
+GUEST_START_LOCATION = 6
+# The naming convention used for creating new guest
+# accounts/characters. The size of this list also determines how many
+# guests may be on the game at once. The default is a maximum of nine
+# guests, named Guest1 through Guest9.
+GUEST_LIST = ["Guest" + str(s + 1) for s in range(9)]
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.

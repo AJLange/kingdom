@@ -18,6 +18,9 @@ The commands available to the user when the connection screen is shown
 are defined in evennia.default_cmds.UnloggedinCmdSet. The parsing and display
 of the screen is done by the unlogged-in "look" command.
 
+ If you need to create an account, type (without the <>'s):
+      |wcreate <username> <password>|n
+
 """
 
 from django.conf import settings
@@ -29,8 +32,9 @@ CONNECTION_SCREEN = """
 
  If you have an existing account, connect to it by typing:
       |wconnect <username> <password>|n
- If you need to create an account, type (without the <>'s):
-      |wcreate <username> <password>|n
+
+ For Guest Login, type:
+      |wconnect guest|n
 
  Enter |whelp|n for more info. |wlook|n will re-show this screen.
 |b==============================================================|n""".format(

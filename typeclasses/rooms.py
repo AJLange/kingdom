@@ -39,8 +39,7 @@ class StaffRoom(Room):
     This room class is used by staff for lounges and such.
     """
     def at_object_creation(self):
-        "this is called only at first creation"
-      
+        "this is called only at first creation"      
 
 
 class OOCRoom(Room):
@@ -50,7 +49,7 @@ class OOCRoom(Room):
     """
     def at_object_creation(self):
         "this is called only at first creation"
-        self.cmdset.add(ChargenCmdset, permanent=True)
+     
 
 
 class PlayRoom(Room):
@@ -59,7 +58,7 @@ class PlayRoom(Room):
     """
     def at_object_creation(self):
         "this is called only at first creation"
-        self.cmdset.add(ChargenCmdset, permanent=True)
+  
 
 class ShopRoom(Room):
     """
@@ -86,7 +85,10 @@ class TrainingRoom(Room):
         "this is called only at first creation"
 
 
-
-
-
-
+class WarRoom(Room):
+    """
+    This room type would allow interaction with the war system
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+        
