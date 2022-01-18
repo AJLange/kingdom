@@ -6,6 +6,8 @@ Commands describe the input the account can do to the game.
 """
 
 from evennia.commands.command import Command as BaseCommand
+from server import utils
+from server.utils import sub_old_ansi
 
 # from evennia import default_cmds
 
@@ -280,8 +282,16 @@ class CmdThink(BaseCommand):
             self.caller.msg(errmsg)
             return
         try:
-            self.caller.msg("You think: '%s'"% self.args)
+            message = self.args
+            message = sub_old_ansi(message)
+            self.caller.msg("You think: '%s'" % str(message))
         except ValueError:
             self.caller.msg(errmsg)
             return
         
+
+
+class CmdEmit(BaseCommand):
+    """
+    gotta over-ride default emit, which doesn't do formatting right.
+    """

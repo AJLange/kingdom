@@ -27,6 +27,7 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
+
 ######################################################################
 # Evennia base server config
 ######################################################################
@@ -34,6 +35,10 @@ from evennia.settings_default import *
 # This is the name of your game. Make it catchy!
 SERVERNAME = "Kingdom"
 GAME_SLOGAN = "The Kingdom of Testing"
+
+DEFAULT_HOME = "#6"
+START_LOCATION = "#6"
+
 
 ######################################################################
 # Guest Accounts Unlocked
@@ -45,14 +50,21 @@ BASE_GUEST_TYPECLASS = "typeclasses.accounts.Guest"
 # The permission given to guests
 PERMISSION_GUEST_DEFAULT = "Guests"
 # The default home location used for guests.
-GUEST_HOME = 6
+GUEST_HOME = "#6"
 # The start position used for guest characters.
-GUEST_START_LOCATION = 6
+GUEST_START_LOCATION = "#6"
 # The naming convention used for creating new guest
 # accounts/characters. The size of this list also determines how many
 # guests may be on the game at once. The default is a maximum of nine
 # guests, named Guest1 through Guest9.
-GUEST_LIST = ["Guest" + str(s + 1) for s in range(9)]
+GUEST_LIST = ["Guest" + str(s + 1) for s in range(20)]
+ADDITIONAL_ANSI_MAPPINGS = [
+    (r"%r", "\r\n"),
+]
+COMMAND_DEFAULT_ARG_REGEX = r"^[ /]+.*$|$"
+
+MAX_CHAR_LIMIT = 8000
+TIME_ZONE = "America/New_York"
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.
