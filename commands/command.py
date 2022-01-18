@@ -7,7 +7,8 @@ Commands describe the input the account can do to the game.
 
 from evennia.commands.command import Command as BaseCommand
 from server import utils
-from server.utils import sub_old_ansi
+
+
 
 # from evennia import default_cmds
 
@@ -265,33 +266,3 @@ class CmdSetPower(Command):
         self.caller.db.power = power
         self.caller.msg("Your Power was set to %i." % power)
 
-
-
-class CmdThink(BaseCommand):
-    """
-    This is just for thinking out loud.
-    """
-    key = "think"
-    lock = "cmd:all()"
-    help_category = "General"
-
-    def func(self):
-        "This performs the actual command"
-        errmsg = "You can't think of anything."
-        if not self.args:
-            self.caller.msg(errmsg)
-            return
-        try:
-            message = self.args
-            message = sub_old_ansi(message)
-            self.caller.msg("You think: '%s'" % str(message))
-        except ValueError:
-            self.caller.msg(errmsg)
-            return
-        
-
-
-class CmdEmit(BaseCommand):
-    """
-    gotta over-ride default emit, which doesn't do formatting right.
-    """

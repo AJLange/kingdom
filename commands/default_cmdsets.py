@@ -16,7 +16,11 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 from commands.command import CmdAbilities
-from commands.command import CmdThink
+from commands.cmdsets.pose import CmdThink
+from commands.cmdsets.pose import CmdPose
+from commands.cmdsets.pose import CmdEmit
+from commands.cmdsets.pose import CmdMegaSay
+from commands.cmdsets.pose import CmdOOCSay
 from evennia import CmdSet
 from commands import command
 from evennia.contrib.dice import CmdDice
@@ -41,6 +45,12 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdAbilities())
         self.add(CmdThink())
         self.add(CmdDice())
+        self.add(CmdPose())
+        self.add(CmdMegaSay())
+        self.add(CmdEmit())
+        self.add(CmdOOCSay())
+
+
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):

@@ -20,6 +20,34 @@ class Room(DefaultRoom):
     properties and methods available on all Objects.
     """
 
+    def at_say(
+        self,
+        message,
+        msg_self=None,
+        msg_location=None,
+        receivers=None,
+        msg_receivers=None,
+        **kwargs,
+    ):
+        return message
+
+    def msg_action(self, from_obj, no_name_emit_string, exclude=None, options=None):
+        
+        emit_string = "%s%s" % (
+            "%s {c(%s){n" % (from_obj.name, from_obj.key),
+            no_name_emit_string,
+        )
+            
+        emit_string = "%s%s" % (from_obj, no_name_emit_string)
+        self.msg_contents(
+            emit_string,
+            exclude=exclude,
+            from_obj=from_obj,
+            options=options,
+            mapping=None,
+        )
+
+
     pass
 
 
