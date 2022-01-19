@@ -28,7 +28,7 @@ class CmdThink(BaseCommand):
         try:
             message = self.args
             message = sub_old_ansi(message)
-            self.caller.msg("You think: '%s'" % str(message))
+            self.caller.msg(f"You think:{str(message)}")
         except ValueError:
             self.caller.msg(errmsg)
             return
