@@ -191,47 +191,24 @@ class Command(BaseCommand):
 #                 self.character = None
 class CmdAbilities(BaseCommand):
         """
-        List abilities
+        List my stats
 
         Usage:
-        abilities
+        +stats
 
-        Displays a list of your current ability values.
+        Displays a list of your current stats.
         """
-        key = "abilities"
-        aliases = ["abi"]
+        key = "+stats"
+        aliases = ["stats"]
         lock = "cmd:all()"
         help_category = "General"
 
         def func(self):
             """implements the actual functionality"""
 
-            pow = self.caller.get_abilities()
-            string = "STR: %s" % (pow)
+            pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
+            string = "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
             self.caller.msg(string)
-
-
-class CmdAbilities(BaseCommand):
-        """
-        List abilities
-
-        Usage:
-        abilities
-
-        Displays a list of your current ability values.
-        """
-        key = "abilities"
-        aliases = ["abi"]
-        lock = "cmd:all()"
-        help_category = "General"
-
-        def func(self):
-            """implements the actual functionality"""
-
-            pow = self.caller.get_abilities()
-            string = "STR: %s" % (pow)
-            self.caller.msg(string)
-
 
 
 class CmdSetPower(Command):

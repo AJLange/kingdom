@@ -20,19 +20,28 @@ class Character(DefaultCharacter):
         Called only at initial creation. This is a rather silly
         example since ability scores should vary from Character to
         Character and is usually set during some character
-        generation step instead.
+        generation step instead. Update this later.
+        Here's the values so far: 7 stats.
+        Power, Dexterity, Tenacity, Cunning
+        Education, Charisma, Aura
+
         """
         #set persistent attributes
-        self.db.power = 1
-        self.db.combat_score = 1
+        self.db.pow = 3
+        self.db.dex = 2
+        self.db.ten = 2
+        self.db.cun = 3
+        self.db.edu = 2
+        self.db.chr = 4
+        self.db.aur = 1
 
 
     def get_abilities(self):
         """
         Simple access method to return ability
-        scores as a tuple (str,agi,mag)
+        scores as a tuple. This for now is all stats we're using!
         """
-        return self.db.power
+        return self.db.pow, self.db.dex, self.db.ten, self.db.cun, self.db.edu, self.db.chr, self.db.aur
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
