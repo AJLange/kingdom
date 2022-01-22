@@ -17,16 +17,24 @@ class Character(DefaultCharacter):
     """
     def at_object_creation(self):
         """
-        Called only at initial creation. This is a rather silly
-        example since ability scores should vary from Character to
-        Character and is usually set during some character
-        generation step instead. Update this later.
-        Here's the values so far: 7 stats.
-        Power, Dexterity, Tenacity, Cunning
-        Education, Charisma, Aura
+        Called only at initial creation. 
+        
+        Intended use is that stats and skills are set as a 
+        list and come in as a list. The old 'skills' value
+        may still be used for something else later.
+
+        quote and profile coming in at chargen. More stats
+        as they come up.
+
+
+
 
         """
-        #set persistent attributes
+        '''
+        to do, this comes in from the chargen machine, not static.
+        eg , stats, skills, quote, profile should be added from char machine.
+        set persistent attributes
+        '''
         self.db.pow = 3
         self.db.dex = 2
         self.db.ten = 2
@@ -34,6 +42,8 @@ class Character(DefaultCharacter):
         self.db.edu = 2
         self.db.chr = 4
         self.db.aur = 1
+        self.quote = "This is a test quote."
+        self.profile = "This is a test profile."
 
 
     def get_abilities(self):
