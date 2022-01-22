@@ -42,8 +42,14 @@ class Character(DefaultCharacter):
         self.db.edu = 2
         self.db.chr = 4
         self.db.aur = 1
-        self.quote = "This is a test quote."
-        self.profile = "This is a test profile."
+        self.db.quote = "This is a test quote."
+        self.db.profile = "This is a test profile."
+        self.db.oocemail = "email"
+        self.db.discord = "Discord alias"
+        self.db.altchars = "list of your alts"
+        self.db.timezone = "this is your time zone"
+        self.db.rphooks = "Rp Hooks go here"
+        self.db.info = "Any other info you care to share"
 
 
     def get_abilities(self):

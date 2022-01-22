@@ -19,6 +19,9 @@ from server.utils import sub_old_ansi
 
 class CmdFinger(BaseCommand):
     """
+
+    +finger <character>
+
     To get basic information about a character.
     Useful for an OOC overview and for potential 
     appers.
@@ -43,7 +46,7 @@ class CmdFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} {char.quote} {char.profile}")
+            self.caller.msg(f"{char.name} |/{char.quote} |/{char.profile}")
         except ValueError:
             self.caller.msg("Some error occured.")
             return
@@ -52,6 +55,10 @@ class CmdFinger(BaseCommand):
 
 class CmdEFinger(BaseCommand):
     """
+
+    +efinger <character>
+    +info <character>
+
     To get basic IC information about a character.
     Usually set to what is publically known or can be
     looked up about a character from an IC standpoint,
@@ -78,7 +85,7 @@ class CmdEFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} {char.quote} {char.profile}")
+            self.caller.msg(f"{char.name} Eventually Efinger information would go here.")
         except ValueError:
             self.caller.msg("Some error occured.")
             return
@@ -88,6 +95,9 @@ class CmdEFinger(BaseCommand):
 
 class CmdOOCFinger(BaseCommand):
     """
+    
+    +oocfinger <character>
+    
     To get basic OOC information which relates to 
     the player of the character. You can find
     personal RP hooks and other preferences
@@ -115,7 +125,7 @@ class CmdOOCFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} {char.quote} {char.profile}")
+            self.caller.msg(f"Name: {char.name} |/Email: {char.oocemail} |/Discord: {char.discord} |/Alts: {char.altchars}")
         except ValueError:
             self.caller.msg("Some error occured.")
             return

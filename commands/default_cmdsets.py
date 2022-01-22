@@ -22,6 +22,8 @@ from commands.cmdsets.pose import CmdEmit
 from commands.cmdsets.pose import CmdMegaSay
 from commands.cmdsets.pose import CmdOOCSay
 from commands.cmdsets.charinfo import CmdFinger
+from commands.cmdsets.charinfo import CmdOOCFinger
+from commands.cmdsets.charinfo import CmdEFinger
 from evennia import CmdSet
 from commands import command
 from evennia.contrib.dice import CmdDice
@@ -51,6 +53,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdEmit())
         self.add(CmdOOCSay())
         self.add(CmdFinger())
+        self.add(CmdOOCFinger())
+        self.add(CmdEFinger())
 
 
 
