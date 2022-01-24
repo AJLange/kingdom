@@ -128,11 +128,3 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
 
 
 
-class ChargenCmdset(CmdSet):
-    """
-    This cmdset is used in character generation areas.
-    """
-    key = "Chargen"
-    def at_cmdset_creation(self):
-        "This is called at initialization"
-        "self.add(command.CmdSetPower())"

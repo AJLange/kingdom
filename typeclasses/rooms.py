@@ -6,7 +6,7 @@ Rooms are simple containers that has no location of their own.
 """
 
 from evennia import DefaultRoom
-from commands.default_cmdsets import ChargenCmdset
+from commands.cmdsets.chargen import ChargenCmdset
 
 
 class Room(DefaultRoom):
@@ -50,7 +50,12 @@ class Room(DefaultRoom):
 
     pass
 
-
+class PlayRoom(Room):
+    """
+    This room class is the most standard playroom for most RP.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
 
 class ChargenRoom(Room):
     """
@@ -77,16 +82,7 @@ class OOCRoom(Room):
     """
     def at_object_creation(self):
         "this is called only at first creation"
-     
 
-
-class PlayRoom(Room):
-    """
-    This room class is the most standard playroom for most RP.
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
-  
 
 class ShopRoom(Room):
     """

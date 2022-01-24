@@ -11,6 +11,7 @@ creation commands.
 
 from evennia import DefaultCharacter
 
+
 class Character(DefaultCharacter):
     """
     [...]
@@ -20,36 +21,8 @@ class Character(DefaultCharacter):
         Called only at initial creation. 
         
         Intended use is that stats and skills are set as a 
-        list and come in as a list. The old 'skills' value
-        may still be used for something else later.
-
-        quote and profile coming in at chargen. More stats
-        as they come up.
-
-
-
-
+        list and come in as a list from the chargen machine.
         """
-        '''
-        to do, this comes in from the chargen machine, not static.
-        eg , stats, skills, quote, profile should be added from char machine.
-        set persistent attributes
-        '''
-        self.db.pow = 3
-        self.db.dex = 2
-        self.db.ten = 2
-        self.db.cun = 3
-        self.db.edu = 2
-        self.db.chr = 4
-        self.db.aur = 1
-        self.db.quote = "This is a test quote."
-        self.db.profile = "This is a test profile."
-        self.db.oocemail = "email"
-        self.db.discord = "Discord alias"
-        self.db.altchars = "list of your alts"
-        self.db.timezone = "this is your time zone"
-        self.db.rphooks = "Rp Hooks go here"
-        self.db.info = "Any other info you care to share"
 
 
     def get_abilities(self):
