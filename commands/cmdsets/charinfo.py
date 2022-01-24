@@ -46,9 +46,9 @@ class CmdFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} |/{char.quote} |/{char.profile}")
+            self.caller.msg(f"{char.name} |/ Finger information lives here.")
         except ValueError:
-            self.caller.msg("Some error occured.")
+            self.caller.msg("Not a valid character.")
             return
         
 
@@ -125,7 +125,7 @@ class CmdOOCFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"Name: {char.name} |/Email: {char.oocemail} |/Discord: {char.discord} |/Alts: {char.altchars}")
+            self.caller.msg(f"Name: {char.name} |/ OOCFinger information lives here.")
         except ValueError:
             self.caller.msg("Some error occured.")
             return

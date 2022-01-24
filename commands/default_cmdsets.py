@@ -15,18 +15,21 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 """
 
 from evennia import default_cmds
+
 from commands.command import CmdAbilities
 from commands.cmdsets.pose import CmdThink
 from commands.cmdsets.pose import CmdPose
-from commands.cmdsets.pose import CmdEmit
 from commands.cmdsets.pose import CmdMegaSay
+from commands.cmdsets.pose import CmdEmit
 from commands.cmdsets.pose import CmdOOCSay
 from commands.cmdsets.charinfo import CmdFinger
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
+import commands.cmdsets.movement
 from evennia import CmdSet
 from commands import command
 from evennia.contrib.dice import CmdDice
+from evennia.contrib import multidescer
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -55,6 +58,11 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
         self.add(CmdEFinger())
+        self.add(commands.cmdsets.movement.CmdSummon())
+        self.add(commands.cmdsets.movement.CmdJoin())
+        self.add(commands.cmdsets.movement.CmdFollow())
+        self.add(commands.cmdsets.movement.CmdDitch())
+        self.add(multidescer.CmdMultiDesc()) 
 
 
 

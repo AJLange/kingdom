@@ -126,7 +126,7 @@ class CmdEmit(MuxCommand):
     """
 
     key = "@emit"
-    aliases = ["@pemit", "\\\\"]
+    aliases = ["emit", "@pemit", "\\\\"]
     locks = "cmd:all()"
     help_category = "Social"
     perm_for_switches = "Builders"
