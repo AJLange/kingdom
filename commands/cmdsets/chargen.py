@@ -198,7 +198,8 @@ class CmdSetTypes(Command):
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
 
-# to do above, make it a proper list you can add to
+
+
 
 
 
