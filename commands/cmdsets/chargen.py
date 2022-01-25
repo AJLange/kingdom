@@ -77,7 +77,7 @@ class CmdSetSkills(Command):
     Infiltration
     Convince
     Presence
-    Mojo
+    Arcana
 
 
     """
