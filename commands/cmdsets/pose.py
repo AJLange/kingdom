@@ -4,11 +4,15 @@ Pose-related and Pose Order Tracking commands will live here
 """
 
 from evennia import CmdSet
+from six import string_types
 from commands.command import BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand, MuxAccountCommand
 from server.utils import sub_old_ansi
+from evennia.utils import utils, evtable
 from evennia.commands.default.general import CmdSay
 from evennia.commands.default.account import CmdOOC
+from commands.cmdsets import places
+from evennia.comms.models import TempMsg
 
 
 class CmdThink(BaseCommand):
@@ -218,7 +222,8 @@ class CmdEmit(MuxCommand):
             '''
             
         # normal emits by players are just sent to the room
-        # right now this does not do anything with nospoof. add later in POT functionality.
+        # right now this does not do anything with nospoof. add later in 
+        # POT functionality.
 
         if normal_emit:      
             try:
@@ -226,7 +231,7 @@ class CmdEmit(MuxCommand):
                 message = sub_old_ansi(message)
                 self.caller.location.msg_contents(message)
             except ValueError:
-                self.caller.msg("Error: no emit.")
+                self.caller.msg("")
                 return
         
             return
@@ -362,3 +367,560 @@ class CmdMegaSay(CmdSay):
         self.caller.location.msg_action(
             self.caller, pre_name_emit_string, options=options
         )
+
+
+
+class CmdWhisper(MuxCommand):
+    """
+    whisper - send private IC message
+
+    Usage:
+      whisper[/switches] [<player>,<player>,... = <message>]
+      whisper =<message> - sends whisper to last person you whispered
+      whisper <name> <message>
+      whisper/mutter
+      whisper/list <number> - Displays list of last <number> of recent whispers
+
+    Switch:
+      last - shows who you last messaged
+      list - show your last <number> of messages (default)
+
+    Send an IC message to a character in your room. A whisper of the format
+    "whisper player=Hello" will send a message in the form of "You whisper
+    <player>". A whisper of the format "whisper player=:does an emote" will appear
+    in the form of "Discreetly, soandso does an emote" to <player>. It's generally
+    expected that for whispers during public roleplay scenes that the players
+    involved should pose to the room with some small mention that they're
+    communicating discreetly. For ooc messages, please use the 'page'/'tell'
+    command instead. If the /mutter switch is used, some of your whisper will
+    be overheard by the room. Mutter cannot be used for whisper-poses.
+
+    If no argument is given, you will get a list of your whispers from this
+    session.
+    """
+
+    key = "whisper"
+    aliases = ["mutter"]
+    locks = "cmd:not pperm(page_banned)"
+    help_category = "Social"
+    simplified_key = "mutter"
+
+    def func(self):
+        """Implement function using the Msg methods"""
+
+        # this is a MuxCommand, which means caller will be a Character.
+        caller = self.caller
+        # get the messages we've sent (not to channels)
+        if not caller.ndb.whispers_sent:
+            caller.ndb.whispers_sent = []
+        pages_we_sent = caller.ndb.whispers_sent
+        # get last messages we've got
+        if not caller.ndb.whispers_received:
+            caller.ndb.whispers_received = []
+        pages_we_got = caller.ndb.whispers_received
+
+        if "last" in self.switches:
+            if pages_we_sent:
+                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
+                self.msg(
+                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
+                )
+                return
+            else:
+                self.msg("You haven't whispered anyone yet.")
+                return
+
+        if not self.args or "list" in self.switches:
+            pages = list(pages_we_sent) + list(pages_we_got)
+            pages.sort(key=lambda x: x.date_created)
+
+            number = 5
+            if self.args:
+                try:
+                    number = int(self.args)
+                except ValueError:
+                    self.msg("Usage: whisper [<player> = msg]")
+                    return
+
+            if len(pages) > number:
+                lastpages = pages[-number:]
+            else:
+                lastpages = pages
+            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
+            lastpages = "\n ".join(
+                template
+                % (
+                    utils.datetime_format(page.date_created),
+                    ",".join(obj.name for obj in page.senders),
+                    "{n,{c ".join([obj.name for obj in page.receivers]),
+                    page.message,
+                )
+                for page in lastpages
+            )
+
+            if lastpages:
+                string = "Your latest whispers:\n %s" % lastpages
+            else:
+                string = "You haven't whispered anyone yet."
+            self.msg(string)
+            return
+        # We are sending. Build a list of targets
+        lhs = self.lhs
+        rhs = self.rhs
+        lhslist = self.lhslist
+        if not self.rhs:
+            # MMO-type whisper. 'whisper <name> <target>'
+            arglist = self.args.lstrip().split(" ", 1)
+            if len(arglist) < 2:
+                caller.msg(
+                    "The MMO-style whisper format requires both a name and a message."
+                )
+                caller.msg(
+                    "To send a message to your last whispered character, use {wwhisper =<message>"
+                )
+                return
+            lhs = arglist[0]
+            rhs = arglist[1]
+            lhslist = set(arglist[0].split(","))
+
+        if not lhs and rhs:
+            # If there are no targets, then set the targets
+            # to the last person we paged.
+            if pages_we_sent:
+                receivers = pages_we_sent[-1].receivers
+            else:
+                self.msg("Who do you want to whisper?")
+                return
+        else:
+            receivers = lhslist
+
+        recobjs = []
+        for receiver in set(receivers):
+
+            if isinstance(receiver, string_types):
+                pobj = caller.search(receiver, use_nicks=True)
+            elif hasattr(receiver, "character"):
+                pobj = receiver.character
+            elif hasattr(receiver, "player"):
+                pobj = receiver
+            else:
+                self.msg("Who do you want to whisper?")
+                return
+            if pobj:
+                if hasattr(pobj, "has_account") and not pobj.has_account:
+                    self.msg("You may only send whispers to online characters.")
+                elif not pobj.location or pobj.location != caller.location:
+                    self.msg("You may only whisper characters in the same room as you.")
+                else:
+                    recobjs.append(pobj)
+        if not recobjs:
+            self.msg("No one found to whisper.")
+            return
+        header = "{c%s{n whispers," % caller.name
+        message = rhs
+        mutter_text = ""
+        # if message begins with a :, we assume it is a 'whisper-pose'
+        if message.startswith(":"):
+            message = "%s {c%s{n %s" % (
+                "Discreetly,",
+                caller.name,
+                message.strip(":").strip(),
+            )
+            is_a_whisper_pose = True
+        elif message.startswith(";"):
+            message = "%s {c%s{n%s" % (
+                "Discreetly,",
+                caller.name,
+                message.lstrip(";").strip(),
+            )
+            is_a_whisper_pose = True
+        else:
+            is_a_whisper_pose = False
+            message = '"' + message + '"'
+
+        # create the temporary message object
+        temp_message = TempMsg(senders=caller, receivers=recobjs, message=message)
+
+        caller.ndb.whispers_sent.append(temp_message)
+
+        # tell the players they got a message.
+        received = []
+        rstrings = []
+        for pobj in recobjs:
+            otherobs = [ob for ob in recobjs if ob != pobj]
+            if not pobj.access(caller, "tell"):
+                rstrings.append("You are not allowed to page %s." % pobj)
+                continue
+            if is_a_whisper_pose:
+                omessage = message
+                if otherobs:
+                    omessage = "(Also sent to %s.) %s" % (
+                        ", ".join(ob.name for ob in otherobs),
+                        message,
+                    )
+                pobj.msg(omessage, from_obj=caller, options={"is_pose": True})
+            else:
+                if otherobs:
+                    myheader = header + " to {cyou{n and %s," % ", ".join(
+                        "{c%s{n" % ob.name for ob in otherobs
+                    )
+                else:
+                    myheader = header
+                pobj.msg(
+                    "%s %s" % (myheader, message),
+                    from_obj=caller,
+                    options={"is_pose": True},
+                )
+            if not pobj.ndb.whispers_received:
+                pobj.ndb.whispers_received = []
+            pobj.ndb.whispers_received.append(temp_message)
+            if hasattr(pobj, "has_account") and not pobj.has_account:
+                received.append("{C%s{n" % pobj.name)
+                rstrings.append(
+                    "%s is offline. They will see your message if they list their pages later."
+                    % received[-1]
+                )
+            else:
+                received.append("{c%s{n" % pobj.name)
+                # afk = pobj.player_ob and pobj.player_ob.db.afk
+                # if afk:
+                #     pobj.msg("{wYou inform {c%s{w that you are AFK:{n %s" % (caller, afk))
+                #     rstrings.append("{c%s{n is AFK: %s" % (pobj.name, afk))
+        if rstrings:
+            self.msg("\n".join(rstrings))
+        if received:
+            if is_a_whisper_pose:
+                self.msg("You posed to %s: %s" % (", ".join(received), message))
+            else:
+                self.msg("You whispered to %s, %s" % (", ".join(received), message))
+                if "mutter" in self.switches or "mutter" in self.cmdstring:
+                    from random import randint
+
+                    word_list = rhs.split()
+                    chosen = []
+                    num_real = 0
+                    for word in word_list:
+                        if randint(0, 2):
+                            chosen.append(word)
+                            num_real += 1
+                        else:
+                            chosen.append("...")
+                    if num_real:
+                        mutter_text = " ".join(chosen)
+                if mutter_text:
+                    emit_string = ' mutters, "%s{n"' % mutter_text
+                    exclude = [caller] + recobjs
+                    caller.location.msg_action(
+                        self.caller,
+                        emit_string,
+                        options={"is_pose": True},
+                        exclude=exclude,
+                    )
+                    self.mark_command_used()
+        caller.posecount += 1
+
+
+class CmdPage(BaseCommand):
+    """
+    page - send private message
+
+    Usage:
+      page[/switches] [<player>,<player2>,... = <message>]
+      page[/switches] [<player> <player2> <player3>...= <message>]
+      page [<message to last paged player>]
+      tell  <player> <message>
+      ttell [<message to last paged player>]
+      reply [<message to player who last paged us and other receivers>]
+      page/list <number>
+      page/noeval
+      page/allow <name>
+      page/block <name>
+      page/reply <message>
+
+    Switch:
+      last - shows who you last messaged
+      list - show your last <number> of tells/pages (default)
+
+    Send a message to target user (if online), or to the last person
+    paged if no player is given. If no argument is given, you will
+    get a list of your latest messages. Note that pages are only
+    saved for your current session. Sending pages to multiple receivers
+    accepts the names either separated by commas or whitespaces.
+
+    /allow toggles whether someone may page you when you use @settings/ic_only.
+    /block toggles whether all pages are blocked from someone.
+    """
+
+    key = "page"
+    aliases = ["tell", "p", "pa", "pag", "ttell", "reply"]
+    locks = "cmd:not pperm(page_banned)"
+    help_category = "Comms"
+    arg_regex = r"\/|\s|$"
+
+    def disp_allow(self):
+        """Displays those we're allowing"""
+        self.msg(
+            "{wPeople on allow list:{n %s"
+            % ", ".join(str(ob) for ob in self.caller.allow_list)
+        )
+        self.msg(
+            "{wPeople on block list:{n %s"
+            % ", ".join(str(ob) for ob in self.caller.block_list)
+        )
+
+    def func(self):
+        """Implement function using the Msg methods"""
+
+        # this is a ArxPlayerCommand, which means caller will be a Player.
+        caller = self.caller
+        if "allow" in self.switches or "block" in self.switches:
+            if not self.args:
+                self.disp_allow()
+                return
+            targ = caller.search(self.args)
+            if not targ:
+                return
+            if "allow" in self.switches:
+                if targ not in caller.allow_list:
+                    caller.allow_list.append(targ)
+                    # allowing someone removes them from the block list
+                    if targ in caller.block_list:
+                        caller.block_list.remove(targ)
+                else:
+                    caller.allow_list.remove(targ)
+            if "block" in self.switches:
+                if targ not in caller.block_list:
+                    caller.block_list.append(targ)
+                    # blocking someone removes them from the allow list
+                    if targ in caller.allow_list:
+                        caller.allow_list.remove(targ)
+                else:
+                    caller.block_list.remove(targ)
+            self.disp_allow()
+            return
+        # get the messages we've sent (not to channels)
+        if not caller.ndb.pages_sent:
+            caller.ndb.pages_sent = []
+        pages_we_sent = caller.ndb.pages_sent
+        # get last messages we've got
+        if not caller.ndb.pages_received:
+            caller.ndb.pages_received = []
+        pages_we_got = caller.ndb.pages_received
+
+        if "last" in self.switches:
+            if pages_we_sent:
+                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
+                self.msg("You last paged {c%s{n:%s" % (recv, pages_we_sent[-1].message))
+                return
+            else:
+                self.msg("You haven't paged anyone yet.")
+                return
+        if "list" in self.switches or not self.raw:
+            pages = pages_we_sent + pages_we_got
+            pages.sort(key=lambda x: x.date_created)
+
+            number = 5
+            if self.args:
+                try:
+                    number = int(self.args)
+                except ValueError:
+                    self.msg("Usage: tell [<player> = msg]")
+                    return
+
+            if len(pages) > number:
+                lastpages = pages[-number:]
+            else:
+                lastpages = pages
+            template = "{w%s{n {c%s{n paged to {c%s{n: %s"
+            lastpages = "\n ".join(
+                template
+                % (
+                    utils.datetime_format(page.date_created),
+                    ",".join(obj.name for obj in page.senders),
+                    "{n,{c ".join([obj.name for obj in page.receivers]),
+                    page.message,
+                )
+                for page in lastpages
+            )
+
+            if lastpages:
+                string = "Your latest pages:\n %s" % lastpages
+            else:
+                string = "You haven't paged anyone yet."
+            self.msg(string)
+            return
+        # if this is a 'tell' rather than a page, we use different syntax
+        cmdstr = self.cmdstring.lower()
+        lhs = self.lhs
+        rhs = self.rhs
+        lhslist = self.lhslist
+        if cmdstr.startswith("tell"):
+            arglist = self.args.lstrip().split(" ", 1)
+            if len(arglist) < 2:
+                caller.msg("The tell format requires both a name and a message.")
+                return
+            lhs = arglist[0]
+            rhs = arglist[1]
+            lhslist = set(arglist[0].split(","))
+        # go through our comma separated list, also separate them by spaces
+        elif lhs and rhs:
+            tarlist = []
+            for ob in lhslist:
+                for word in ob.split():
+                    tarlist.append(word)
+            lhslist = tarlist
+
+        # We are sending. Build a list of targets
+        if "reply" in self.switches or cmdstr == "reply":
+            if not pages_we_got:
+                self.msg("You haven't received any pages.")
+                return
+            last_page = pages_we_got[-1]
+            receivers = set(last_page.senders + last_page.receivers)
+            receivers.discard(self.caller)
+            rhs = self.args
+        elif (not lhs and rhs) or (self.args and not rhs) or cmdstr == "ttell":
+            # If there are no targets, then set the targets
+            # to the last person we paged.
+            # also take format of p <message> for last receiver
+            if pages_we_sent:
+                receivers = pages_we_sent[-1].receivers
+                # if it's a 'tt' command, they can have '=' in a message body
+                if not rhs or cmdstr == "ttell":
+                    rhs = self.raw.lstrip()
+            else:
+                self.msg("Who do you want to page?")
+                return
+        else:
+            receivers = lhslist
+
+        if "noeval" in self.switches:
+            rhs = raw(rhs)
+
+        recobjs = []
+        for receiver in set(receivers):
+            # originally this section had this check, which always was true
+            # Not entirely sure what he was trying to check for
+            if isinstance(receiver, string_types):
+                findpobj = caller.search(receiver)
+            else:
+                findpobj = receiver
+            pobj = None
+            if findpobj:
+                # Make certain this is a player object, not a character
+                if hasattr(findpobj, "character"):
+                    # players should always have is_connected, but just in case
+                    if not hasattr(findpobj, "is_connected"):
+                        # only allow online tells
+                        self.msg("%s is not online." % findpobj)
+                        continue
+                    elif findpobj.character:
+                        if (
+                            hasattr(findpobj.character, "player")
+                            and not findpobj.character.player
+                        ):
+                            self.msg("%s is not online." % findpobj)
+                        else:
+                            pobj = findpobj.character
+                    elif not findpobj.character:
+                        # player is either OOC or offline. Find out which
+                        if hasattr(findpobj, "is_connected") and findpobj.is_connected:
+                            pobj = findpobj
+                        else:
+                            self.msg("%s is not online." % findpobj)
+                else:
+                    # Offline players do not have the character attribute
+                    self.msg("%s is not online." % findpobj)
+                    continue
+                if findpobj in caller.block_list:
+                    self.msg(
+                        "%s is in your block list and would not be able to reply to your page."
+                        % findpobj
+                    )
+                    continue
+                if caller.tags.get("chat_banned") and (
+                    caller not in findpobj.allow_list
+                    or findpobj not in caller.allow_list
+                ):
+                    self.msg(
+                        "You cannot page if you are not in each other's allow lists."
+                    )
+                    continue
+                if (
+                    findpobj.tags.get("ic_only")
+                    or caller in findpobj.block_list
+                    or findpobj.tags.get("chat_banned")
+                ) and not caller.check_permstring("builders"):
+                    if caller not in findpobj.allow_list:
+                        self.msg("%s is IC only and cannot be sent pages." % findpobj)
+                        continue
+            else:
+                continue
+            if pobj:
+                if hasattr(pobj, "player") and pobj.player:
+                    pobj = pobj.player
+                recobjs.append(pobj)
+
+        if not recobjs:
+            self.msg("No one found to page.")
+            return
+        if len(recobjs) > 1:
+            rec_names = ", ".join("{c%s{n" % str(ob) for ob in recobjs)
+        else:
+            rec_names = "{cyou{n"
+        header = "{wPlayer{n {c%s{n {wpages %s:{n" % (caller, rec_names)
+        message = rhs
+        pagepose = False
+        # if message begins with a :, we assume it is a 'page-pose'
+        if message.startswith(":") or message.startswith(";"):
+            pagepose = True
+            header = "From afar,"
+            if len(recobjs) > 1:
+                header = "From afar to %s:" % rec_names
+            if message.startswith(":"):
+                message = "{c%s{n %s" % (caller, message.strip(":").strip())
+            else:
+                message = "{c%s{n%s" % (caller, message.strip(";").strip())
+
+        # create the temporary message object
+        temp_message = TempMsg(senders=caller, receivers=recobjs, message=message)
+        caller.ndb.pages_sent.append(temp_message)
+
+        # tell the players they got a message.
+        received = []
+        r_strings = []
+        for pobj in recobjs:
+            if not pobj.access(caller, "msg"):
+                r_strings.append("You are not allowed to page %s." % pobj)
+                continue
+            if "ic_only" in caller.tags.all() and pobj not in caller.allow_list:
+                msg = "%s is not in your allow list, and you are IC Only. " % pobj
+                msg += "Allow them to send a page, or disable the IC Only @setting."
+                self.msg(msg)
+                continue
+            pobj.msg(
+                "%s %s" % (header, message), from_obj=caller, options={"log_msg": True}
+            )
+            if not pobj.ndb.pages_received:
+                pobj.ndb.pages_received = []
+            pobj.ndb.pages_received.append(temp_message)
+            if hasattr(pobj, "has_account") and not pobj.has_account:
+                received.append("{C%s{n" % pobj.name)
+                r_strings.append(
+                    "%s is offline. They will see your message if they list their pages later."
+                    % received[-1]
+                )
+            else:
+                received.append("{c%s{n" % pobj.name.capitalize())
+            afk = pobj.db.afk
+            if afk:
+                pobj.msg("{wYou inform {c%s{w that you are AFK:{n %s" % (caller, afk))
+                r_strings.append("{c%s{n is AFK: %s" % (pobj.name, afk))
+        if r_strings:
+            self.msg("\n".join(r_strings))
+        if received:
+            if pagepose:
+                self.msg("Long distance to %s: %s" % (", ".join(received), message))
+            else:
+                self.msg("You paged %s with: '%s'." % (", ".join(received), message))
+

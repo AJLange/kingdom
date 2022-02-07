@@ -36,3 +36,63 @@ class CmdSetGroups(Command):
         self.caller.msg("Add the character to the group: %i" % text)
 
 # to do above, make it a proper list you can add to
+
+
+class CmdSetXWho(Command):
+
+    """
+    Full Who By Group
+    Stubbed out only.
+
+    Usage:
+      xwho
+
+    """
+    
+    key = "xwho"
+    help_category = "roster"
+
+    def func(self):
+        
+        self.caller.msg("Get Character List by Group")
+
+
+
+
+class CmdSetWho(Command):
+
+    """
+    Full Who formatted nicely.
+    Stubbed out only.
+
+    Usage:
+      who
+
+    """
+    
+    key = "who"
+    help_category = "roster"
+
+    def func(self):
+        
+        self.caller.msg("Get Character List by Group")
+
+
+"""
+
+
+Syntax: who, +who                                                             
+        who<Name, Letters>                                                    
+        who <Faction>                                                         
+
+
+        The 'who' command lists everyone online, their alias, the abbreviaton 
+of the faction they're a part of, idle time, connect time, and function.      
+        The who<Letters> will display only those online with the letters      
+given; such as 'whot' would display everyone whose name starts with T.        
+        The who <Faction> command will list only those on within that faction.
+(Ex. who R, who W)                                                
+
+
+
+"""
