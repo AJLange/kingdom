@@ -9,7 +9,7 @@ To do: update pose code to reflect this change
 '''
 
 from evennia.commands.cmdset import CmdSet
-from commands.base import MuxCommand
+from evennia.commands.default.muxcommand import MuxCommand
 from evennia.utils.utils import list_to_string
 
 
