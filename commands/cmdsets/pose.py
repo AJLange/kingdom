@@ -15,6 +15,183 @@ from commands.cmdsets import places
 from evennia.comms.models import TempMsg
 
 
+class CmdPose(default_cmds.MuxCommand):
+    """
+    strike a pose
+    Usage:
+      pose <pose text>
+      pose's <pose text>
+    Example:
+      pose is standing by the wall, smiling.
+       -> others will see:
+      Tom is standing by the wall, smiling.
+    Describe an action being taken. The pose text will
+    automatically begin with your name.
+    """
+
+    key = "pose"
+    aliases = [":", "emote"]
+    locks = "cmd:all()"
+
+    def parse(self):
+        """
+        Custom parse the cases where the emote
+        starts with some special letter, such
+        as 's, at which we don't want to separate
+        the caller's name and the emote with a
+        space.
+        """
+        args = self.args
+        if args and not args[0] in ["'", ",", ":"]:
+            args = " %s" % args.strip()
+        self.args = args
+
+    def func(self):
+        """Hook function"""
+        if not self.args:
+            message = "What do you want to do?"
+            self.caller.msg(message)
+        else:
+            # Update the pose timer if outside of OOC room
+            # This assumes that the character's home is the OOC room, which it is by default
+            if self.caller.location != self.caller.home:
+                self.caller.set_pose_time(time.time())
+                self.caller.set_obs_mode(False)
+
+            message = "%s%s" % (self.caller.name, self.args)
+            message = sub_old_ansi(message)
+
+            tailored_msg(self.caller, message)
+            # msg = highlight_names(self.caller, msg)
+            # if character.color_attribute == True
+            # self.caller.location.msg_contents(text=(highlight_names(msg), {"type": "pose"}), from_obj=self.caller)
+            # else
+            # self.caller.location.msg_contents(text=msg, {"type": "pose"}), from_obj=self.caller)
+
+            # If an event is running in the current room, then write to event's log
+            if self.caller.location.db.active_event:
+                scene = Scene.objects.get(pk=self.caller.location.db.event_id)
+                scene.addLogEntry(LogEntry.EntryType.POSE, self.args, self.caller)
+                add_participant_to_scene(self.caller, scene)
+
+class CmdEmit(default_cmds.MuxCommand):
+    """
+    @emit
+    Usage:
+      @emit[/switches] [<obj>, <obj>, ... =] <message>
+      @remit           [<obj>, <obj>, ... =] <message>
+      @pemit           [<obj>, <obj>, ... =] <message>
+    Switches:
+      room : limit emits to rooms only (default)
+      players : limit emits to players only
+      contents : send to the contents of matched objects too
+    Emits a message to the selected objects or to
+    your immediate surroundings. If the object is a room,
+    send to its contents. @remit and @pemit are just
+    limited forms of @emit, for sending to rooms and
+    to players respectively.
+    """
+
+    key = "@emit"
+    aliases = ["@pemit", "@remit", "\\\\"]
+    locks = "cmd:all()"
+    help_category = "Social"
+    perm_for_switches = "Builders"
+    arg_regex = None
+
+    def get_help(self, caller, cmdset):
+        """Returns custom help file based on caller"""
+        if caller.check_permstring(self.perm_for_switches):
+            return self.__doc__
+        help_string = """
+        @emit
+        Usage :
+            @emit <message>
+        Emits a message to your immediate surroundings. This command is
+        used to provide more flexibility than the structure of poses, but
+        please remember to indicate your character's name.
+        """
+        return help_string
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
+
+        # Update the pose timer if outside of OOC room
+        # This assumes that the character's home is the OOC room, which it is by default
+        if caller.location != caller.home:
+            caller.set_pose_time(time.time())
+            caller.set_obs_mode(False)
+
+        if not self.args:
+            string = "Usage: "
+            string += "\n@emit[/switches] [<obj>, <obj>, ... =] <message>"
+            caller.msg(string)
+            return
+
+        # normal emits by players are just sent to the room and tailored to add posecolors
+        message = self.args
+        message = sub_old_ansi(message)
+        tailored_msg(caller, message)
+
+        # If an event is running in the current room, then write to event log
+        if caller.location.db.active_event:
+            scene = Scene.objects.get(pk=self.caller.location.db.event_id)
+            scene.addLogEntry(LogEntry.EntryType.EMIT, message, self.caller)
+            add_participant_to_scene(self.caller, scene)
+        return
+
+class CmdOOC(default_cmds.MuxCommand):
+    """
+    speak out-of-character
+    Usage:
+      ooc <message>
+    Talk to those in your current location.
+    """
+
+    key = "ooc"
+    aliases = ["+ooc"]
+    locks = "cmd:all()"
+
+    def func(self):
+        """Run the OOC command"""
+
+        caller = self.caller
+
+        if not self.args:
+            home = caller.home
+            if not home:
+                caller.msg("Mysteriously, you cannot return to the OOC Room.")
+            elif home == caller.location:
+                caller.msg("You are already in the OOC Room.")
+            else:
+                caller.msg("You return whence you came.")
+                caller.move_to(home)
+            return
+
+        speech = self.args
+
+        # Calling the at_before_say hook on the character
+        speech = caller.at_before_say(speech)
+
+        # If speech is empty, stop here
+        if not speech:
+            return
+
+        # Call the at_after_say hook on the character
+        # caller.at_say(speech, msg_self=True)
+        if speech[0] == ":":
+            speech = ("|y<OOC>|n {0} {1}").format(self.caller.name, speech[1:])
+        elif speech[0] == ";":
+            speech = ("|y<OOC>|n {0}{1}").format(self.caller.name, speech[1:])
+        else:
+            speech = ("|y<OOC>|n {0} says, \"{1}\"").format(self.caller.name, speech)
+
+        caller.location.msg_contents(
+            speech, from_obj=caller, options={"is_pose": True}
+        )
+
 class CmdThink(BaseCommand):
     """
     This is just for thinking out loud.
@@ -328,6 +505,55 @@ class CmdPose(BaseCommand):
             self.caller.msg(errmsg)
             return
         
+
+class CmdSay(default_cmds.MuxCommand):
+    """
+    speak as your character
+    Usage:
+      say <message>
+    Talk to those in your current location.
+    """
+
+    key = "say"
+    aliases = ['"', "'"]
+    locks = "cmd:all()"
+
+    # Here we overwrite the default "say" command so that it updates the pose timer for +pot,
+    # as well as for LogEntry, etc.
+    def func(self):
+        """Run the say command"""
+
+        caller = self.caller
+
+        # Update the pose timer if outside of OOC room
+        # This assumes that the character's home is the OOC room, which it is by default
+        if caller.location != caller.home:
+            caller.set_pose_time(time.time())
+            caller.set_obs_mode(False)
+
+        if not self.args:
+            caller.msg("Say what?")
+            return
+
+        message = self.args
+
+        # Calling the at_before_say hook on the character
+        message = caller.at_before_say(message)
+        # tailored_msg(caller, message)
+        # TODO: Apply tailored_msg to the first person/third person distinction in say display.
+
+        # If speech is empty, stop here
+        if not message:
+            return
+
+        # Call the at_after_say hook on the character
+        caller.at_say(message, msg_self=True)
+
+        # If an event is running in the current room, then write to event log
+        if caller.location.db.active_event:
+            scene = Scene.objects.get(pk=self.caller.location.db.event_id)
+            scene.addLogEntry(LogEntry.EntryType.SAY, self.args, self.caller)
+            add_participant_to_scene(self.caller, scene)
 
 
 class CmdMegaSay(CmdSay):
@@ -924,3 +1150,229 @@ class CmdPage(BaseCommand):
             else:
                 self.msg("You paged %s with: '%s'." % (", ".join(received), message))
 
+
+
+class CmdPoseColors(default_cmds.MuxCommand):
+    """
+    Toggle colored names in poses. Posecolors/self and
+    posecolors/others are used to set the colors of one's
+    own name and other names, respectively. Type "color
+    xterm256" to see the list of eligible color codes.
+    Usage:
+      posecolors on/off
+      posecolors/self <xterm256 code>
+      posecolors/others <xterm256 code>
+    Examples:
+      posecolors on
+      posecolors/self 555
+      posecolors/others 155
+    """
+
+    key = "posecolors"
+    aliases = "+posecolors"
+    switch_options = ("self", "others")
+    locks = "cmd:all()"
+
+    def func(self):
+        """Changes pose colors"""
+
+        caller = self.caller
+        args = self.args
+        switches = self.switches
+
+        if switches or args:
+            if args == "on":
+                caller.db.pose_colors_on = True
+                caller.msg("Name highlighting enabled")
+            elif args == "off":
+                caller.db.pose_colors_on = False
+                caller.msg("Name highlighting disabled")
+            elif "self" in switches:
+                if len(args) == 3 and args.isdigit:
+                    caller.db.pose_colors_self = str(args)
+                    caller.msg("Player's name highlighting color updated")
+            elif "others" in switches:
+                if len(args) == 3 and args.isdigit:
+                    caller.db.pose_colors_self = str(args)
+                    caller.msg("Other's name highlighting color updated")
+            else:
+                caller.msg("Unknown switch/argument!")
+                return
+
+class CmdPage(default_cmds.MuxCommand):
+    """
+    send a private message to another account
+    Usage:
+      page[/switches] [<account>,<account>,... = <message>]
+      tell        ''
+      page <number>
+    Switch:
+      last - shows who you last messaged
+      list - show your last <number> of tells/pages (default)
+    Send a message to target user (if online). If no
+    argument is given, you will get a list of your latest messages.
+    """
+
+    key = "page"
+    aliases = ["tell", "p"]
+    switch_options = ("last", "list")
+    locks = "cmd:not pperm(page_banned)"
+    help_category = "Comms"
+    # This is a modified version of the page command that notifies recipients of pages
+    # when there are multiple recipients, i.e., when you are in a group conversation.
+    # By default, Evennia's page command doesn't inform you that multiple people have
+    # received a page that you have received, for some very strange reason!
+
+    # this is used by the COMMAND_DEFAULT_CLASS parent
+    account_caller = True
+
+    def func(self):
+        """Implement function using the Msg methods"""
+
+        # Since account_caller is set above, this will be an Account.
+        caller = self.caller
+
+        # get the messages we've sent (not to channels)
+        pages_we_sent = Msg.objects.get_messages_by_sender(caller, exclude_channel_messages=True)
+        # get last messages we've got
+        pages_we_got = Msg.objects.get_messages_by_receiver(caller)
+
+        if "last" in self.switches:
+            if pages_we_sent:
+                recv = ",".join(obj.key for obj in pages_we_sent[-1].receivers)
+                self.msg("You last paged |c%s|n:%s" % (recv, pages_we_sent[-1].message))
+                return
+            else:
+                self.msg("You haven't paged anyone yet.")
+                return
+
+        if not self.args or not self.rhs:
+            pages = pages_we_sent + pages_we_got
+            pages = sorted(pages, key=lambda page: page.date_created)
+
+            number = 5
+            if self.args:
+                try:
+                    number = int(self.args)
+                except ValueError:
+                    self.msg("Usage: tell [<account> = msg]")
+                    return
+
+            if len(pages) > number:
+                lastpages = pages[-number:]
+            else:
+                lastpages = pages
+            to_template = "|w{date}{clr} {sender}|nto{clr}{receiver}|n:> {message}"
+            from_template = "|w{date}{clr} {receiver}|nfrom{clr}{sender}|n:< {message}"
+            listing = []
+            prev_selfsend = False
+            for page in lastpages:
+                multi_send = len(page.senders) > 1
+                multi_recv = len(page.receivers) > 1
+                sending = self.caller in page.senders
+                # self-messages all look like sends, so we assume they always
+                # come in close pairs and treat the second of the pair as the recv.
+                selfsend = sending and self.caller in page.receivers
+                if selfsend:
+                    if prev_selfsend:
+                        # this is actually a receive of a self-message
+                        sending = False
+                        prev_selfsend = False
+                    else:
+                        prev_selfsend = True
+
+                clr = "|c" if sending else "|g"
+
+                sender = f"|n,{clr}".join(obj.key for obj in page.senders)
+                receiver = f"|n,{clr}".join([obj.name for obj in page.receivers])
+                if sending:
+                    template = to_template
+                    sender = f"{sender} " if multi_send else ""
+                    receiver = f" {receiver}" if multi_recv else f" {receiver}"
+                else:
+                    template = from_template
+                    receiver = f"{receiver} " if multi_recv else ""
+                    sender = f" {sender} " if multi_send else f" {sender}"
+
+                listing.append(
+                    template.format(
+                        date=utils.datetime_format(page.date_created),
+                        clr=clr,
+                        sender=sender,
+                        receiver=receiver,
+                        message=page.message,
+                    )
+                )
+            lastpages = "\n ".join(listing)
+
+            if lastpages:
+                string = "Your latest pages:\n %s" % lastpages
+            else:
+                string = "You haven't paged anyone yet."
+            self.msg(string)
+            return
+
+        # We are sending. Build a list of targets
+
+        if not self.lhs:
+            # If there are no targets, then set the targets
+            # to the last person we paged.
+            if pages_we_sent:
+                receivers = pages_we_sent[-1].receivers
+            else:
+                self.msg("Who do you want to page?")
+                return
+        else:
+            receivers = self.lhslist
+
+        recobjs = []
+        for receiver in set(receivers):
+            if isinstance(receiver, str):
+                pobj = caller.search(receiver)
+            elif hasattr(receiver, "character"):
+                pobj = receiver
+            else:
+                self.msg("Who do you want to page?")
+                return
+            if pobj:
+                recobjs.append(pobj)
+        if not recobjs:
+            self.msg("Noone found to page.")
+            return
+
+        header = "|c%s|n |wpages|n" % caller.key # Ivo pages Headwiz, Ugen: <message>
+        message = self.rhs
+
+        # if message begins with a :, we assume it is a 'page-pose'
+        if message.startswith(":"):
+            message = "%s %s" % (caller.key, message.strip(":").strip())
+
+        # create the persistent message object
+        create.create_message(caller, message, receivers=recobjs)
+
+        # tell the accounts they got a message.
+        received = []
+        rstrings = []
+        namelist = ""
+        for count, pobj in enumerate(recobjs):
+            if count == 0:
+                namelist += "|c{0}|n".format(pobj.name)
+            else:
+                namelist += ", |c{0}|n".format(pobj.name)
+
+        for pobj in recobjs:
+            if not pobj.access(caller, "msg"):
+                rstrings.append("You are not allowed to page %s." % pobj)
+                continue
+            pobj.msg("%s %s: %s" % (header, namelist, message))
+            if hasattr(pobj, "sessions") and not pobj.sessions.count():
+                received.append("|C%s|n" % pobj.name)
+                rstrings.append(
+                    "%s is offline. They will see your message if they list their pages later."
+                    % received[-1]
+                )
+            else:
+                received.append("|c%s|n" % pobj.name)
+        if rstrings:
+            self.msg("\n".join(rstrings))
+        self.msg("You paged %s with: '%s'." % (", ".join(received), message))

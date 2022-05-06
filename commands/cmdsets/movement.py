@@ -318,3 +318,41 @@ class CmdTidyUp(MuxCommand):
                 "The following characters were removed: %s"
                 % ", ".join(ob.name for ob in found)
             )
+
+
+
+class CmdWarp(default_cmds.MuxCommand):
+    """
+    teleport to another location
+    Usage:
+      warp <target location>
+    Examples:
+      warp granse - zerhem kingdom
+    """
+
+    key = "warp"
+    aliases = "+warp"
+    locks = "cmd:all()"
+
+    # This is a copy-paste of @tel (or teleport) with reduced functions. @tel is an admin
+    # command that takes objects as args, allowing you to teleport objects to places.
+    # Warp only allows you to teleport yourself. I chose to make a new command rather than
+    # expand on @tel with different permission sets because the docstring/help file is
+    # expansive for @tel, as it has many switches in its admin version.
+    def func(self):
+        """Performs the teleport"""
+
+        caller = self.caller
+        args = self.args
+
+        destination = caller.search(args, global_search=True)
+        if not destination:
+            caller.msg("Destination not found.")
+            return
+        if destination:
+            if not isinstance(destination, Room):
+                caller.msg("Destination is not a room.")
+                return
+            else:
+                caller.move_to(destination)
+                caller.msg("Teleported to %s." % destination)

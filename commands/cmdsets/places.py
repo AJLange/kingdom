@@ -78,6 +78,10 @@ class CmdJoin(MuxCommand):
         caller.msg(get_movement_message("join", table))
 
 
+
+
+
+
 class CmdListPlaces(MuxCommand):
     """
     Lists places in current room for private chat
