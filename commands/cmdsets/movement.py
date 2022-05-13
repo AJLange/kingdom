@@ -9,6 +9,7 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
+from typeclasses.rooms import Room
 
 
 
@@ -30,10 +31,12 @@ class CmdSummon(MuxCommand):
     locks = "cmd:all()"
     help_category = "Travel"
 
+
     def func(self):
         """ Functionality for this mechanism. """
-        caller = self.caller
-        if not self.args:
+        caller = self.caller        
+        args = self.args
+        if not args:
             caller.msg("Summon who?")
             return
 
@@ -51,12 +54,19 @@ class CmdSummon(MuxCommand):
                 caller.msg("Teleport was denied.")
                 return
             elif agreedeny.startswith('a'):
-
-                return
+                destination = caller.search(args, global_search=True)
+                if not destination:
+                    caller.msg("Destination not found.")
+                    return
+                if destination:
+                    if not isinstance(destination, Room):
+                        caller.msg("Destination is not a room.")
+                    return
             else:
-                port_targ.msg("Response error.")
-                return
+                caller.move_to(destination)
+                caller.msg("Teleported to %s." % destination)
 
+                return
         except:
             caller.msg("Error.")
 
@@ -90,7 +100,8 @@ class CmdJoin(MuxCommand):
     def func(self):
         """ Functionality for this mechanism. """
         caller = self.caller
-        if not self.args:
+        args = self.args
+        if not args:
             caller.msg("Join who?")
             return
 
@@ -108,12 +119,19 @@ class CmdJoin(MuxCommand):
                 caller.msg("Teleport was denied.")
                 return
             elif agreedeny.startswith('a'):
-
-                return
+                destination = caller.search(args, global_search=True)
+                if not destination:
+                    caller.msg("Destination not found.")
+                    return
+                if destination:
+                    if not isinstance(destination, Room):
+                        caller.msg("Destination is not a room.")
+                    return
             else:
-                port_targ.msg("Response error.")
-                return
+                caller.move_to(destination)
+                caller.msg("Teleported to %s." % destination)
 
+                return
 
         except:
             caller.msg("Error.")
@@ -321,7 +339,7 @@ class CmdTidyUp(MuxCommand):
 
 
 
-class CmdWarp(default_cmds.MuxCommand):
+class CmdWarp(MuxCommand):
     """
     teleport to another location
     Usage:
