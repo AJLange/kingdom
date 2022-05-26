@@ -16,6 +16,49 @@ from evennia.commands.default.building import CmdSetAttribute
 None of the numerical stuff works yet, only takes the single argument. 
 Just stubbing it out.
 
+What characters must have:
+
+Fixed set by staff:
+Name
+Function
+Quote
+Profile 
+Primary Weapon
+Gender/Sex
+Game (if applicable)
+Type (FC or OC)
+Power Source (eg Race)
+Specialties (the cute list of skills)
+
+OOCfinger info (can be set by player):
+Email
+Contact/Discord
+Alias
+Alts
+Timezone/Location
+Voice Actor
+Theme/Music
+Info
+RP Hooks
+
+Combat and systems:
+(set per armor form)
+Stats
+Skills
+Abilities/Capabilities (collapsing this back into one thing)
+AttackTypes
+Armor forms
+Weakness
+Resist
+Height/Size 
+Speed
+
+Faction related info (to be added later)
+
+Flags which are flexible per scene:
+HP
+
+
 '''
 
 
