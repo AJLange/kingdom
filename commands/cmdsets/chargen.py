@@ -105,8 +105,8 @@ class CmdSetSkills(Command):
     Staff creating characters only.
 
     Usage:
-      +setstat Infiltration <1-5>
-      +setstat <nameskill> <1-5> 
+      +setskill Perception <1-5>
+      +setskill <nameskill> <1-5> 
 
 
     Valid skills in this version are
@@ -115,9 +115,9 @@ class CmdSetSkills(Command):
     Force
     Mechanic
     Medicine
-    Hacking
+    Computer
     Stealth
-    Infiltration
+    Larceny
     Convince
     Presence
     Arcana

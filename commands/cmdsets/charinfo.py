@@ -152,10 +152,21 @@ class CmdSheet(BaseCommand):
             """implements the actual functionality"""
 
             pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
-            string = "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
-            self.caller.msg(string)
+            # right now this just pulls numbers/stats, to be fixed once skills are set in stone.
+            perception, athletics, force, mechanics, medicine, computer, stealth, larceny, convince, presence, arcana = self.caller.get_skills()
+            line1 = "Name: "
+            line2 = "Racetype: Power Types:" 
+            line3 = "Current Mode:"            
+            line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
+            line5 = "Perception: %s, Athletics: %s, Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Larceny: %s , Convince: %s, Presence: %s, Arcana: %s"  % (perception, athletics, force, mechanics, medicine, computer, stealth, larceny, convince, presence, arcana)
+            line6 = "Capabilities: "
+            line7 =  "Size, Speed"
+            line8 = "Elements: Weakness/Resistance:"
+            # not sure yet about attack lists, if that will be a thing or not
+            sheetmsg = (line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8)
+            self.caller.msg(sheetmsg)
 
-            
+
 
 class CmdSetDesc(MuxCommand):
     """

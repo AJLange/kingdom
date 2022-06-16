@@ -28,9 +28,20 @@ class Character(DefaultCharacter):
     def get_abilities(self):
         """
         Simple access method to return ability
-        scores as a tuple. This for now is all stats we're using!
+        scores as a tuple. 
         """
         return self.db.pow, self.db.dex, self.db.ten, self.db.cun, self.db.edu, self.db.chr, self.db.aur
+
+    def get_skills(self):
+        """
+        Simple access method to return skills
+    
+        """
+        # note this doesn't work right now, not until chargen machine allows adding all stats. 
+        return self.db.pow, self.db.dex, self.db.ten, self.db.cun, self.db.edu, self.db.chr, self.db.aur, self.db.cun, self.db.edu, self.db.chr, self.db.aur
+
+
+
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
     following functionality:
