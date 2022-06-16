@@ -127,7 +127,8 @@ class CmdOOCFinger(BaseCommand):
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"Name: {char.name} |/ OOCFinger information lives here.")
+            oocfingermsg = "Email, Contact, Alias, Alts, Timezone/Location, Voice Actor, Music, Info, RP Hooks"
+            self.caller.msg(f"Name: {char.name} |/ {oocfingermsg}")
         except ValueError:
             self.caller.msg("Some error occured.")
             return
