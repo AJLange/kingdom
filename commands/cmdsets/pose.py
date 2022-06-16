@@ -15,183 +15,6 @@ from commands.cmdsets import places
 from evennia.comms.models import TempMsg
 
 
-class CmdPose(default_cmds.MuxCommand):
-    """
-    strike a pose
-    Usage:
-      pose <pose text>
-      pose's <pose text>
-    Example:
-      pose is standing by the wall, smiling.
-       -> others will see:
-      Tom is standing by the wall, smiling.
-    Describe an action being taken. The pose text will
-    automatically begin with your name.
-    """
-
-    key = "pose"
-    aliases = [":", "emote"]
-    locks = "cmd:all()"
-
-    def parse(self):
-        """
-        Custom parse the cases where the emote
-        starts with some special letter, such
-        as 's, at which we don't want to separate
-        the caller's name and the emote with a
-        space.
-        """
-        args = self.args
-        if args and not args[0] in ["'", ",", ":"]:
-            args = " %s" % args.strip()
-        self.args = args
-
-    def func(self):
-        """Hook function"""
-        if not self.args:
-            message = "What do you want to do?"
-            self.caller.msg(message)
-        else:
-            # Update the pose timer if outside of OOC room
-            # This assumes that the character's home is the OOC room, which it is by default
-            if self.caller.location != self.caller.home:
-                self.caller.set_pose_time(time.time())
-                self.caller.set_obs_mode(False)
-
-            message = "%s%s" % (self.caller.name, self.args)
-            message = sub_old_ansi(message)
-
-            tailored_msg(self.caller, message)
-            # msg = highlight_names(self.caller, msg)
-            # if character.color_attribute == True
-            # self.caller.location.msg_contents(text=(highlight_names(msg), {"type": "pose"}), from_obj=self.caller)
-            # else
-            # self.caller.location.msg_contents(text=msg, {"type": "pose"}), from_obj=self.caller)
-
-            # If an event is running in the current room, then write to event's log
-            if self.caller.location.db.active_event:
-                scene = Scene.objects.get(pk=self.caller.location.db.event_id)
-                scene.addLogEntry(LogEntry.EntryType.POSE, self.args, self.caller)
-                add_participant_to_scene(self.caller, scene)
-
-class CmdEmit(default_cmds.MuxCommand):
-    """
-    @emit
-    Usage:
-      @emit[/switches] [<obj>, <obj>, ... =] <message>
-      @remit           [<obj>, <obj>, ... =] <message>
-      @pemit           [<obj>, <obj>, ... =] <message>
-    Switches:
-      room : limit emits to rooms only (default)
-      players : limit emits to players only
-      contents : send to the contents of matched objects too
-    Emits a message to the selected objects or to
-    your immediate surroundings. If the object is a room,
-    send to its contents. @remit and @pemit are just
-    limited forms of @emit, for sending to rooms and
-    to players respectively.
-    """
-
-    key = "@emit"
-    aliases = ["@pemit", "@remit", "\\\\"]
-    locks = "cmd:all()"
-    help_category = "Social"
-    perm_for_switches = "Builders"
-    arg_regex = None
-
-    def get_help(self, caller, cmdset):
-        """Returns custom help file based on caller"""
-        if caller.check_permstring(self.perm_for_switches):
-            return self.__doc__
-        help_string = """
-        @emit
-        Usage :
-            @emit <message>
-        Emits a message to your immediate surroundings. This command is
-        used to provide more flexibility than the structure of poses, but
-        please remember to indicate your character's name.
-        """
-        return help_string
-
-    def func(self):
-        """Implement the command"""
-
-        caller = self.caller
-
-        # Update the pose timer if outside of OOC room
-        # This assumes that the character's home is the OOC room, which it is by default
-        if caller.location != caller.home:
-            caller.set_pose_time(time.time())
-            caller.set_obs_mode(False)
-
-        if not self.args:
-            string = "Usage: "
-            string += "\n@emit[/switches] [<obj>, <obj>, ... =] <message>"
-            caller.msg(string)
-            return
-
-        # normal emits by players are just sent to the room and tailored to add posecolors
-        message = self.args
-        message = sub_old_ansi(message)
-        tailored_msg(caller, message)
-
-        # If an event is running in the current room, then write to event log
-        if caller.location.db.active_event:
-            scene = Scene.objects.get(pk=self.caller.location.db.event_id)
-            scene.addLogEntry(LogEntry.EntryType.EMIT, message, self.caller)
-            add_participant_to_scene(self.caller, scene)
-        return
-
-class CmdOOC(default_cmds.MuxCommand):
-    """
-    speak out-of-character
-    Usage:
-      ooc <message>
-    Talk to those in your current location.
-    """
-
-    key = "ooc"
-    aliases = ["+ooc"]
-    locks = "cmd:all()"
-
-    def func(self):
-        """Run the OOC command"""
-
-        caller = self.caller
-
-        if not self.args:
-            home = caller.home
-            if not home:
-                caller.msg("Mysteriously, you cannot return to the OOC Room.")
-            elif home == caller.location:
-                caller.msg("You are already in the OOC Room.")
-            else:
-                caller.msg("You return whence you came.")
-                caller.move_to(home)
-            return
-
-        speech = self.args
-
-        # Calling the at_before_say hook on the character
-        speech = caller.at_before_say(speech)
-
-        # If speech is empty, stop here
-        if not speech:
-            return
-
-        # Call the at_after_say hook on the character
-        # caller.at_say(speech, msg_self=True)
-        if speech[0] == ":":
-            speech = ("|y<OOC>|n {0} {1}").format(self.caller.name, speech[1:])
-        elif speech[0] == ";":
-            speech = ("|y<OOC>|n {0}{1}").format(self.caller.name, speech[1:])
-        else:
-            speech = ("|y<OOC>|n {0} says, \"{1}\"").format(self.caller.name, speech)
-
-        caller.location.msg_contents(
-            speech, from_obj=caller, options={"is_pose": True}
-        )
-
 class CmdThink(BaseCommand):
     """
     This is just for thinking out loud.
@@ -506,7 +329,7 @@ class CmdPose(BaseCommand):
             return
         
 
-class CmdSay(default_cmds.MuxCommand):
+class CmdSay(MuxCommand):
     """
     speak as your character
     Usage:
@@ -1152,7 +975,7 @@ class CmdPage(BaseCommand):
 
 
 
-class CmdPoseColors(default_cmds.MuxCommand):
+class CmdPoseColors(MuxCommand):
     """
     Toggle colored names in poses. Posecolors/self and
     posecolors/others are used to set the colors of one's
@@ -1199,7 +1022,7 @@ class CmdPoseColors(default_cmds.MuxCommand):
                 caller.msg("Unknown switch/argument!")
                 return
 
-class CmdPage(default_cmds.MuxCommand):
+class CmdPage(MuxCommand):
     """
     send a private message to another account
     Usage:

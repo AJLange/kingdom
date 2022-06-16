@@ -15,7 +15,7 @@ from commands.command import BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 
-class CmdFinger(default_cmds.MuxCommand):
+class CmdFinger(MuxCommand):
     """
         +finger
         Usage:
@@ -196,7 +196,7 @@ class CmdOOCFinger(BaseCommand):
 
 
 
-class CmdSheet(default_cmds.MuxCommand):
+class CmdSheet(MuxCommand):
         """
         List attributes
         Usage:
@@ -339,7 +339,7 @@ class CmdSheet(default_cmds.MuxCommand):
         #
         #     return rowString
 
-class CmdSetDesc(default_cmds.MuxCommand):
+class CmdSetDesc(MuxCommand):
     """
     describe yourself
     Usage:
