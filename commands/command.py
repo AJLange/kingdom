@@ -189,26 +189,7 @@ class Command(BaseCommand):
 #                 self.character = self.caller.get_puppet(self.session)
 #             else:
 #                 self.character = None
-class CmdAbilities(BaseCommand):
-        """
-        List my stats
 
-        Usage:
-        +stats
-
-        Displays a list of your current stats.
-        """
-        key = "+stats"
-        aliases = ["stats"]
-        lock = "cmd:all()"
-        help_category = "General"
-
-        def func(self):
-            """implements the actual functionality"""
-
-            pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
-            string = "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
-            self.caller.msg(string)
 
 
 

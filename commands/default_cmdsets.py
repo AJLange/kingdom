@@ -16,13 +16,13 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
-from commands.command import CmdAbilities
+
 from commands.cmdsets.pose import CmdThink
 from commands.cmdsets.pose import CmdPose
 from commands.cmdsets.pose import CmdMegaSay
 from commands.cmdsets.pose import CmdEmit
 from commands.cmdsets.pose import CmdOOCSay
-from commands.cmdsets.charinfo import CmdFinger
+from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdSetDesc
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
 import commands.cmdsets.movement
@@ -48,7 +48,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-        self.add(CmdAbilities())
+        self.add(CmdSheet())
         self.add(CmdThink())
         self.add(CmdDice())
         self.add(CmdPose())
@@ -58,6 +58,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
         self.add(CmdEFinger())
+        self.add(CmdSetDesc())
         self.add(commands.cmdsets.movement.CmdSummon())
         self.add(commands.cmdsets.movement.CmdJoin())
         self.add(commands.cmdsets.movement.CmdFollow())

@@ -243,9 +243,6 @@ class CmdSetTypes(Command):
 
 
 
-
-
-
 class ChargenCmdset(CmdSet):
     """
     This cmdset is used in character generation areas.
