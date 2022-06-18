@@ -9,6 +9,7 @@ from commands.command import CmdAbilities
 from evennia import CmdSet
 from commands import command
 from commands.base import BaseCommand
+from six import string_types
 from server.utils import sub_old_ansi
 from evennia.server.sessionhandler import SESSIONS
 import time
@@ -323,11 +324,6 @@ class CmdWhisper(MuxCommand):
       whisper [<player>,<player>,... = <message>]
       whisper =<message> - sends whisper to last person you whispered
       whisper <name> <message>
-      whisper/list <number> - Displays list of last <number> of recent whispers
-
-    Switch:
-      last - shows who you last messaged
-      list - show your last <number> of messages (default)
 
     Send an IC message to a character in your room. A whisper of the format
     "whisper player=Hello" will send a message in the form of "You whisper
@@ -341,8 +337,6 @@ class CmdWhisper(MuxCommand):
     Characters with the enhanced_senses ability can overhear the text of
     whispers.
 
-    If no argument is given, you will get a list of your whispers from this
-    session.
     """
 
     key = "whisper"
@@ -363,53 +357,13 @@ class CmdWhisper(MuxCommand):
         # get last messages we've got
         if not caller.ndb.whispers_received:
             caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
 
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
+        if not self.args:
+            self.msg("Usage: whisper [<player> = msg]")
             return
+
+            
         # We are sending. Build a list of targets
         lhs = self.lhs
         rhs = self.rhs
@@ -577,12 +531,6 @@ class CmdMutter(MuxCommand):
       mutter =<message> - sends mutter to last person you muttered to
       mutter <name> <message>
       mutter/self message
-      mutter/list <number> - Displays list of last <number> of recent whispers
-
-    Switch:
-      last - shows who you last messaged
-      list - show your last <number> of messages (default)
-
 
     Send an IC message to a character in your room. A whisper of the format
     "mutter player=Hello" will send a message in the form of "You mutter to
@@ -596,7 +544,6 @@ class CmdMutter(MuxCommand):
     The switch mutter/self does the partial pose to yourself, just for people
     overhearing the partial mutter.
 
-    If no argument is given, you will get a list of your mutters from this session.
     """
 
     key = "mutter"
@@ -617,53 +564,16 @@ class CmdMutter(MuxCommand):
         # get last messages we've got
         if not caller.ndb.whispers_received:
             caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
-
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
+        if not self.args:
+            self.msg("Usage: mutter [<player> = msg]")
             return
+
+        if "self" in self.switches:
+        # todo, mutter/self
+            return
+
+
         # We are sending. Build a list of targets
         lhs = self.lhs
         rhs = self.rhs
@@ -704,13 +614,13 @@ class CmdMutter(MuxCommand):
             elif hasattr(receiver, "player"):
                 pobj = receiver
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to mutter to?")
                 return
             if pobj:
                 if hasattr(pobj, "has_account") and not pobj.has_account:
-                    self.msg("You may only send whispers to online characters.")
+                    self.msg("You may only mutter to online characters.")
                 elif not pobj.location or pobj.location != caller.location:
-                    self.msg("You may only whisper characters in the same room as you.")
+                    self.msg("You may only mutter to characters in the same room as you.")
                 else:
                     recobjs.append(pobj)
         if not recobjs:
@@ -793,62 +703,63 @@ class CmdMutter(MuxCommand):
                 self.msg("You posed to %s: %s" % (", ".join(received), message))
             else:
                 self.msg("You whispered to %s, %s" % (", ".join(received), message))
-                if "mutter" in self.switches or "mutter" in self.cmdstring:
-                    from random import randint
-
-                    word_list = rhs.split()
-                    chosen = []
-                    num_real = 0
-                    for word in word_list:
-                        if randint(0, 2):
-                            chosen.append(word)
-                            num_real += 1
-                        else:
-                            chosen.append("...")
-                    if num_real:
-                        mutter_text = " ".join(chosen)
-                if mutter_text:
-                    emit_string = ' mutters, "%s{n"' % mutter_text
-                    exclude = [caller] + recobjs
-                    caller.location.msg_action(
-                        self.caller,
-                        emit_string,
-                        options={"is_pose": True},
-                        exclude=exclude,
+                
+                
+            #partial intercept mutter functionality
+            from random import randint
+            word_list = rhs.split()
+            chosen = []
+            num_real = 0
+            for word in word_list:
+                if randint(0, 2):
+                    chosen.append(word)
+                    num_real += 1
+                else:
+                    chosen.append("...")
+            if num_real:
+                mutter_text = " ".join(chosen)
+            if mutter_text:
+                emit_string = ' mutters, "%s{n"' % mutter_text
+                exclude = [caller] + recobjs
+                caller.location.msg_action(
+                    self.caller,
+                    emit_string,
+                    options={"is_pose": True},
+                    exclude=exclude,
                     )
-                    self.mark_command_used()
+                self.mark_command_used()
         caller.posecount += 1
 
 
 
-class CmdTelepathic(MuxCommand):
+class CmdTightbeam(MuxCommand):
+
     """
-    Telepathy - send private IC message
+    Tightbeam - send private IC message
 
     Usage:
-      telepath [<player>,<player>,... = <message>]
-      telepath =<message> - sends whisper to last person you whispered
-      telepath <name> <message>
-      whisper/mutter
+      tightbeam[/switches] [<player>,<player>,... = <message>]
+      tightbeam =<message> - sends a tightbeam radio to last person you radioed
+      tightbeam <name> <message>
+      2way <name> <message>     
 
-    Send an IC message to a character in your room. A whisper of the format
-    "whisper player=Hello" will send a message in the form of "You whisper
-    <player>". A whisper of the format "whisper player=:does an emote" will appear
-    in the form of "Discreetly, soandso does an emote" to <player>. It's generally
-    expected that for whispers during public roleplay scenes that the players
-    involved should pose to the room with some small mention that they're
-    communicating discreetly. For ooc messages, please use the 'page'/'tell'
-    command instead. If the /mutter switch is used, some of your whisper will
-    be overheard by the room. Mutter cannot be used for whisper-poses.
 
-    Right now, If no argument is given, you will get a list of your whispers from this
-    session, but I'm going to kill that functionality here is a comment indicating that's true.
+    Send an IC message to a character anywhere on the game using in-game radio.
+
+    You cannot send a tightbeam to a player whose radio is turned off.
+
+    "+2way player=Hello" will send a message in the form of "Tightbeam from <player>:". 
+    A 2way of the format "2way player=:does an emote" will appear
+    in the form of "Tightbeam from <player> does an emote" to <player>. 
+
+    +2way and +tightbeam do the same thing. For radio messages to talk within a group
+    or on open bands, see the help for the +radio commands.
     """
 
-    key = "telepath"
-    aliases = ["+telepath"]
+    key = "tightbeam"
+    aliases = ["+2way, +tightbeam", "2way"]
     locks = "cmd:not pperm(page_banned)"
-    help_category = "Social"
+    help_category = "Radio"
 
     def func(self):
         """Implement function using the Msg methods"""
@@ -862,53 +773,11 @@ class CmdTelepathic(MuxCommand):
         # get last messages we've got
         if not caller.ndb.whispers_received:
             caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
-
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
+        if not self.args:
+            self.msg("Usage: tightbeam [<player> = msg]")
             return
+
         # We are sending. Build a list of targets
         lhs = self.lhs
         rhs = self.rhs
@@ -918,10 +787,10 @@ class CmdTelepathic(MuxCommand):
             arglist = self.args.lstrip().split(" ", 1)
             if len(arglist) < 2:
                 caller.msg(
-                    "The MMO-style whisper format requires both a name and a message."
+                    "Tightbeam requires both a target or list of targets and message."
                 )
                 caller.msg(
-                    "To send a message to your last whispered character, use {wwhisper =<message>"
+                    "To send a radio message to the last person you mesasged, use {w2way =<message>"
                 )
                 return
             lhs = arglist[0]
@@ -934,7 +803,7 @@ class CmdTelepathic(MuxCommand):
             if pages_we_sent:
                 receivers = pages_we_sent[-1].receivers
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to tightbeam?")
                 return
         else:
             receivers = lhslist
@@ -949,13 +818,12 @@ class CmdTelepathic(MuxCommand):
             elif hasattr(receiver, "player"):
                 pobj = receiver
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to tightbeam?")
                 return
             if pobj:
                 if hasattr(pobj, "has_account") and not pobj.has_account:
-                    self.msg("You may only send whispers to online characters.")
-                elif not pobj.location or pobj.location != caller.location:
-                    self.msg("You may only whisper characters in the same room as you.")
+                    self.msg("That charcter is not online.")
+
                 else:
                     recobjs.append(pobj)
         if not recobjs:
@@ -967,14 +835,14 @@ class CmdTelepathic(MuxCommand):
         # if message begins with a :, we assume it is a 'whisper-pose'
         if message.startswith(":"):
             message = "%s {c%s{n %s" % (
-                "Discreetly,",
+                "Tightbeam from",
                 caller.name,
                 message.strip(":").strip(),
             )
             is_a_whisper_pose = True
         elif message.startswith(";"):
             message = "%s {c%s{n%s" % (
-                "Discreetly,",
+                "Tightbeam from",
                 caller.name,
                 message.lstrip(";").strip(),
             )
@@ -1035,9 +903,12 @@ class CmdTelepathic(MuxCommand):
             self.msg("\n".join(rstrings))
         if received:
             if is_a_whisper_pose:
-                self.msg("You posed to %s: %s" % (", ".join(received), message))
+                self.msg("You tightbeam to %s: %s" % (", ".join(received), message))
             else:
-                self.msg("You whispered to %s, %s" % (", ".join(received), message))
+                self.msg("You tightbeam to %s, %s" % (", ".join(received), message))
+
+
+            #to do, leave this as partial intercept.
                 if "mutter" in self.switches or "mutter" in self.cmdstring:
                     from random import randint
 
@@ -1083,15 +954,12 @@ class CmdSaraband(MuxCommand):
     command instead. If the /mutter switch is used, some of your whisper will
     be overheard by the room. Mutter cannot be used for whisper-poses.
 
-    Right now, If no argument is given, you will get a list of your whispers from this
-    session, but I'm going to kill that functionality here is a comment indicating that's true.
     """
 
     key = "saraband"
     aliases = ["+saraband"]
     locks = "cmd:not pperm(page_banned)"
-    help_category = "Social"
-    simplified_key = "mutter"
+    help_category = "Capabilities"
 
     def func(self):
         """Implement function using the Msg methods"""
@@ -1105,53 +973,11 @@ class CmdSaraband(MuxCommand):
         # get last messages we've got
         if not caller.ndb.whispers_received:
             caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
-
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
+        if not self.args:
+            self.msg("Usage: saraband [<player> = msg]")
             return
+
         # We are sending. Build a list of targets
         lhs = self.lhs
         rhs = self.rhs
@@ -1308,39 +1134,44 @@ class CmdSaraband(MuxCommand):
         caller.posecount += 1
 
 
-class CmdTightbeam(MuxCommand):
+class CmdTelepath(MuxCommand):
+
     """
-    Tightbeam - send private IC message
+    Telepathy - send private IC message
 
     Usage:
-      2way[/switches] [<player>,<player>,... = <message>]
-      whisper =<message> - sends whisper to last person you whispered
-      2way <name> <message>
-      tightbeam/switches 
+      telepath [<player>,<player>,... = <message>]
+      telepath =<message> - sends telepathy to last person you messaged
+      telepath <name> <message>
 
+    Send a private IC message to a character on the game, 
+    regardless of location.
+    
+    A telepathic message of the format
+    "telepath player=Hello" will send a message in the form of "A telepathic
+    message from soandso: Hello." A telepathic message of the format 
+    "telepath player=:does an emote" will appear
+    in the form of "Telepathically, <emote>" to <player>. 
+    Telepathy accepts multiple targets.
+    
+    Other players in the same room as an active telepath, who also
+    have the telepathy ability, may be able to detect telepathic
+    messages sent privately, so be forewarned that this is not
+    a perfectly private method of communication when other
+    telepathic characters are present.
 
-    Send an IC message to a character in your room. A whisper of the format
-    "whisper player=Hello" will send a message in the form of "You whisper
-    <player>". A whisper of the format "whisper player=:does an emote" will appear
-    in the form of "Discreetly, soandso does an emote" to <player>. It's generally
-    expected that for whispers during public roleplay scenes that the players
-    involved should pose to the room with some small mention that they're
-    communicating discreetly. For ooc messages, please use the 'page'/'tell'
-    command instead. If the /mutter switch is used, some of your whisper will
-    be overheard by the room. Mutter cannot be used for whisper-poses.
-
-    +2way and +tightbeam do the same thing. For radio messages to talk within a group
-    or on open bands, see the help for the +radio commands.
-
-    Right now, If no argument is given, you will get a list of your whispers from this
-    session, but I'm going to kill that functionality here is a comment indicating that's true.
     """
 
-    key = "tightbeam"
-    aliases = ["+2way, +tightbeam", "2way"]
+    key = "telepath"
+    aliases = ["+telepath"]
     locks = "cmd:not pperm(page_banned)"
-    help_category = "Social"
-    simplified_key = "mutter"
+    help_category = "Capabilities"
+
+    '''
+    Some characters may in the future have the ability to block
+    telepathic messages (not doing yet). 
+
+    '''
 
     def func(self):
         """Implement function using the Msg methods"""
@@ -1354,53 +1185,11 @@ class CmdTightbeam(MuxCommand):
         # get last messages we've got
         if not caller.ndb.whispers_received:
             caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
 
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
-
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
+        if not self.args:
+            self.msg("Usage: telepath [<player> = msg]")
             return
+
         # We are sending. Build a list of targets
         lhs = self.lhs
         rhs = self.rhs
@@ -1410,10 +1199,10 @@ class CmdTightbeam(MuxCommand):
             arglist = self.args.lstrip().split(" ", 1)
             if len(arglist) < 2:
                 caller.msg(
-                    "The MMO-style whisper format requires both a name and a message."
+                    "Telepathy requires a target and a message."
                 )
                 caller.msg(
-                    "To send a message to your last whispered character, use {wwhisper =<message>"
+                    "To send a message to the last person you contacted, use {wtelepath =<message>"
                 )
                 return
             lhs = arglist[0]
@@ -1426,7 +1215,7 @@ class CmdTightbeam(MuxCommand):
             if pages_we_sent:
                 receivers = pages_we_sent[-1].receivers
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Telepathically message who?")
                 return
         else:
             receivers = lhslist
@@ -1441,32 +1230,30 @@ class CmdTightbeam(MuxCommand):
             elif hasattr(receiver, "player"):
                 pobj = receiver
             else:
-                self.msg("Who do you want to whisper?")
+                self.msg("Who do you want to message?")
                 return
             if pobj:
                 if hasattr(pobj, "has_account") and not pobj.has_account:
-                    self.msg("You may only send whispers to online characters.")
-                elif not pobj.location or pobj.location != caller.location:
-                    self.msg("You may only whisper characters in the same room as you.")
+                    self.msg("You may only send a message to online characters.")
                 else:
                     recobjs.append(pobj)
         if not recobjs:
-            self.msg("No one found to whisper.")
+            self.msg("Can't find that player.")
             return
-        header = "{c%s{n whispers," % caller.name
+        header = "A telepathic message from {c%s," % caller.name
         message = rhs
         mutter_text = ""
         # if message begins with a :, we assume it is a 'whisper-pose'
         if message.startswith(":"):
             message = "%s {c%s{n %s" % (
-                "Discreetly,",
+                "Telepathically,",
                 caller.name,
                 message.strip(":").strip(),
             )
             is_a_whisper_pose = True
         elif message.startswith(";"):
             message = "%s {c%s{n%s" % (
-                "Discreetly,",
+                "Telepathically,",
                 caller.name,
                 message.lstrip(";").strip(),
             )
@@ -1527,9 +1314,12 @@ class CmdTightbeam(MuxCommand):
             self.msg("\n".join(rstrings))
         if received:
             if is_a_whisper_pose:
-                self.msg("You posed to %s: %s" % (", ".join(received), message))
+                self.msg("You telepathically posed to %s: %s" % (", ".join(received), message))
             else:
-                self.msg("You whispered to %s, %s" % (", ".join(received), message))
+                self.msg("You telepathically said to %s, %s" % (", ".join(received), message))
+                
+                #mutter self-switches, to-do, revise for partial intercepts
+
                 if "mutter" in self.switches or "mutter" in self.cmdstring:
                     from random import randint
 

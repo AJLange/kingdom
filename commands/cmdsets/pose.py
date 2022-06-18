@@ -967,6 +967,8 @@ class CmdAside(MuxCommand):
     is still preserved. Use this for corrections to typos, or small comments
     that slide between poses that your character would make. 
     Please do not use +aside for large substantial poses that take your 'turn.'
+    Nothing should be done in an aside that would imply a roll of the
+    dice or full action.
 
     Asides still show up in the autologger for the scene.
     """
