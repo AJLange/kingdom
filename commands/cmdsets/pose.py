@@ -419,254 +419,6 @@ class CmdMegaSay(CmdSay):
 
 
 
-class CmdWhisper(MuxCommand):
-    """
-    whisper - send private IC message
-
-    Usage:
-      whisper[/switches] [<player>,<player>,... = <message>]
-      whisper =<message> - sends whisper to last person you whispered
-      whisper <name> <message>
-      whisper/mutter
-      whisper/list <number> - Displays list of last <number> of recent whispers
-
-    Switch:
-      last - shows who you last messaged
-      list - show your last <number> of messages (default)
-
-    Send an IC message to a character in your room. A whisper of the format
-    "whisper player=Hello" will send a message in the form of "You whisper
-    <player>". A whisper of the format "whisper player=:does an emote" will appear
-    in the form of "Discreetly, soandso does an emote" to <player>. It's generally
-    expected that for whispers during public roleplay scenes that the players
-    involved should pose to the room with some small mention that they're
-    communicating discreetly. For ooc messages, please use the 'page'/'tell'
-    command instead. If the /mutter switch is used, some of your whisper will
-    be overheard by the room. Mutter cannot be used for whisper-poses.
-
-    If no argument is given, you will get a list of your whispers from this
-    session.
-    """
-
-    key = "whisper"
-    aliases = ["mutter"]
-    locks = "cmd:not pperm(page_banned)"
-    help_category = "Social"
-    simplified_key = "mutter"
-
-    def func(self):
-        """Implement function using the Msg methods"""
-
-        # this is a MuxCommand, which means caller will be a Character.
-        caller = self.caller
-        # get the messages we've sent (not to channels)
-        if not caller.ndb.whispers_sent:
-            caller.ndb.whispers_sent = []
-        pages_we_sent = caller.ndb.whispers_sent
-        # get last messages we've got
-        if not caller.ndb.whispers_received:
-            caller.ndb.whispers_received = []
-        pages_we_got = caller.ndb.whispers_received
-
-        if "last" in self.switches:
-            if pages_we_sent:
-                recv = ",".join(str(obj) for obj in pages_we_sent[-1].receivers)
-                self.msg(
-                    "You last whispered {c%s{n:%s" % (recv, pages_we_sent[-1].message)
-                )
-                return
-            else:
-                self.msg("You haven't whispered anyone yet.")
-                return
-
-        if not self.args or "list" in self.switches:
-            pages = list(pages_we_sent) + list(pages_we_got)
-            pages.sort(key=lambda x: x.date_created)
-
-            number = 5
-            if self.args:
-                try:
-                    number = int(self.args)
-                except ValueError:
-                    self.msg("Usage: whisper [<player> = msg]")
-                    return
-
-            if len(pages) > number:
-                lastpages = pages[-number:]
-            else:
-                lastpages = pages
-            template = "{w%s{n {c%s{n whispered to {c%s{n: %s"
-            lastpages = "\n ".join(
-                template
-                % (
-                    utils.datetime_format(page.date_created),
-                    ",".join(obj.name for obj in page.senders),
-                    "{n,{c ".join([obj.name for obj in page.receivers]),
-                    page.message,
-                )
-                for page in lastpages
-            )
-
-            if lastpages:
-                string = "Your latest whispers:\n %s" % lastpages
-            else:
-                string = "You haven't whispered anyone yet."
-            self.msg(string)
-            return
-        # We are sending. Build a list of targets
-        lhs = self.lhs
-        rhs = self.rhs
-        lhslist = self.lhslist
-        if not self.rhs:
-            # MMO-type whisper. 'whisper <name> <target>'
-            arglist = self.args.lstrip().split(" ", 1)
-            if len(arglist) < 2:
-                caller.msg(
-                    "The MMO-style whisper format requires both a name and a message."
-                )
-                caller.msg(
-                    "To send a message to your last whispered character, use {wwhisper =<message>"
-                )
-                return
-            lhs = arglist[0]
-            rhs = arglist[1]
-            lhslist = set(arglist[0].split(","))
-
-        if not lhs and rhs:
-            # If there are no targets, then set the targets
-            # to the last person we paged.
-            if pages_we_sent:
-                receivers = pages_we_sent[-1].receivers
-            else:
-                self.msg("Who do you want to whisper?")
-                return
-        else:
-            receivers = lhslist
-
-        recobjs = []
-        for receiver in set(receivers):
-
-            if isinstance(receiver, string_types):
-                pobj = caller.search(receiver, use_nicks=True)
-            elif hasattr(receiver, "character"):
-                pobj = receiver.character
-            elif hasattr(receiver, "player"):
-                pobj = receiver
-            else:
-                self.msg("Who do you want to whisper?")
-                return
-            if pobj:
-                if hasattr(pobj, "has_account") and not pobj.has_account:
-                    self.msg("You may only send whispers to online characters.")
-                elif not pobj.location or pobj.location != caller.location:
-                    self.msg("You may only whisper characters in the same room as you.")
-                else:
-                    recobjs.append(pobj)
-        if not recobjs:
-            self.msg("No one found to whisper.")
-            return
-        header = "{c%s{n whispers," % caller.name
-        message = rhs
-        mutter_text = ""
-        # if message begins with a :, we assume it is a 'whisper-pose'
-        if message.startswith(":"):
-            message = "%s {c%s{n %s" % (
-                "Discreetly,",
-                caller.name,
-                message.strip(":").strip(),
-            )
-            is_a_whisper_pose = True
-        elif message.startswith(";"):
-            message = "%s {c%s{n%s" % (
-                "Discreetly,",
-                caller.name,
-                message.lstrip(";").strip(),
-            )
-            is_a_whisper_pose = True
-        else:
-            is_a_whisper_pose = False
-            message = '"' + message + '"'
-
-        # create the temporary message object
-        temp_message = TempMsg(senders=caller, receivers=recobjs, message=message)
-
-        caller.ndb.whispers_sent.append(temp_message)
-
-        # tell the players they got a message.
-        received = []
-        rstrings = []
-        for pobj in recobjs:
-            otherobs = [ob for ob in recobjs if ob != pobj]
-            if not pobj.access(caller, "tell"):
-                rstrings.append("You are not allowed to page %s." % pobj)
-                continue
-            if is_a_whisper_pose:
-                omessage = message
-                if otherobs:
-                    omessage = "(Also sent to %s.) %s" % (
-                        ", ".join(ob.name for ob in otherobs),
-                        message,
-                    )
-                pobj.msg(omessage, from_obj=caller, options={"is_pose": True})
-            else:
-                if otherobs:
-                    myheader = header + " to {cyou{n and %s," % ", ".join(
-                        "{c%s{n" % ob.name for ob in otherobs
-                    )
-                else:
-                    myheader = header
-                pobj.msg(
-                    "%s %s" % (myheader, message),
-                    from_obj=caller,
-                    options={"is_pose": True},
-                )
-            if not pobj.ndb.whispers_received:
-                pobj.ndb.whispers_received = []
-            pobj.ndb.whispers_received.append(temp_message)
-            if hasattr(pobj, "has_account") and not pobj.has_account:
-                received.append("{C%s{n" % pobj.name)
-                rstrings.append(
-                    "%s is offline. They will see your message if they list their pages later."
-                    % received[-1]
-                )
-            else:
-                received.append("{c%s{n" % pobj.name)
-                # afk = pobj.player_ob and pobj.player_ob.db.afk
-                # if afk:
-                #     pobj.msg("{wYou inform {c%s{w that you are AFK:{n %s" % (caller, afk))
-                #     rstrings.append("{c%s{n is AFK: %s" % (pobj.name, afk))
-        if rstrings:
-            self.msg("\n".join(rstrings))
-        if received:
-            if is_a_whisper_pose:
-                self.msg("You posed to %s: %s" % (", ".join(received), message))
-            else:
-                self.msg("You whispered to %s, %s" % (", ".join(received), message))
-                if "mutter" in self.switches or "mutter" in self.cmdstring:
-                    from random import randint
-
-                    word_list = rhs.split()
-                    chosen = []
-                    num_real = 0
-                    for word in word_list:
-                        if randint(0, 2):
-                            chosen.append(word)
-                            num_real += 1
-                        else:
-                            chosen.append("...")
-                    if num_real:
-                        mutter_text = " ".join(chosen)
-                if mutter_text:
-                    emit_string = ' mutters, "%s{n"' % mutter_text
-                    exclude = [caller] + recobjs
-                    caller.location.msg_action(
-                        self.caller,
-                        emit_string,
-                        options={"is_pose": True},
-                        exclude=exclude,
-                    )
-                    self.mark_command_used()
-        caller.posecount += 1
 
 
 class CmdPage(BaseCommand):
@@ -1199,3 +951,32 @@ class CmdPage(MuxCommand):
         if rstrings:
             self.msg("\n".join(rstrings))
         self.msg("You paged %s with: '%s'." % (", ".join(received), message))
+
+
+class CmdAside(MuxCommand):
+    """
+    
+    Usage:
+      aside <message>
+
+    Aside functions exactly like @emit, but is used for small side comments not
+    intended to be a major pose. 
+
+    The difference between +aside and @emit is that +aside does not trigger
+    Pose Order Tracker (see help files for +pot), meaning your turn in 'line'
+    is still preserved. Use this for corrections to typos, or small comments
+    that slide between poses that your character would make. 
+    Please do not use +aside for large substantial poses that take your 'turn.'
+
+    Asides still show up in the autologger for the scene.
+    """
+
+    key = "aside"
+    switch_options = ("last", "list")
+    aliases = ["+aside"]
+
+    help_category = "Comms"
+    account_caller = True
+
+    def func(self):
+        """note to self, actually code this."""
