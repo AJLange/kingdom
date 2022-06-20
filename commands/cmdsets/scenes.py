@@ -277,7 +277,7 @@ number for a month. An example of the command would be:
     """
 
     key = "+scenes"
-    aliases = ["scenes", "scene", "+scene", "+tp", "tp", "+schedule" , "schedule"]
+    aliases = ["scenes", "scene", "+scene", "+tp", "tp", "+schedule" , "schedule", "when", "+when"]
     locks = "cmd:all()"
 
     def func(self):
