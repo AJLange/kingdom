@@ -1,7 +1,9 @@
 """
-Commands
+Scenes
 
-Commands describe the input the account can do to the game.
+Commands related to the autologger and scene scheduler.
+Pose Order Tracker commands should also live here.
+
 
 """
 
@@ -249,6 +251,59 @@ class CmdObserve(default_cmds.MuxCommand):
             "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
 
 
+class CmdSceneSched(default_cmds.MuxCommand):
+    """
+    Syntax: +scenes (+tp, +scene, +schedule)                                      
+        +scene/add <Month>/<Day> <Time> <Title>=<Description>                 
+        +scene/del <Month>/<Day>                                              
+                                                                              
+        The first command displays a list of scheduled scenes. More than one a
+day can be stored. Clicking on the 'title' displayed, if you have a hyperlink 
+capable client, will read the board post with further details on the scene.   
+Further, you can click on the author's name to pull up their +finger and if   
+the +scene has had a room location set, once that room has had +pot/port      
+turned on, the location becomes a way to teleport to the room.                
+                                                                              
+        The next command will add your scene to the database along with       
+posting it to the Scene Announcements board. +Scene/add operates using the    
+number for a month. An example of the command would be:                       
+        +scene/add 2/13 7 PM This Is A Sample Title=This is a sample post.    
+        +scene/add 10/31 7:30 Another Sample=Yes PM is optional.              
+                                                                              
+        The +scene/del command will remove the Month/Date entry you made.     
+                                                                              
+        The +scenes list should be configured to display in your current
+        time zone (todo)
+    """
+
+    key = "+scenes"
+    aliases = ["scenes", "scene", "+scene", "+tp", "tp", "+schedule" , "schedule"]
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.switches:
+            caller.msg("todo: the scene list goes here.")
+            return
+
+        elif "add" in self.switches:
+            # Add scene
+            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
+
+            # caller.location.db.event_id = event.id
+
+            return
+
+        elif "del" in self.switches:
+            
+            if not self.args:
+                caller.msg("Delete which scene?")
+            return
+
+            # remove the scene matched by id
+            # in the future, we will allow people to edit scenes, so this may be refactored.
+
 
 
 class CmdEvent(default_cmds.MuxCommand):
@@ -263,7 +318,7 @@ class CmdEvent(default_cmds.MuxCommand):
     """
 
     key = "@event"
-    aliases = ["event", "@scene", "scene"]
+    aliases = ["event"]
     locks = "cmd:all()"
 
     def func(self):
@@ -368,4 +423,5 @@ class CmdEvent(default_cmds.MuxCommand):
 
             Scene.objects.filter(id=caller.location.db.event_id).update(description=self.args)
             caller.msg("Scene description set.")
+
 

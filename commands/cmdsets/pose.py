@@ -1,5 +1,5 @@
 """
-Pose-related and Pose Order Tracking commands will live here
+Pose-related and pose formatting commands will go in this file.
 
 """
 
@@ -40,8 +40,6 @@ class CmdThink(BaseCommand):
 
 
 '''
-These are Arx's emit and pose commands with some modification to start.
-I'm commenting out irrelevant stuff to test basics.
 
 Emit is basic and uncapped and unlocked and will require more locks
 at a later time to do things like nospoof. Just making it work for
