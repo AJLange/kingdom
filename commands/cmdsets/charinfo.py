@@ -167,6 +167,66 @@ class CmdSheet(BaseCommand):
             sheetmsg = (line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8)
             self.caller.msg(sheetmsg)
 
+class CmdCookie(MuxCommand):
+
+    """
+    Give a mouse a cookie.
+    
+    Usage:
+      +cookie <player>
+    This gives a little cookie to a player that you did RP with.
+    The cookie is a vote or 'thank you' for roleplay.
+    +vote does the same thing as cookie.
+    
+    Check cookie board leaders with +100check or +monsters.
+    """
+
+    key = "cookie"
+    aliases = ["+cookie"]
+    locks = "cmd:all()"
+
+    def func(self):
+        "This performs the actual command"
+        if not self.args:
+            self.caller.msg("Give cookie to who?")
+            return
+
+class CmdCookieCounter(MuxCommand):
+
+    """
+   
+    Usage:
+        +tally
+    See how many cookies you have, and how many cookies
+    you have to give out for the rest of the week. 
+
+    """
+
+    key = "tally"
+    aliases = ["+tally"]
+    locks = "cmd:all()"
+
+    def func(self):
+        self.caller.msg("Wow here's how many cookies you have!")
+
+
+
+class CmdCookiemonsters(MuxCommand):
+
+    """
+    Give a mouse a cookie.
+    
+    Usage:
+      +100check or +monsters
+
+      Shows a leaderboard of PCs with 100 cookies or more.
+    """
+    key = "100check"
+    aliases = ["+100check", "monsters", "+monsters"]
+    locks = "cmd:all()"
+
+    def func(self):
+        self.caller.msg("Wow here's all the people with 100 cookies!")
 
 
 class CmdSetDesc(MuxCommand):

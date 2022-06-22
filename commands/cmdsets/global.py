@@ -8,9 +8,11 @@ from six import string_types
 from commands.command import BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
-
+from evennia.accounts.models import AccountDB
 from commands.cmdsets import places
 from evennia.server.sessionhandler import SESSIONS
+from evennia.utils import evtable
+from evennia import CmdWho
 
 class CmdWall(MuxCommand):
     """
@@ -326,7 +328,7 @@ class CmdWho(MuxCommand):
             )
         self.msg(string)
 
-
+'''
 
 class CmdListStaff(MuxCommand):
     """
@@ -334,9 +336,10 @@ class CmdListStaff(MuxCommand):
     Usage:
         +staff
         +staff/all
+        +staff/list
     
     +staff lists staff currently online.
-    +staff/all lists all staff and their status.
+    +staff/all or +staff/list lists all staff and their status.
     """
 
     key = "+staff"
@@ -349,16 +352,25 @@ class CmdListStaff(MuxCommand):
         caller = self.caller
         staff = AccountDB.objects.filter(db_is_connected=True, is_staff=True)
         table = evtable.EvTable("{wName{n", "{wRole{n", "{wIdle{n", width=78)
-        for ob in staff:
-            from .overrides import CmdWho
+        
+        if "all" or "list" in self.switches:
+            for ob in staff:
+                if ob.tags.get("hidden_staff") or ob.db.hide_from_watch:
+                    continue
+                timestr = CmdWho.get_idlestr(ob.idle_time)
+                obname = CmdWho.format_pname(ob)
+                table.add_row(obname, ob.db.staff_role or "", timestr)
+            caller.msg("{wStaff:{n\n%s" % table)
+        else:
+            for ob in staff:
+                if ob.tags.get("hidden_staff") or ob.db.hide_from_watch:
+                    continue
+                timestr = CmdWho.get_idlestr(ob.idle_time)
+                obname = CmdWho.format_pname(ob)
+                table.add_row(obname, ob.db.staff_role or "", timestr)
+            caller.msg("{wOnline staff:{n\n%s" % table)
 
-            if ob.tags.get("hidden_staff") or ob.db.hide_from_watch:
-                continue
-            timestr = CmdWho.get_idlestr(ob.idle_time)
-            obname = CmdWho.format_pname(ob)
-            table.add_row(obname, ob.db.staff_role or "", timestr)
-        caller.msg("{wOnline staff:{n\n%s" % table)
-
+'''
 class CmdXWho(MuxCommand):
     """
     xwho
