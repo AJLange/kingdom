@@ -13,6 +13,7 @@ from evennia.commands.default.general import CmdSay
 from evennia.commands.default.account import CmdOOC
 from commands.cmdsets import places
 from evennia.comms.models import TempMsg
+from evennia.server.sessionhandler import SESSIONS
 
 
 class CmdThink(BaseCommand):
@@ -980,3 +981,4 @@ class CmdAside(MuxCommand):
 
     def func(self):
         """note to self, actually code this."""
+

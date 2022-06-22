@@ -1143,22 +1143,37 @@ class CmdTelepath(MuxCommand):
       telepath [<player>,<player>,... = <message>]
       telepath =<message> - sends telepathy to last person you messaged
       telepath <name> <message>
+      telepath/open
 
-    Send a private IC message to a character on the game, 
-    regardless of location.
+    Send a private IC message to a character on the game using 
+    telepathy.
     
     A telepathic message of the format
-    "telepath player=Hello" will send a message in the form of "A telepathic
+    "telepath player=Hello" will send a message in the form of
+    "A telepathic
     message from soandso: Hello." A telepathic message of the format 
     "telepath player=:does an emote" will appear
     in the form of "Telepathically, <emote>" to <player>. 
     Telepathy accepts multiple targets.
     
+    Only one player with the telepath ability is necessary
+    for a telepathic conversation. 
+    
+    The +telepath command may 
+    be used among players in the same room as long as one or more
+    of the involved players has the telepath skill.
     Other players in the same room as an active telepath, who also
     have the telepathy ability, may be able to detect telepathic
     messages sent privately, so be forewarned that this is not
     a perfectly private method of communication when other
     telepathic characters are present.
+
+    To message a player with telepathy over a longer distance, use 
+    +telepath/open to open a telepathic conduit. This allows 
+    temporary use of two-way telepathy for two players.
+
+    Todo/design: telepathic contact can be blocked with an IC skill.
+
 
     """
 

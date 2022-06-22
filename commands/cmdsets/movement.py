@@ -374,3 +374,61 @@ class CmdWarp(MuxCommand):
             else:
                 caller.move_to(destination)
                 caller.msg("Teleported to %s." % destination)
+
+#home doesn't care about private rooms or combat occuring for now
+
+class CmdHome(MuxCommand):
+    """
+    home
+    Usage:
+      home
+    Teleports you to your home location.
+    """
+
+    key = "home"
+    locks = "cmd:all()"
+    help_category = "Travel"
+
+    def func(self):
+        """Implement the command"""
+        caller = self.caller
+        home = caller.home
+        
+        if not home:
+            caller.msg("You have no home!")
+        elif home == caller.location:
+            caller.msg("You are already home!")
+
+        else:
+            mapping = {"secret": True}
+            caller.move_to(home, mapping=mapping)
+            caller.msg("There's no place like home ...")
+            
+            caller.messages.messenger_notification(force=True)
+
+
+class CmdLinkhere(MuxCommand):
+    """
+    linkhere
+    Usage:
+      +linkhere
+    Sets a room as your IC home.
+    """
+
+    #todo: some permissions about what can and can't be set as home, for privacy purposes.
+
+    key = "linkhere"
+    locks = "cmd:all()"
+    help_category = "Travel"
+
+    def func(self):
+        """Implement the command"""
+        caller = self.caller
+        home = caller.home
+
+        if home == caller.location:
+            caller.msg("You are already home!")
+                
+        elif not home:
+            caller.msg("You set your home in this location.")
+            caller.location = caller.home
