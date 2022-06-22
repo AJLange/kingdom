@@ -10,7 +10,7 @@ player GMs to use.
 
 from evennia import CmdSet
 from evennia import Command
-from evennia.commands.default.building import CmdSetAttribute
+
 
 '''
 None of the numerical stuff works yet, only takes the single argument. 
@@ -79,7 +79,7 @@ class CmdSetStat(Command):
     """
     
     key = "+setstat"
-    help_category = "staffonly"
+    help_category = "Admin"
 
     def func(self):
         "This performs the actual command"
@@ -96,7 +96,7 @@ class CmdSetStat(Command):
             self.caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
-        self.caller.db.power = power
+        self.caller.db.pow = power
         self.caller.msg("Your Power was set to %i." % power)
 
 class CmdSetSkills(Command):
@@ -241,16 +241,3 @@ class CmdSetTypes(Command):
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
 
-
-
-class ChargenCmdset(CmdSet):
-    """
-    This cmdset is used in character generation areas.
-    """
-    key = "Chargen"
-    def at_cmdset_creation(self):
-        "This is called at initialization"
-        self.add(CmdSetStat())
-        self.add(CmdSetSkills())
-        self.add(CmdSetProfileAttr())
-        self.add(CmdSetSpecialty())

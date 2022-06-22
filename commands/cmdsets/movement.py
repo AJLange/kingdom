@@ -9,7 +9,7 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.rooms import Room
+from typeclasses.rooms import PlayRoom
 
 
 
@@ -59,7 +59,7 @@ class CmdSummon(MuxCommand):
                     caller.msg("Destination not found.")
                     return
                 if destination:
-                    if not isinstance(destination, Room):
+                    if not isinstance(destination, PlayRoom):
                         caller.msg("Destination is not a room.")
                     return
             else:
@@ -124,7 +124,7 @@ class CmdJoin(MuxCommand):
                     caller.msg("Destination not found.")
                     return
                 if destination:
-                    if not isinstance(destination, Room):
+                    if not isinstance(destination, PlayRoom):
                         caller.msg("Destination is not a room.")
                     return
             else:
@@ -368,7 +368,7 @@ class CmdWarp(MuxCommand):
             caller.msg("Destination not found.")
             return
         if destination:
-            if not isinstance(destination, Room):
+            if not isinstance(destination, PlayRoom):
                 caller.msg("Destination is not a room.")
                 return
             else:

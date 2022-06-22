@@ -6,7 +6,7 @@ Rooms are simple containers that has no location of their own.
 """
 
 from evennia import DefaultRoom
-from commands.cmdsets.chargen import ChargenCmdset
+from commands.default_cmdsets import ChargenCmdset
 
 
 class Room(DefaultRoom):
@@ -53,6 +53,9 @@ class Room(DefaultRoom):
 class PlayRoom(Room):
     """
     This room class is the most standard playroom for most RP.
+
+    This room class does not have the commands associated with broader
+    grid travel.
     """
     def at_object_creation(self):
         "this is called only at first creation"

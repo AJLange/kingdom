@@ -23,6 +23,13 @@ class Character(DefaultCharacter):
         Intended use is that stats and skills are set as a 
         list and come in as a list from the chargen machine.
         """
+        self.db.pow = 1
+        self.db.dex = 1
+        self.db.ten = 1
+        self.db.cun = 1
+        self.db.edu = 1
+        self.db.chr = 1
+        self.db.aur = 4
 
 
     def get_abilities(self):

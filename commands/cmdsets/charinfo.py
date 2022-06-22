@@ -227,30 +227,3 @@ class CmdCookiemonsters(MuxCommand):
         self.caller.msg("Wow here's all the people with 100 cookies!")
 
 
-class CmdSetDesc(MuxCommand):
-    """
-    describe yourself
-    Usage:
-      setdesc <description>
-    Add a description to yourself. This
-    will be visible to people when they
-    look at you.
-    """
-
-    key = "setdesc"
-    aliases = ["@desc"]
-    locks = "cmd:all()"
-    arg_regex = r"\s|$"
-
-    # Here I overwrite "setdesc" from the Evennia master so it has an alias, "@desc."
-    def func(self):
-        """add the description"""
-
-        if not self.args:
-            self.caller.msg("You must add a description.")
-            return
-
-        message = self.args
-        message = sub_old_ansi(message)
-        self.caller.db.desc = message
-        self.caller.msg("You set your description.")

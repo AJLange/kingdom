@@ -17,19 +17,17 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 from evennia import default_cmds
 
 
-from commands.cmdsets.pose import CmdThink
-from commands.cmdsets.pose import CmdPose
-from commands.cmdsets.pose import CmdMegaSay
-from commands.cmdsets.pose import CmdEmit
-from commands.cmdsets.pose import CmdOOCSay
-from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdSetDesc
+from commands.cmdsets.pose import CmdThink,  CmdPose,  CmdMegaSay, CmdEmit, CmdOOCSay
+from commands.cmdsets.charinfo import CmdFinger, CmdSheet
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
-import commands.cmdsets.movement
+#from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow
 from evennia import CmdSet
 from commands import command
+from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, CmdSetProfileAttr
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
+
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -58,14 +56,30 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
         self.add(CmdEFinger())
-        self.add(CmdSetDesc())
-        self.add(commands.cmdsets.movement.CmdSummon())
-        self.add(commands.cmdsets.movement.CmdJoin())
-        self.add(commands.cmdsets.movement.CmdFollow())
-        self.add(commands.cmdsets.movement.CmdDitch())
+        '''
+        Fix later, just get chargen working
+
+        self.add(CmdHome())
+        self.add(CmdSummon())
+        self.add(CmdJoin())
+        self.add(CmdFollow())
+        self.add(CmdDitch())
         self.add(multidescer.CmdMultiDesc()) 
+        '''
 
 
+
+class ChargenCmdset(CmdSet):
+    """
+    This cmdset is used in character generation areas.
+    """
+    key = "Chargen"
+    def at_cmdset_creation(self):
+        "This is called at initialization"
+        self.add(CmdSetStat())
+        self.add(CmdSetSpecialty())
+        self.add(CmdSetSkills())
+        self.add(CmdSetProfileAttr())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
