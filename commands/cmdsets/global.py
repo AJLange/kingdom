@@ -11,8 +11,133 @@ from server.utils import sub_old_ansi
 from evennia.accounts.models import AccountDB
 from commands.cmdsets import places
 from evennia.server.sessionhandler import SESSIONS
-from evennia.utils import evtable
-from evennia import CmdWho
+from evennia.utils import evtable, utils
+import time
+
+
+def prune_sessions(session_list):
+    # This function modifies the display of "who" and "+pot" so that, if the same player is connected from multiple
+    # devices, their character name is only displayed once to avoid confusion. Admin still see all connected sessions.
+    session_accounts = [session.account.key for session in session_list]  # get a list of just the names
+
+    unique_accounts = set(session_accounts)
+    positions = []
+
+    for acct in unique_accounts:
+        # finds positions of account name matches in the session_accounts list
+        account_positions = [i for i, x in enumerate(session_accounts) if x == acct]
+
+        # add the position of the account entry we want to the positions list
+        if len(account_positions) != 1:
+            positions.append(account_positions[-1])
+        else:
+            positions.append(account_positions[0])
+
+    positions.sort()  # since set() unorders the initial list and we want to keep a specific printed order
+    pruned_sessions = []
+
+    for pos in positions:
+        pruned_sessions.append(session_list[pos])
+
+    return pruned_sessions
+
+#who from SCS. for now, this also is aliased to 'where', but that will change later.
+
+
+class CmdWho(MuxCommand):
+    """
+    list who is currently online
+    Usage:
+      who
+      doing
+      where
+    Shows who is currently online. Doing is an alias that limits info
+    also for those with all permissions. Modified to allow players to see
+    the locations of other players and add a "where" alias.
+    """
+
+    key = "who"
+    aliases = ["doing", "where"]
+    locks = "cmd:all()"
+
+    # this is used by the parent
+    account_caller = True
+
+    # Here we have modified "who" to display the locations of players to other players
+    # and to add "where" as an alias.
+    def func(self):
+        """
+        Get all connected accounts by polling session.
+        """
+
+        account = self.account
+        all_sessions = SESSIONS.get_sessions()
+
+        all_sessions = sorted(all_sessions, key=lambda o: o.account.key) # sort sessions by account name
+        pruned_sessions = prune_sessions(all_sessions)
+
+        # check if users are admins and should be able to see all users' session data
+        if self.cmdstring == "doing":
+            show_session_data = False
+        else:
+           show_session_data = account.check_permstring("Developer") or account.check_permstring(
+               "Admins"
+           )
+
+        naccounts = SESSIONS.account_count()
+        if show_session_data:
+            # privileged info
+            table = self.styled_table(
+                "|wAccount Name",
+                "|wOn for",
+                "|wIdle",
+                "|wPuppeting",
+                "|wRoom",
+                "|wCmds",
+                "|wProtocol",
+                "|wHost",
+            )
+            for session in all_sessions:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                location = puppet.location.key if puppet and puppet.location else "None"
+                table.add_row(
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                    utils.crop(puppet.get_display_name(account) if puppet else "None", width=25),
+                    utils.crop(location, width=35),
+                    session.cmd_total,
+                    session.protocol_key,
+                    isinstance(session.address, tuple) and session.address[0] or session.address,
+                )
+        else:
+            # unprivileged
+            table = self.styled_table("|wAccount name", "|wOn for", "|wIdle", "|wRoom")
+            for session in pruned_sessions:
+                if not session.logged_in:
+                    continue
+                delta_cmd = time.time() - session.cmd_last_visible
+                delta_conn = time.time() - session.conn_time
+                session_account = session.get_account()
+                puppet = session.get_puppet()
+                location = puppet.location.key if puppet and puppet.location else "None"
+                table.add_row(
+                    utils.crop(session_account.get_display_name(account), width=25),
+                    utils.time_format(delta_conn, 0),
+                    utils.time_format(delta_cmd, 1),
+                    utils.crop(location, width=35),
+                )
+        is_one = naccounts == 1
+        self.msg(
+            "|wAccounts:|n\n%s\n%s unique account%s logged in."
+            % (table, "One" if is_one else naccounts, "" if is_one else "s")
+        )
+
 
 class CmdWall(MuxCommand):
     """
@@ -79,256 +204,10 @@ class CmdForce(MuxCommand):
         caller.msg("Forced %s to execute the command '%s'." % (char, self.rhs))
 
 '''
-these are who and staff list commands from arx, currently not working
-due to dependencies, but wil be fixed to work at a later time.
-
-
-class CmdWho(MuxCommand):
-    """
-    who
-    Usage:
-      who [<filter>]
-      doing [<filter>]
-      who/sparse [<filter>]
-      doing/sparse [<filter>]
-      who/active
-      who/watch
-      who/org <organization>
-    Shows who is currently online. Doing is an alias that limits info
-    also for those with all permissions. Players who are currently
-    looking for scenes show up with the (LRP) flag, which can be
-    toggled with the @settings command. If a filter is supplied, it
-    will match names that start with it.
-    """
-
-    key = "who"
-    aliases = ["doing", "+who"]
-    locks = "cmd:all()"
-
-    @staticmethod
-    def format_pname(player, lname=False, sparse=False):
-        """
-        Returns name of player with flags
-        """
-        base = player.name.capitalize()
-        if lname and not sparse:
-            char = player.char_ob
-            if char:
-                base = char.item_data.longname or base
-        if player.db.afk:
-            base += " {w(AFK){n"
-        if player.db.lookingforrp:
-            base += " {w(LRP){n"
-        if player.is_staff:
-            base += " {c(Staff){n"
-        return base
-
-    def check_filters(self, pname, base, fealty=""):
-        """
-        If we have no filters or the name starts with the
-        filter or matches a flag, we return True. Otherwise
-        we return False.
-        """
-        if "org" in self.switches:
-            return True
-        if not self.args:
-            return True
-        if self.args.lower() == "afk":
-            return "(AFK)" in pname
-        if self.args.lower() == "lrp":
-            return "(LRP)" in pname
-        if self.args.lower() == "staff":
-            return "(Staff)" in pname
-        if self.args.lower() == str(fealty).lower():
-            return True
-        return base.lower().startswith(self.args.lower())
-
-    @staticmethod
-    def get_idlestr(idle_time):
-        """Returns a string that vaguely says how idle someone is"""
-        if idle_time is None:
-            return "N/A"
-        if idle_time < 1200:
-            return "No"
-        if idle_time < 3600:
-            return "Idle-"
-        if idle_time < 86400:
-            return "Idle"
-        return "Idle+"
-
-    def func(self):
-        """
-        Get all connected players by polling session.
-        """
-        player = self.caller
-        session_list = [
-            ob
-            for ob in SESSIONS.get_sessions()
-            if ob.account and ob.account.show_online(player)
-        ]
-        session_list = sorted(session_list, key=lambda o: o.account.key.lower())
-        sparse = "sparse" in self.switches
-        watch_list = player.db.watching or []
-        if self.cmdstring == "doing":
-            show_session_data = False
-        else:
-            show_session_data = player.check_permstring(
-                "Immortals"
-            ) or player.check_permstring("Wizards")
-        total_players = len(set(ob.account for ob in session_list))
-        number_displayed = 0
-        already_counted = []
-        public_members = []
-        if "org" in self.switches:
-            from world.dominion.models import Organization
-
-            try:
-                org = Organization.objects.get(name__iexact=self.args)
-                if org.secret:
-                    raise Organization.DoesNotExist
-            except Organization.DoesNotExist:
-                self.msg("Organization not found.")
-                return
-            public_members = [
-                ob.player.player
-                for ob in org.members.filter(deguilded=False, secret=False)
-            ]
-        if show_session_data:
-            table = prettytable.PrettyTable(
-                ["{wPlayer Name", "{wOn for", "{wIdle", "{wRoom", "{wClient", "{wHost"]
-            )
-            for session in session_list:
-                pc = session.get_account()
-                if pc in already_counted:
-                    continue
-                if not session.logged_in:
-                    already_counted.append(pc)
-                    continue
-                delta_cmd = pc.idle_time
-                if "active" in self.switches and delta_cmd > 1200:
-                    already_counted.append(pc)
-                    continue
-                if "org" in self.switches and pc not in public_members:
-                    continue
-                delta_conn = time.time() - session.conn_time
-                plr_pobject = session.get_puppet()
-                plr_pobject = plr_pobject or pc
-                base = str(session.get_account())
-                pname = self.format_pname(session.get_account())
-                char = pc.char_ob
-                if "watch" in self.switches and char not in watch_list:
-                    already_counted.append(pc)
-                    continue
-                if not char or not char.item_data.fealty:
-                    fealty = "---"
-                else:
-                    fealty = char.item_data.fealty
-                if not self.check_filters(pname, base, fealty):
-                    already_counted.append(pc)
-                    continue
-                pname = crop(pname, width=18)
-                if (
-                    session.protocol_key == "websocket"
-                    or "ajax" in session.protocol_key
-                ):
-                    client_name = "Webclient"
-                else:
-                    # Get a sane client name to display.
-                    client_name = session.protocol_flags.get("CLIENTNAME")
-                    if not client_name:
-                        client_name = session.protocol_flags.get("TERM")
-                    if client_name and client_name.upper().endswith("-256COLOR"):
-                        client_name = client_name[:-9]
-
-                if client_name is None:
-                    client_name = "Unknown"
-
-                client_name = client_name.capitalize()
-
-                table.add_row(
-                    [
-                        pname,
-                        time_format(delta_conn)[:6],
-                        time_format(delta_cmd, 1),
-                        hasattr(plr_pobject, "location")
-                        and plr_pobject.location
-                        and plr_pobject.location.dbref
-                        or "None",
-                        client_name[:9],
-                        isinstance(session.address, tuple)
-                        and session.address[0]
-                        or session.address,
-                    ]
-                )
-                already_counted.append(pc)
-                number_displayed += 1
-        else:
-            if not sparse:
-                table = prettytable.PrettyTable(["{wPlayer name", "{wFealty", "{wIdle"])
-            else:
-                table = prettytable.PrettyTable(["{wPlayer name", "{wIdle"])
-
-            for session in session_list:
-                pc = session.get_account()
-                if pc in already_counted:
-                    continue
-                if not session.logged_in:
-                    already_counted.append(pc)
-                    continue
-                if "org" in self.switches and pc not in public_members:
-                    continue
-                delta_cmd = pc.idle_time
-                if "active" in self.switches and delta_cmd > 1200:
-                    already_counted.append(pc)
-                    continue
-                if not pc.db.hide_from_watch:
-                    base = str(pc)
-                    pname = self.format_pname(pc, lname=True, sparse=sparse)
-                    char = pc.char_ob
-                    if "watch" in self.switches and char not in watch_list:
-                        already_counted.append(pc)
-                        continue
-                    if not char or not char.item_data.fealty:
-                        fealty = "---"
-                    else:
-                        fealty = str(char.item_data.fealty)
-                    if not self.check_filters(pname, base, fealty):
-                        already_counted.append(pc)
-                        continue
-                    idlestr = self.get_idlestr(delta_cmd)
-                    if sparse:
-                        width = 30
-                    else:
-                        width = 55
-                    pname = crop(pname, width=width)
-                    if not sparse:
-                        table.add_row([pname, fealty, idlestr])
-                    else:
-                        table.add_row([pname, idlestr])
-                    already_counted.append(pc)
-                    number_displayed += 1
-                else:
-                    already_counted.append(pc)
-        is_one = number_displayed == 1
-        if number_displayed == total_players:
-            string = "{wPlayers:{n\n%s\n%s unique account%s logged in." % (
-                table,
-                "One" if is_one else number_displayed,
-                "" if is_one else "s",
-            )
-        else:
-            string = (
-                "{wPlayers:{n\n%s\nShowing %s out of %s unique account%s logged in."
-                % (
-                    table,
-                    "1" if is_one else number_displayed,
-                    total_players,
-                    "" if total_players == 1 else "s",
-                )
-            )
-        self.msg(string)
-
+this is staff list command from arx
+todo: fix to list all staff 
 '''
+
 
 class CmdListStaff(MuxCommand):
     """
@@ -375,10 +254,9 @@ class CmdXWho(MuxCommand):
     """
     xwho
     Usage:
-        +staff
-    Lists staff that are currently online.
+        xwho
+    Factional Who.
+    Implimentation on hold until we know what groups are, just making a note of it.
     """
-
-   
 
 '''

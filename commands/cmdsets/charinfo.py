@@ -17,8 +17,6 @@ from server.utils import sub_old_ansi
 from math import floor
 
 
-
-
 class CmdFinger(BaseCommand):
     """
 
