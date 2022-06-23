@@ -12,6 +12,7 @@ from evennia import CmdSet
 from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import ChargenRoom
+from evennia import create_object
 
 
 '''
@@ -104,9 +105,41 @@ class CmdStartChargen(MuxCommand):
             caller.msg("You cannot do chargen here.")
             return
         
-        
-        
 
+
+class CmdCreatePC(Command):
+    """
+    Create a new PC
+
+    Usage:
+        +createPC <name>
+
+    Creates a new, named PC. 
+    """
+    key = "+createpc"
+    aliases = ["+createPC"]
+    locks = "call:not perm(nonpcs)"
+    help_category = "staffonly"
+    
+    def func(self):
+        "creates the object and names it"
+        caller = self.caller
+        if not self.args:
+            caller.msg("Usage: +createPC <name>")
+            return
+
+        # make name always start with capital letter
+        name = self.args.strip().capitalize()
+        # create in caller's location
+        npc = create_object("characters.Character",
+                      key=name,
+                      location=caller.location,
+                      locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+        # announce
+        message = "%s created the PC '%s'."
+        caller.msg(message % ("You", name))
+        caller.location.msg_contents(message % (caller.key, name),
+                                                exclude=caller)
 
 
 class CmdSetStat(MuxCommand):
