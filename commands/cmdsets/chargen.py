@@ -10,6 +10,8 @@ player GMs to use.
 
 from evennia import CmdSet
 from evennia import Command
+from evennia.commands.default.muxcommand import MuxCommand
+from typeclasses.rooms import ChargenRoom
 
 
 '''
@@ -61,8 +63,53 @@ HP
 
 '''
 
+class CmdStartChargen(MuxCommand):
+    """
+    
+    +chargen
+    +chargen/finish
 
-class CmdSetStat(Command):
+    This command will temporarily give you access to the rest
+    of the chargen commands. It can only be done in a chargen
+    enabled room.  For now, this command is only available
+    to staffers in staff only areas.
+
+    """
+    
+    key = "+chargen"
+    help_category = "staffonly"
+
+    def func(self):
+        caller = self.caller
+        location = caller.location
+        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/finish."
+        
+        if isinstance(location, ChargenRoom):
+            '''
+            deleting command doesn't work but adding it does? idk.
+            commenting this out until i understand this better.
+            
+            if "finish" in self.switches or "done" in self.switches:
+                caller.msg("You finish generating a character.")
+                #remove the chargen command set
+                self.cmdset.delete(ChargenCmdset)
+                
+            else:
+                '''
+            caller.msg(chargeninit)
+                # add the chargen command set
+            self.cmdset.add(ChargenCmdset)
+            
+        else:
+            caller.msg("You cannot do chargen here.")
+            return
+        
+        
+        
+
+
+
+class CmdSetStat(MuxCommand):
     """
     Sets the stats on a character. 
     Staff creating characters only.
@@ -79,7 +126,7 @@ class CmdSetStat(Command):
     """
     
     key = "+setstat"
-    help_category = "Admin"
+    help_category = "staffonly"
 
     def func(self):
         "This performs the actual command"
@@ -99,7 +146,7 @@ class CmdSetStat(Command):
         self.caller.db.pow = power
         self.caller.msg("Your Power was set to %i." % power)
 
-class CmdSetSkills(Command):
+class CmdSetSkills(MuxCommand):
     """
     Sets the skills on a character. 
     Staff creating characters only.
@@ -148,7 +195,7 @@ class CmdSetSkills(Command):
 
 
 
-class CmdSetProfileAttr(Command):
+class CmdSetProfileAttr(MuxCommand):
     """
     Sets the profile info of a character.
     Staff creating characters only.
@@ -241,3 +288,16 @@ class CmdSetTypes(Command):
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
 
+
+
+class ChargenCmdset(CmdSet):
+    """
+    This cmdset is used in character generation areas.
+    """
+    key = "Chargen"
+    def at_cmdset_creation(self):
+        "This is called at initialization"
+        self.add(CmdSetStat())
+        self.add(CmdSetSpecialty())
+        self.add(CmdSetSkills())
+        self.add(CmdSetProfileAttr())

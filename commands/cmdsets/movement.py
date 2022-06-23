@@ -9,7 +9,7 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.rooms import PlayRoom
+from typeclasses.rooms import PlayRoom, TravelRoom
 
 
 

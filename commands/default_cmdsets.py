@@ -16,12 +16,12 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 from evennia import default_cmds
 
-
+from commands.cmdsets.chargen import CmdStartChargen
 from commands.cmdsets.pose import CmdThink,  CmdPose,  CmdMegaSay, CmdEmit, CmdOOCSay
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
-#from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow
+from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow
 from evennia import CmdSet
 from commands import command
 from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, CmdSetProfileAttr
@@ -55,31 +55,17 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdOOCSay())
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
-        self.add(CmdEFinger())
-        '''
-        Fix later, just get chargen working
+        self.add(CmdEFinger())       
 
         self.add(CmdHome())
         self.add(CmdSummon())
         self.add(CmdJoin())
         self.add(CmdFollow())
         self.add(CmdDitch())
-        self.add(multidescer.CmdMultiDesc()) 
-        '''
+        #self.add(multidescer.CmdMultiDesc()) 
+        #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
 
-
-
-class ChargenCmdset(CmdSet):
-    """
-    This cmdset is used in character generation areas.
-    """
-    key = "Chargen"
-    def at_cmdset_creation(self):
-        "This is called at initialization"
-        self.add(CmdSetStat())
-        self.add(CmdSetSpecialty())
-        self.add(CmdSetSkills())
-        self.add(CmdSetProfileAttr())
+        self.add(CmdStartChargen())
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
