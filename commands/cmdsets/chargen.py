@@ -88,7 +88,7 @@ class CmdStartChargen(MuxCommand):
             '''
             deleting command doesn't work but adding it does? idk.
             commenting this out until i understand this better.
-            
+
             if "finish" in self.switches or "done" in self.switches:
                 caller.msg("You finish generating a character.")
                 #remove the chargen command set
@@ -287,8 +287,6 @@ class CmdSetTypes(Command):
             return
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
-
-
 
 class ChargenCmdset(CmdSet):
     """
