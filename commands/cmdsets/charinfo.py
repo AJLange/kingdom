@@ -135,6 +135,8 @@ class CmdOOCFinger(MuxCommand):
         caller = self.caller
 
     # setting attributes switches
+    # first pass
+        
         if "email" in self.switches:
             if self.args:
                 caller.db.prefemail = self.args

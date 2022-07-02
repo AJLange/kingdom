@@ -235,11 +235,11 @@ class CmdSetProfileAttr(MuxCommand):
 
      This command sets the +finger attributes and a few other 
      static attributes. The full list is as follows: Type, 
-     Game, Function, Quote, Profile, Sex
+     Game, Function, Quote, Profile, Gender
 
 
     Usage:
-      +setprofile attribute=value
+      +setprofile/attribute <value>
 
     """
     
@@ -248,7 +248,31 @@ class CmdSetProfileAttr(MuxCommand):
 
     def func(self):
         "This performs the actual command"
-        errmsg = "What text?"
+        errmsg = "Do what now?"
+        if "gender" in self.switches:
+            if self.args:
+                caller.db.gender = self.args
+            return
+        if "type" in self.switches:
+            if self.args:
+                caller.db.type = self.args
+            return
+        if "quote" in self.switches:
+            if self.args:
+                caller.db.quote = self.args
+            return
+        if "profile" in self.switches:
+            if self.args:
+                caller.db.profile = self.args
+            return
+        if "game" in self.switches:
+            if self.args:
+                caller.db.game = self.args
+            return
+        if "function" in self.switches:
+            if self.args:
+                caller.db.function = self.args
+            return 
         if not self.args:
             self.caller.msg(errmsg)
             return
@@ -258,7 +282,7 @@ class CmdSetProfileAttr(MuxCommand):
             self.caller.msg(errmsg)
             return
         self.caller.db.profile = text
-        self.caller.msg("Profile was set to: %i" % text)
+        self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
 
 
 
