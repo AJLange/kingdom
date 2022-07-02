@@ -16,9 +16,6 @@ from evennia import create_object
 
 
 '''
-None of the numerical stuff works yet, only takes the single argument. 
-Just stubbing it out.
-
 What characters must have:
 
 Fixed set by staff:
@@ -26,31 +23,22 @@ Name
 Function
 Quote
 Profile 
-Primary Weapon
 Gender/Sex
 Game (if applicable)
 Type (FC or OC)
 Power Source (eg Race)
 Specialties (the cute list of skills)
 
-OOCfinger info (can be set by player):
-Email
-Contact/Discord
-Alias
-Alts
-Timezone/Location
-Voice Actor
-Theme/Music
-Info
-RP Hooks
+Primary Weapon
 
 Combat and systems:
-(set per armor form)
+
+Set Per armor form.
+
 Stats
 Skills
 Abilities/Capabilities (collapsing this back into one thing)
 AttackTypes
-Armor forms
 Weakness
 Resist
 Height/Size 
@@ -61,6 +49,15 @@ Faction related info (to be added later)
 Flags which are flexible per scene:
 HP
 
+OOCfinger info:
+Can be set by player so not in this file
+Email
+Discord
+Alias
+Alts
+Timezone
+Voice
+Info
 
 '''
 
@@ -235,11 +232,13 @@ class CmdSetProfileAttr(MuxCommand):
 
      This command sets the +finger attributes and a few other 
      static attributes. The full list is as follows: Type, 
-     Game, Function, Quote, Profile, Gender
+     Game, Function, Quote, Profile, Gender, Specialties
+     (formerly skills)
 
+    For now just put all the skills in one list.
 
     Usage:
-      +setprofile/attribute <value>
+      +setprofile/<attribute> <value>
 
     """
     
@@ -248,7 +247,7 @@ class CmdSetProfileAttr(MuxCommand):
 
     def func(self):
         "This performs the actual command"
-        errmsg = "Do what now?"
+        errmsg = "Not a valid attribute."
         if "gender" in self.switches:
             if self.args:
                 caller.db.gender = self.args
@@ -272,6 +271,10 @@ class CmdSetProfileAttr(MuxCommand):
         if "function" in self.switches:
             if self.args:
                 caller.db.function = self.args
+            return
+        if "specialties" in self.switches:
+            if self.args:
+                caller.db.specialties = self.args
             return 
         if not self.args:
             self.caller.msg(errmsg)
