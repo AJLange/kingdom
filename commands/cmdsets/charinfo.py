@@ -22,9 +22,15 @@ class CmdFinger(BaseCommand):
 
     +finger <character>
 
-    To get basic information about a character.
+    To get basic IC profile information about a character.
+
     Useful for an OOC overview and for potential 
-    appers.
+    appers. Information here is a combination of 
+    what is known publically as well as what is 
+    more general about a character's personality
+    and backstory and is more individual to the
+    character.
+
     """
     key = "+finger"
     aliases = ["finger", "+figner", "figner", "profile", "+profile"]
@@ -93,16 +99,30 @@ class CmdEFinger(BaseCommand):
 
 
 
-class CmdOOCFinger(BaseCommand):
+class CmdOOCFinger(MuxCommand):
     """
     
     +oocfinger <character>
+
+    +oocfinger/discord <Your Discord here>
+    +oocfinger/email <Your Email here>
     
     To get basic OOC information which relates to 
     the player of the character. You can find
     personal RP hooks and other preferences
     set here, as well as any OOC contact information
     the player feels comfortable to provide.
+
+    Set with switches such as +oocfinger/altchars
+    to add the fields provided to your own OOC finger.
+    Fields included:
+
+    Email, Alias, Discord, Altchars, RPTimes,
+    Timezone, Voice, Info 
+
+    Info is for free response where you can set RP 
+    preferences and hooks or anything you like.
+    Timezone should update automatically.
     
     """
     key = "+oocfinger"
@@ -112,25 +132,204 @@ class CmdOOCFinger(BaseCommand):
 
     def func(self):
         "This performs the actual command"
-        if not self.args:
-            self.caller.msg("Finger who?")
+        caller = self.caller
+
+    # setting attributes switches
+        if "email" in self.switches:
+            if self.args:
+                caller.db.prefemail = self.args
+                self.msg("Email set to: %s" % self.args)
+            else:
+                caller.attributes.remove("prefemail")
+                self.msg("Email address cleared.")
+            return
+        if "discord" in self.switches:
+            if self.args:
+                caller.db.discord = self.args
+                self.msg("Discord set to: %s" % self.args)
+            else:
+                caller.attributes.remove("discord")
+                self.msg("Discord cleared.")
+            return
+        if "altchars" in self.switches:
+            if self.args:
+                caller.db.altchars = self.args
+                self.msg("AltChars set to: %s" % self.args)
+            else:
+                caller.attributes.remove("altchars")
+                self.msg("Alts cleared.")
+            return
+        if "rptimes" in self.switches:
+            if self.args:
+                caller.db.rptimes = self.args
+                self.msg("RP Times set to: %s" % self.args)
+            else:
+                caller.attributes.remove("rptimes")
+                self.msg("RP Times cleared.")
+            return
+        if "voice" in self.switches:
+            if self.args:
+                caller.db.voice = self.args
+                self.msg("Voice set to: %s" % self.args)
+            else:
+                caller.attributes.remove("voice")
+                self.msg("Voice cleared.")
+            return
+        if "info" in self.switches:
+            if self.args:
+                caller.db.info = self.args
+                self.msg("Info set to: %s" % self.args)
+            else:
+                caller.attributes.remove("info")
+                self.msg("Info cleared.")
             return
 
+
+        if not self.args:
+            player = caller
+        else:     
         # find a player in the db who matches this string
-        player = self.caller.search(self.args)
+            player = caller.search(self.args)
+
         if not player:
             return
         char = player
         if not char:
-            self.caller.msg("Character not found.")
+            caller.msg("Character not found.")
             return
         try:
-            oocfingermsg = "Email, Contact, Alias, Alts, Timezone/Location, Voice Actor, Music, Info, RP Hooks"
-            self.caller.msg(f"Name: {char.name} |/ {oocfingermsg}")
+            # build the string for ooc finger
+
+            oocfingermsg = f"Name: {char.name} |/" 
+            f"Email:  {char.prefemail} |/ Alias: {char.alias} |/"
+            f"Discord: {char.discord} |/ Altchars: {char.alts} |/" 
+            f"Timezone: {char.timezone} |/ Voice: {char.voice} |/"
+            f" Info: |/ {char.info}"
+            caller.msg(oocfingermsg)
         except ValueError:
-            self.caller.msg("Some error occured.")
+            caller.msg("Some error occured.")
             return
         
+
+'''
+Not high priority, but to be converted and added as a stretch feature
+
+class CmdRPHooks(MuxCommand):
+    """
+    Sets or searches RP hook tags
+    Usage:
+        +rphooks <character>
+        +rphooks/search <tag>
+        +rphooks/add <searchable title>[=<optional description>]
+        +rphooks/rm <searchable title>
+    """
+
+    key = "+rphooks"
+    help_category = "Social"
+    aliases = ["rphooks"]
+
+    def list_valid_tags(self):
+        """Lists the existing tags for rp hooks"""
+        tags = Tag.objects.filter(db_category="rp hooks").order_by("db_key")
+        self.msg("Categories: %s" % "; ".join(tag.db_key for tag in tags))
+        return
+
+    def func(self):
+        """Executes the RPHooks command"""
+        if not self.switches:
+            if not self.args:
+                targ = self.caller
+            else:
+                targ = self.caller.search(self.args)
+                if not targ:
+                    self.list_valid_tags()
+                    return
+            hooks = targ.tags.get(category="rp hooks") or []
+            hooks = make_iter(hooks)
+            hook_descs = targ.db.hook_descs or {}
+            table = EvTable("Hook", "Desc", width=78, border="cells")
+            for hook in hooks:
+                table.add_row(hook, hook_descs.get(hook, ""))
+            table.reformat_column(0, width=20)
+            table.reformat_column(1, width=58)
+            self.msg(table)
+            if not hooks:
+                self.list_valid_tags()
+            return
+        if "add" in self.switches:
+            title = self.lhs.lower()
+            if len(title) > 25:
+                self.msg("Title must be under 25 characters.")
+                return
+            # test characters in title
+            if not self.validate_name(title):
+                return
+            data = self.rhs
+            hook_descs = self.caller.db.hook_descs or {}
+            self.caller.tags.add(title, category="rp hooks")
+            if data:
+                hook_descs[title] = data
+                self.caller.db.hook_descs = hook_descs
+            data_str = (": %s" % data) if data else ""
+            self.msg("Added rphook tag: %s%s." % (title, data_str))
+            return
+        if "search" in self.switches:
+            table = EvTable("Name", "RPHook", "Details", width=78, border="cells")
+            if not self.args:
+                self.list_valid_tags()
+                return
+            tags = Tag.objects.filter(
+                db_key__icontains=self.args, db_category="rp hooks"
+            )
+            for tag in tags:
+                for pc in tag.accountdb_set.all():
+                    hook_desc = pc.db.hook_descs or {}
+                    desc = hook_desc.get(tag.db_key, "")
+                    table.add_row(pc, tag.db_key, desc)
+            table.reformat_column(0, width=10)
+            table.reformat_column(1, width=20)
+            table.reformat_column(2, width=48)
+            self.msg(table)
+            return
+        if "rm" in self.switches or "remove" in self.switches:
+            args = self.args.lower()
+            hook_descs = self.caller.db.hook_descs or {}
+            if args in hook_descs:
+                del hook_descs[args]
+                if not hook_descs:
+                    self.caller.attributes.remove("hook_descs")
+                else:
+                    self.caller.db.hook_descs = hook_descs
+            tagnames = self.caller.tags.get(category="rp hooks") or []
+            if args not in tagnames:
+                self.msg("No rphook by that category name.")
+                return
+            self.caller.tags.remove(args, category="rp hooks")
+            self.msg("Removed.")
+            return
+        self.msg("Invalid switch.")
+
+    def validate_name(self, name):
+        """Ensures that RPHooks doesn't have a name with special characters that would break it"""
+        import re
+
+        if not re.findall("^[\w',]+$", name):
+            self.msg("That category name contains invalid characters.")
+            return False
+        return True
+
+'''
+
+class CmdSoundtrack(BaseCommand):
+    '''
+    To be added
+    '''
+    def func(self):
+        "This performs the actual command"
+        self.caller.msg("Not yet added.")
+        return
+
+
 
 
 class CmdSheet(BaseCommand):
