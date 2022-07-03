@@ -145,13 +145,13 @@ class CmdSetStat(MuxCommand):
     Staff creating characters only.
 
     Usage:
-      +setstat power <1-10>
+      +setstat/power <1-10>
       +setstat <namestat> <1-10> 
 
 
     Stats in this system are 
-    Power, Dex, Tenacity
-    Cunning, Edu, Charisma, Aura
+    Power, Dexterity, Tenacity
+    Cunning, Education, Charisma, Aura
 
     """
     
@@ -160,21 +160,39 @@ class CmdSetStat(MuxCommand):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
         errmsg = "You must supply a number between 1 and 10."
+        if not self.switches:
+            caller.msg("Set which stat?")
+            return
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
-            power = int(self.args)
+            stat = int(self.args)
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        if not (1 <= power <= 10):
-            self.caller.msg(errmsg)
+        if not (1 <= stat <= 10):
+            caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
-        self.caller.db.pow = power
-        self.caller.msg("Your Power was set to %i." % power)
+        if "power" in self.switches:
+            caller.db.pow = stat
+        if "dexterity" in self.switches:
+            caller.db.dex = stat
+        if "tenacity" in self.switches:
+            caller.db.ten = stat
+        if "cunning" in self.switches:
+            caller.db.cun = stat
+        if "education" in self.switches:
+            caller.db.edu = stat
+        if "charisma" in self.switches:
+            caller.db.chr = stat
+        if "aura" in self.switches:
+            caller.db.aur = stat
+
+        caller.msg(f"Your {self.switches} was set to %i." % stat)
 
 class CmdSetSkills(MuxCommand):
     """
@@ -182,15 +200,15 @@ class CmdSetSkills(MuxCommand):
     Staff creating characters only.
 
     Usage:
-      +setskill Perception <1-5>
-      +setskill <nameskill> <1-5> 
+      +setskill/Perception <1-5>
+      +setskill/<nameskill> <1-5> 
 
 
     Valid skills in this version are
     Perception
     Athletics
     Force
-    Mechanic
+    Mechanics
     Medicine
     Computer
     Stealth
@@ -207,21 +225,46 @@ class CmdSetSkills(MuxCommand):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
         errmsg = "You must supply a number between 1 and 10."
+        if not self.switches:
+            caller.msg("Set which skill?")
+            return
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
-            power = int(self.args)
+            stat = int(self.args)
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        if not (1 <= power <= 10):
-            self.caller.msg(errmsg)
+        if not (1 <= stat <= 10):
+            caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
-        self.caller.db.power = power
-        self.caller.msg("Your Power was set to %i." % power)
+        if "perception" in self.switches:
+            caller.db.perception = stat
+        if "athletics" in self.switches:
+            caller.db.athletics = stat
+        if "force" in self.switches:
+            caller.db.force = stat
+        if "mechanics" in self.switches:
+            caller.db.mechanics = stat
+        if "medicine" in self.switches:
+            caller.db.medicine = stat
+        if "computer" in self.switches:
+            caller.db.computer = stat
+        if "stealth" in self.switches:
+            caller.db.stealth = stat
+        if "larceny" in self.switches:
+            caller.db.larceny = stat
+        if "convince" in self.switches:
+            caller.db.convince = stat
+        if "presence" in self.switches:
+            caller.db.presence = stat
+        if "arcana" in self.switches:
+            caller.db.arcana = stat
+        caller.msg(f"Your {self.switches} was set to %i." % stat)
 
 
 
