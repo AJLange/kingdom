@@ -37,11 +37,11 @@ Set Per armor form.
 
 Stats
 Skills
-Abilities/Capabilities (collapsing this back into one thing)
+Abilities 
 AttackTypes
 Weakness
 Resist
-Height/Size 
+Height 
 Speed
 
 Faction related info (to be added later)
@@ -327,9 +327,58 @@ class CmdSetProfileAttr(MuxCommand):
         except ValueError:
             self.caller.msg(errmsg)
             return
-        self.caller.db.profile = text
+
         self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
 
+
+class CmdSetAttribute(MuxCommand):
+    """
+    Sets the assorted info on a character which is 
+    different per armor form.
+
+     The full list is as follows:  
+     Weakness, Resistance, Height, Speed
+
+    For now just put all the skills in one list.
+
+    Usage:
+      +setattribute/<attribute> <value>
+
+    """
+    
+    key = "+setattribute"
+    help_category = "staffonly"
+
+    def func(self):
+        "This performs the actual command"
+        errmsg = "Not a valid attribute."
+        if "weakness" in self.switches:
+            if self.args:
+                caller.db.weakness = self.args
+            return
+        if "resistance" in self.switches:
+            if self.args:
+                caller.db.resistance = self.args
+            return
+        if "height" in self.switches:
+            if self.args:
+                caller.db.height = self.args
+            return
+        if "speed" in self.switches:
+            if self.args:
+                caller.db.speed = self.args
+            return
+        
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+        try:
+            text = self.args
+        except ValueError:
+            self.caller.msg(errmsg)
+            return
+
+        self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
 
 
 class CmdSetSpecialty(Command):
