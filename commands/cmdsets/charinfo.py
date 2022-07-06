@@ -381,7 +381,7 @@ class CmdCookie(MuxCommand):
     """
 
     key = "cookie"
-    aliases = ["+cookie"]
+    aliases = ["+cookie", "vote", "+vote"]
     locks = "cmd:all()"
 
     def func(self):
@@ -389,6 +389,23 @@ class CmdCookie(MuxCommand):
         if not self.args:
             self.caller.msg("Give cookie to who?")
             return
+        
+        # find a player in the db who matches this string
+        player = self.caller.search(self.args)
+        if not player:
+            return
+        char = player
+        if not char:
+            self.caller.msg("Character not found.")
+            return
+        try:
+            self.caller.msg(f"You give {char.name} a cookie!")
+            char.db.cookiecount += 1
+        except ValueError:
+            self.caller.msg("Some error occured.")
+            return
+
+
 
 class CmdCookieCounter(MuxCommand):
 
@@ -427,4 +444,64 @@ class CmdCookiemonsters(MuxCommand):
     def func(self):
         self.caller.msg("Wow here's all the people with 100 cookies!")
 
+class CmdCookieBomb(MuxCommand):
 
+    """
+    Give a mouse a cookie.
+    
+    Usage:
+      +cookiebomb
+
+      This command locked to staff gives a +cookie to everyone
+      in the room that is not set +observer.
+    """
+    key = "cookiebomb"
+    aliases = []
+    locks = "cmd:all()"
+
+    def func(self):
+        self.caller.msg("You give everybody a cookie!")
+
+
+
+class CmdCookieMsg(MuxCommand):
+
+    """
+    Set your custom cookie message.
+    
+    Usage:
+      +cookiemsg <message>
+
+    This customizes the string that will be sent when you give
+    a cookie to another player.
+    Please make it clear that this is the purpose of the message
+    when you compose your custom cookie message!
+
+    Future update: typing this with no arguments
+    shows you your own message.
+
+    """
+
+    key = "cookie"
+    aliases = ["+cookiemsg"]
+    locks = "cmd:all()"
+
+    def func(self):
+        "This performs the actual command"
+        if not self.args:
+            self.caller.msg("Set the message to what?")
+            return
+        
+        # find a player in the db who matches this string
+        player = self.caller.search(self.args)
+        if not player:
+            return
+        char = player
+        if not char:
+            self.caller.msg("Character not found.")
+            return
+        try:
+            self.caller.msg(f"You give {char.name} a cookie!")
+        except ValueError:
+            self.caller.msg("Some error occured.")
+            return
