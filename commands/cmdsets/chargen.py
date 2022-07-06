@@ -200,19 +200,19 @@ class CmdSetSkills(MuxCommand):
     Staff creating characters only.
 
     Usage:
-      +setskill/Perception <1-5>
+      +setskill/Discern <1-5>
       +setskill/<nameskill> <1-5> 
 
 
     Valid skills in this version are
-    Perception
-    Athletics
+    Discern
+    Flow
     Force
     Mechanics
     Medicine
     Computer
     Stealth
-    Larceny
+    Heist
     Convince
     Presence
     Arcana
@@ -242,10 +242,10 @@ class CmdSetSkills(MuxCommand):
             caller.msg(errmsg)
             return
         # at this point the argument is tested as valid. Let's set it.
-        if "perception" in self.switches:
-            caller.db.perception = stat
-        if "athletics" in self.switches:
-            caller.db.athletics = stat
+        if "discern" in self.switches:
+            caller.db.discern = stat
+        if "flow" in self.switches:
+            caller.db.flow = stat
         if "force" in self.switches:
             caller.db.force = stat
         if "mechanics" in self.switches:
@@ -256,8 +256,8 @@ class CmdSetSkills(MuxCommand):
             caller.db.computer = stat
         if "stealth" in self.switches:
             caller.db.stealth = stat
-        if "larceny" in self.switches:
-            caller.db.larceny = stat
+        if "heist" in self.switches:
+            caller.db.heist = stat
         if "convince" in self.switches:
             caller.db.convince = stat
         if "presence" in self.switches:
