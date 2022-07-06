@@ -353,12 +353,12 @@ class CmdSheet(BaseCommand):
 
             pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
             # right now this just pulls numbers/stats, to be fixed once skills are set in stone.
-            discern, flow, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana = self.caller.get_skills()
+            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana = self.caller.get_skills()
             line1 = "Name: "
             line2 = "Racetype: Power Types:" 
             line3 = "Current Mode:"            
             line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
-            line5 = "Discern: %s, Flow: %s, Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (perception, athletics, force, mechanics, medicine, computer, stealth, larceny, convince, presence, arcana)
+            line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (perception, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
             line6 = "Capabilities: "
             line7 =  "Size, Speed"
             line8 = "Elements: Weakness/Resistance:"

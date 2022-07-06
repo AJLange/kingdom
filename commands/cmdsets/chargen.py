@@ -206,7 +206,8 @@ class CmdSetSkills(MuxCommand):
 
     Valid skills in this version are
     Discern
-    Flow
+    Athletics
+    Aim
     Force
     Mechanics
     Medicine
@@ -244,8 +245,10 @@ class CmdSetSkills(MuxCommand):
         # at this point the argument is tested as valid. Let's set it.
         if "discern" in self.switches:
             caller.db.discern = stat
-        if "flow" in self.switches:
-            caller.db.flow = stat
+        if "aim" in self.switches:
+            caller.db.aim = stat
+        if "athletics" in self.switches:
+            caller.db.althetics = stat
         if "force" in self.switches:
             caller.db.force = stat
         if "mechanics" in self.switches:
