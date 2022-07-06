@@ -14,6 +14,7 @@ import time
 import re
 from evennia import ObjectDB, AccountDB
 from evennia import default_cmds
+from evennia.default_cmds import MuxCommand
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from evennia.comms.models import Msg
 from world.scenes.models import Scene, LogEntry
@@ -141,7 +142,7 @@ def tailored_msg(caller, msg):
     return
 
 
-class CmdPot(default_cmds.MuxCommand):
+class CmdPot(MuxCommand):
     """
     View the pose tracker (pot). The pose tracker displays the name,
     time connected, time idle, and time since last posed of every
@@ -225,7 +226,7 @@ class CmdPot(default_cmds.MuxCommand):
 
         self.caller.msg(table)
 
-class CmdObserve(default_cmds.MuxCommand):
+class CmdObserve(MuxCommand):
     """
         Enter observer mode. This signifies that you are observing,
         and not participating, in a scene. In +pot, you will be
@@ -251,7 +252,7 @@ class CmdObserve(default_cmds.MuxCommand):
             "|y<SCENE>|n {0} is now an observer.".format(self.caller.name))
 
 
-class CmdSceneSched(default_cmds.MuxCommand):
+class CmdSceneSched(MuxCommand):
     """
     Syntax: +scenes (+tp, +scene, +schedule)                                      
         +scene/add <Month>/<Day> <Time> <Title>=<Description>                 
@@ -306,26 +307,26 @@ number for a month. An example of the command would be:
 
 
 
-class CmdEvent(default_cmds.MuxCommand):
+class CmdEvent(MuxCommand):
     """
-    The @event command is used to log scenes.
+    The +event command is used to log scenes.
     Usage:
-            @event/start: Create a scene and begin logging poses in the current room.
-            @event/stop: Stop the log currently running in the room.
-            @event/info: Display the current log's ID number, name, etc.
-            @event/name [string]: Set the current log's name as [string].
-            @event/desc [string]: Set the current log's desc as [string].
+            +event/start: Create a scene and begin logging poses in the current room.
+            +event/stop: Stop the log currently running in the room.
+            +event/info: Display the current log's ID number, name, etc.
+            +event/name [string]: Set the current log's name as [string].
+            +event/desc [string]: Set the current log's desc as [string].
     """
 
-    key = "@event"
-    aliases = ["event"]
+    key = "+event"
+    aliases = ["event", "@event"]
     locks = "cmd:all()"
 
     def func(self):
         caller = self.caller
 
         if not self.switches:
-            caller.msg("You must add a switch, like '@event/start' or '@event/stop'.")
+            caller.msg("You must add a switch, like '+event/start' or '+event/stop'.")
             return
 
         elif "start" in self.switches:
@@ -424,4 +425,170 @@ class CmdEvent(default_cmds.MuxCommand):
             Scene.objects.filter(id=caller.location.db.event_id).update(description=self.args)
             caller.msg("Scene description set.")
 
+
+class CmdSequenceStart(MuxCommand):
+    """
+    This command declares a Sequence.
+    A Sequence is used to indicate an open-GMed scene that contains
+    action components but is not a direct combat or duel.
+
+    When you initiate a Sequence, you're setting yourself as a GM 
+    in that scene. You can appoint a co-GM by using +sequence/gm <name>
+    +sequence/stepdown will turn off your GM flag (if you are done, 
+    or want to pass off the GMing role to someone else while still
+    leaving the sequence active).
+
+    +sequence/stop ends the sequence for all participants.
+
+    Usage:
+            +sequence/start
+            +sequence/stop
+            +sequence/gm <name>
+            +sequence/stepdown
+    """
+
+    key = "+sequence"
+    aliases = ["sequence"]
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.switches:
+            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
+            return
+
+        #this is from the event code, make it actually do the thing at a later time.
+
+        elif "start" in self.switches:
+            # Make sure the current room doesn't already have an active event, and otherwise mark it
+            if caller.location.db.active_event:
+                caller.msg("There is currently an active event running in this room already.")
+                return
+            caller.location.db.active_event = True
+            event = Scene.objects.create(
+                name='Unnamed Event',
+                start_time=datetime.now(),
+                description='Placeholder description of scene plz change k thx bai',
+                location=caller.location,
+            )
+
+            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
+
+            caller.location.db.event_id = event.id
+
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been started in this room with scene ID {0}.".format(event.id))
+            return
+
+        elif "stop" in self.switches:
+            # Make sure the current room's event hasn't already been stopped
+            if not caller.location.db.active_event:
+                caller.msg("There is no active event running in this room.")
+                return
+
+            # Find the scene object that matches the scene/event reference on the
+            # location.
+            try:
+                events = Scene.objects.filter(id=caller.location.db.event_id).get()
+            except Exception as original:
+                raise Exception("Found zero or multiple Scenes :/") from original
+
+            # Stop the Room's active event by removing the active event attribute.
+            Scene.objects.filter(id=caller.location.db.event_id).update(end_time=datetime.now())
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been stopped in this room with scene ID {0}.".format(events.id))
+            del caller.location.db.active_event
+            return
+
+
+class CmdSequenceStart(MuxCommand):
+    """
+    This command declares a Sequence.
+    A Sequence is used to indicate an open-GMed scene that contains
+    action components but is not a direct combat or duel.
+
+        Usage:
+            +sequence/start <optional number>
+            +sequence/stop
+            +sequence/gm <name>
+            +sequence/stepdown
+            +sequence/status
+
+    When you initiate a Sequence, you're setting yourself as a GM 
+    in that scene. You can appoint a co-GM by using +sequence/gm <name>
+    +sequence/stepdown will turn off your GM flag (if you are done, 
+    or want to pass off the GMing role to someone else while still
+    leaving the sequence active).
+
+    Each Sequence has a number of beats, multipled by the number
+    of protagonists in the scene (people you're up against). 
+    A beat is essentially the HP of the challenge at hand, 
+    however it is resolved.  The default number of beats is 
+    3 times the amount of adversarial players involved.
+    Players set +observer or appointed GM wil not be added
+    to this calculation.  If you set another player as co-GM
+    their beats will be removed. If you want to set this to 
+    a different value, you can choose that number when you 
+    start a sequence. 
+
+    +sequence/status views the amount of beats and remaining
+    beats.
+
+    +sequence/stop ends the sequence for all participants.
+    Only a GM in the sequence can do this.
+
+    For information on how to GM in a Sequence see other help files.
+    This command is only to set the flags (for now).
+    """
+
+    key = "+sequence"
+    aliases = ["sequence", "sq","+sq"]
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.switches:
+            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
+            return
+
+        #this is from the event code, make it actually do the thing at a later time.
+
+        elif "start" in self.switches:
+            # Make sure the current room doesn't already have an active event, and otherwise mark it
+            if caller.location.db.active_event:
+                caller.msg("There is currently an active event running in this room already.")
+                return
+            caller.location.db.active_event = True
+            event = Scene.objects.create(
+                name='Unnamed Event',
+                start_time=datetime.now(),
+                description='Placeholder description of scene plz change k thx bai',
+                location=caller.location,
+            )
+
+            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
+
+            caller.location.db.event_id = event.id
+
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been started in this room with scene ID {0}.".format(event.id))
+            return
+
+        elif "stop" in self.switches:
+            # Make sure the current room's event hasn't already been stopped
+            if not caller.location.db.active_event:
+                caller.msg("There is no active event running in this room.")
+                return
+
+            # Find the scene object that matches the scene/event reference on the
+            # location.
+            try:
+                events = Scene.objects.filter(id=caller.location.db.event_id).get()
+            except Exception as original:
+                raise Exception("Found zero or multiple Scenes :/") from original
+
+            # Stop the Room's active event by removing the active event attribute.
+            Scene.objects.filter(id=caller.location.db.event_id).update(end_time=datetime.now())
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been stopped in this room with scene ID {0}.".format(events.id))
+            del caller.location.db.active_event
+            return
 
