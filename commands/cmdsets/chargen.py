@@ -16,6 +16,9 @@ from evennia import create_object
 
 
 '''
+
+Reminder: be sure to lock changing most attributes to admin only.
+
 What characters must have:
 
 Fixed set by staff:
@@ -443,6 +446,96 @@ class CmdSetTypes(Command):
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
 
+class CmdSetWeapons(Command):
+    """
+    Setting or adding attack types to characters.
+
+    Usage:
+      +setweapon <type>
+
+    not figured out how I intend to do this, but
+    stubbing it out.
+
+    """
+    
+    key = "+setweapon"
+    help_category = "staffonly"
+
+    def func(self):
+        "This performs the actual command"
+        errmsg = "What text?"
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+        try:
+            text = self.args
+        except ValueError:
+            self.caller.msg(errmsg)
+            return
+        self.caller.db.quote = text
+        self.caller.msg("Added a specialty at: %i" % text)
+
+class CmdSetArmors(Command):
+    """
+    Setting or adding armors to characters.
+
+    Usage:
+      +setarmor <name>
+
+    not figured out how I intend to do this, but
+    stubbing it out.
+
+
+    """
+    
+    key = "+setarmor"
+    help_category = "staffonly"
+
+    def func(self):
+        "This performs the actual command"
+        errmsg = "What text?"
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+        try:
+            text = self.args
+        except ValueError:
+            self.caller.msg(errmsg)
+            return
+        self.caller.db.quote = text
+        self.caller.msg("Added an armor named: %i" % text)
+
+class CmdSetPowers(Command):
+    """
+    Setting or adding armors to characters.
+
+    Usage:
+      +setpower <name>
+
+    This sets the power source on characters.
+    Power sources are tied to certain abilities.
+
+
+    """
+    
+    key = "+setpower"
+    help_category = "staffonly"
+
+    def func(self):
+        "This performs the actual command"
+        errmsg = "What text?"
+        if not self.args:
+            self.caller.msg(errmsg)
+            return
+        try:
+            text = self.args
+        except ValueError:
+            self.caller.msg(errmsg)
+            return
+        self.caller.db.quote = text
+        self.caller.msg("Added the power: %i" % text)
+
+
 class ChargenCmdset(CmdSet):
     """
     This cmdset is used in character generation areas.
@@ -453,4 +546,8 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetStat())
         self.add(CmdSetSpecialty())
         self.add(CmdSetSkills())
+        self.add(CmdSetTypes())
+        self.add(CmdSetWeapons())
+        self.add(CmdSetArmors())
         self.add(CmdSetProfileAttr())
+        self.add(CmdSetPowers())
