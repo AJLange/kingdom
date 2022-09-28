@@ -31,6 +31,10 @@ class CmdShowdown(Command):
     +showdown/boss begins a showdown with everyone in the room who is not
     set as observer.
 
+    If a showdown is in progress between multiple people, initiating a 
+    showdown with one of those targets invites you to combat with all
+    of those targets.
+
     """
     
     key = "+showdown"

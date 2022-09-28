@@ -446,15 +446,19 @@ class CmdSetTypes(Command):
         self.caller.db.quote = text
         self.caller.msg("Added a specialty at: %i" % text)
 
-class CmdSetWeapons(Command):
+class CmdSetWeapons(MuxCommand):
     """
     Setting or adding attack types to characters.
 
     Usage:
       +setweapon <type>
+      +setweapon/primary <type>
+      +setweapon/secondary <type>
 
     not figured out how I intend to do this, but
     stubbing it out.
+
+    Ability to set primary and secondary weapon also lives here.
 
     """
     
@@ -473,7 +477,7 @@ class CmdSetWeapons(Command):
             self.caller.msg(errmsg)
             return
         self.caller.db.quote = text
-        self.caller.msg("Added a specialty at: %i" % text)
+        self.caller.msg("Added this weapon: %i" % text)
 
 class CmdSetArmors(Command):
     """
