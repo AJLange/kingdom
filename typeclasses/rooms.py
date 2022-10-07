@@ -86,13 +86,6 @@ class OOCRoom(Room):
         "this is called only at first creation"
 
 
-class ShopRoom(Room):
-    """
-    This room class will be used for player-run shops
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
-
 
 class TravelRoom(Room):
     """
@@ -111,10 +104,28 @@ class TrainingRoom(Room):
         "this is called only at first creation"
 
 
+
+class QuartersRoom(Room):
+    """
+    This room type would allow people to set down quarters rooms of their own.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+        
+        
+
+
+class ShopRoom(Room):
+    """
+    This room class will be used for player-run shops
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
 class WarRoom(Room):
     """
     This room type would allow interaction with the war system
     """
     def at_object_creation(self):
         "this is called only at first creation"
-        

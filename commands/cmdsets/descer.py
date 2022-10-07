@@ -4,73 +4,40 @@ Better multidescer to match the old multidescer.
 """
 
 
-from evennia import CmdSet
 from evennia.contrib import multidescer 
 from evennia.objects.models import ObjectDB
-from evennia import CmdSet
 from evennia import default_cmds
 from evennia.commands.default.muxcommand import MuxCommand
+from server.utils import sub_old_ansi
 
 #permissions on desc are strange. 
 #todo, allow PCs to desc themselves, but not rooms.
 
-class CmdDesc(default_cmds.CharacterCmdSet):
+class CmdDesc(MuxCommand):
     """
     describe an object or the current room.
 
     Usage:
       desc [<obj> =] <description>
 
-    Switches:
-      edit - Open up a line editor for more advanced editing.
-
     Sets the "desc" attribute on an object. If an object is not given,
     describe the current room.
     """
 
     key = "desc"
-    aliases = "describe"
-    switch_options = ("edit",)
+    aliases = "describe", "@desc"
     locks = "cmd:perm(desc) or perm(Builder)"
     help_category = "Building"
 
-    def edit_handler(self):
-        if self.rhs:
-            self.msg("|rYou may specify a value, or use the edit switch, " "but not both.|n")
-            return
-        if self.args:
-            obj = self.caller.search(self.args)
-        else:
-            obj = self.caller.location or self.msg("|rYou can't describe oblivion.|n")
-        if not obj:
-            return
-
-        if not (obj.access(self.caller, "control") or obj.access(self.caller, "edit")):
-            self.caller.msg("You don't have permission to edit the description of %s." % obj.key)
-
-        self.caller.db.evmenu_target = obj
-        # launch the editor
-        EvEditor(
-            self.caller,
-            loadfunc=_desc_load,
-            savefunc=_desc_save,
-            quitfunc=_desc_quit,
-            key="desc",
-            persistent=True,
-        )
-        return
 
     def func(self):
         """Define command"""
 
         caller = self.caller
-        if not self.args and "edit" not in self.switches:
+        if not self.args:
             caller.msg("Usage: desc [<obj> =] <description>")
             return
 
-        if "edit" in self.switches:
-            self.edit_handler()
-            return
 
         if "=" in self.args:
             # We have an =
@@ -83,9 +50,10 @@ class CmdDesc(default_cmds.CharacterCmdSet):
             if not obj:
                 return
             desc = self.args
+            desc = sub_old_ansi(desc)
         if obj.access(self.caller, "control") or obj.access(self.caller, "edit"):
-            obj.db.desc = desc
-            caller.msg("The description was set on %s." % obj.get_display_name(caller))
+            obj.db.desc = sub_old_ansi(desc)
+            caller.msg("The new description was set on %s." % obj.get_display_name(caller))
         else:
             caller.msg("You don't have permission to edit the description of %s." % obj.key)
 
@@ -93,7 +61,7 @@ class CmdDesc(default_cmds.CharacterCmdSet):
 class CmdMultiDesc(MuxCommand):
     """
     +multidesc = <text of desc>
-    +mdesc <text of desc>
+    +mdesc = <text of desc>
     +multidesc/store <name>
     +multidesc/wear <name>
     +multidesc/view <name>
@@ -156,6 +124,7 @@ class CmdMultiDesc(MuxCommand):
             if not obj:
                 return
             desc = self.args
+            desc = sub_old_ansi(desc)
         if obj.access(self.caller, "control") or obj.access(self.caller, "edit"):
             obj.db.desc = desc
             caller.msg("The description was set on %s." % obj.get_display_name(caller))

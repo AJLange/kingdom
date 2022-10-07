@@ -27,6 +27,7 @@ from commands import command
 from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, CmdSetProfileAttr
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
+from commands.cmdsets.descer import CmdDesc
 
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -62,6 +63,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdJoin())
         self.add(CmdFollow())
         self.add(CmdDitch())
+        self.add(CmdDesc())
         #self.add(multidescer.CmdMultiDesc()) 
         #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
 
