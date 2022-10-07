@@ -201,6 +201,7 @@ class CmdDepart(MuxCommand):
         caller.msg(get_movement_message("leave", table))
 
 
+'''
 class CmdTableTalk(MuxCommand):
     """
     Speaks at your current table.
@@ -290,3 +291,107 @@ class CmdTableTalk(MuxCommand):
             table.tt_msg(
                 msg, from_obj=caller, msg_type=msg_type, is_ooc=is_ooc, options=options
             )
+'''
+
+class CmdConstruct(MuxCommand):
+    """
+    Create a private room object.
+    Players will have a limited quota of private room objects.
+    Construct a room using 
+
+    construct <name of room>
+    eg
+    construct Doctor's Office
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("What do yo want to construct?")
+            return
+
+        ''' to do: the rest of the command '''
+
+
+class CmdCraft(MuxCommand):
+    """
+    Create a small object.
+    Players will have a limited quota of miscellaneous objects.
+    These objects can hold a desc, but have no other 
+    functionality. 
+
+    craft <name of object>
+    eg
+    craft Soccer Ball
+    """
+
+    key = "craft"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("What do yo want to craft?")
+            return
+
+        ''' to do: the rest of the command '''
+
+
+class CmdMakePlace(MuxCommand):
+    """
+    Create a place.
+    A place is an object that can be entered.
+    It does not behave like a room; it simply shows
+    a relative location of players to ease in the creation
+    of setpieces that may have multiple sub-locations.
+
+    All poses done inside a place append the name of the 
+    place to the front of the pose, for ease of
+    readability.
+
+    place <name of place>
+    eg
+    place Corner Table
+    """
+
+    key = "place"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("Syntax: Place <name of place>")
+            return
+
+        ''' to do: the rest of the command '''
+
+
+'''
+notes here on player quotas:
+10 items
+10 personal rooms
+10 places
+
+per player character.
+Pets can only be created by staff for now (may change later)
+
+'''
+

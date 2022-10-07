@@ -84,14 +84,3 @@ class Vehicle(Place):
         self.db.desc = "This is a Place. Enter it to append your location to the room."
 
 
-'''
-notes here on player quotas:
-10 items
-10 personal rooms
-10 places
-
-per player character.
-Pets can only be created by staff for now (may change later)
-
-'''
-
