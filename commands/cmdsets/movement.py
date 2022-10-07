@@ -432,3 +432,47 @@ class CmdLinkhere(MuxCommand):
         elif not home:
             caller.msg("You set your home in this location.")
             caller.location = caller.home
+
+
+
+
+class CmdEnterCity(MuxCommand):
+    """
+    entering a city
+    
+    Usage:
+      enter <city>
+
+    This will be available to players in the same location
+    as a city and allows entering that city.
+    """
+
+    key = "enter"
+    locks = "cmd:all()"
+
+    def func(self):
+        if not self.args:
+            self.caller.msg("Enter where?")
+            return
+        city = self.caller.search(self.args)
+        self.caller.msg("You enter the city.")
+        self.caller.move_to(city)
+
+
+class CmdLeaveCity(MuxCommand):
+    """
+    leaving the city.
+ 
+    Usage:
+      leave
+
+    When inside a city, exit the city with this.
+    """
+
+    key = "leave"
+    locks = "cmd:all()"
+
+    def func(self):
+        city = self.obj
+        parent = city.location
+        self.caller.move_to(parent)

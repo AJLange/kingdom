@@ -8,50 +8,6 @@ from typeclasses.exits import Exit
 from evennia import DefaultExit
 
 
-
-
-class CmdEnterCity(Command):
-    """
-    entering a city
-    
-    Usage:
-      enter <city>
-
-    This will be available to players in the same location
-    as a city and allows entering that city.
-    """
-
-    key = "enter"
-    locks = "cmd:all()"
-
-    def func(self):
-        if not self.args:
-            self.caller.msg("Enter where?")
-            return
-        city = self.caller.search(self.args)
-        self.caller.msg("You enter the city.")
-        self.caller.move_to(city)
-
-
-class CmdLeaveCity(Command):
-    """
-    leaving the city.
- 
-    Usage:
-      leave
-
-    When inside a city, exit the city with this.
-    """
-
-    key = "leave"
-    locks = "cmd:all()"
-
-    def func(self):
-        city = self.obj
-        parent = city.location
-        self.caller.move_to(parent)
-
-
 class City(Object):
     '''
     A type of object that, when entered, contains a 
