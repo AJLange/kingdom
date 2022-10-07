@@ -77,6 +77,8 @@ class CmdWho(MuxCommand):
         pruned_sessions = prune_sessions(all_sessions)
 
         # check if users are admins and should be able to see all users' session data
+
+        # to-do: what if I'm not logged in, use Guest permissions
         if self.cmdstring == "doing":
             show_session_data = False
         else:

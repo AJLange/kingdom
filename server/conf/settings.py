@@ -33,8 +33,8 @@ from evennia.settings_default import *
 ######################################################################
 
 # This is the name of your game. Make it catchy!
-SERVERNAME = "Kingdom"
-GAME_SLOGAN = "The Kingdom of Testing"
+SERVERNAME = "M3"
+GAME_SLOGAN = "Welcome to MegaMan MUSH! Increasingly Capcom MUSH."
 
 DEFAULT_HOME = "#6"
 START_LOCATION = "#6"

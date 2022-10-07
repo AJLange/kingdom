@@ -339,6 +339,14 @@ class CmdTidyUp(MuxCommand):
 
 
 
+'''
+make warp link-clickable with this
+
+• |lc to start the link, by defining the command to execute.
+• |lt to continue with the text to show to the user (the link text).
+• |le to end the link text and the link definition.
+'''
+
 class CmdWarp(MuxCommand):
     """
     teleport to another location
@@ -403,8 +411,7 @@ class CmdHome(MuxCommand):
             mapping = {"secret": True}
             caller.move_to(home, mapping=mapping)
             caller.msg("There's no place like home ...")
-            
-            caller.messages.messenger_notification(force=True)
+
 
 
 class CmdLinkhere(MuxCommand):

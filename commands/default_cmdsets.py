@@ -14,6 +14,8 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 """
 
+
+
 from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
@@ -28,7 +30,7 @@ from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, 
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc
-
+from commands.cmdsets.utility import CmdWho
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -106,6 +108,7 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(CmdWho())
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):
