@@ -11,6 +11,7 @@ To do: update pose code to reflect this change
 from evennia.commands.cmdset import CmdSet
 from evennia.commands.default.muxcommand import MuxCommand
 from evennia.utils.utils import list_to_string
+from typeclasses.cities import Place
 
 
 def get_movement_message(verb, place):

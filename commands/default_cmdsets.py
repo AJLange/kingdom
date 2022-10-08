@@ -31,6 +31,7 @@ from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc
 from commands.cmdsets.utility import CmdWho
+from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -66,6 +67,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFollow())
         self.add(CmdDitch())
         self.add(CmdDesc())
+        self.add(CmdEnterCity())
+        self.add(CmdLeaveCity())
         #self.add(multidescer.CmdMultiDesc()) 
         #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
 

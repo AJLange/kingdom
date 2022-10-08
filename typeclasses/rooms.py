@@ -8,6 +8,15 @@ Rooms are simple containers that has no location of their own.
 from evennia import DefaultRoom
 
 
+'''
+eventually make use of this for special roomtypes
+https://www.evennia.com/docs/0.9.5/Zones.html
+
+you do not need that many discreet roomtypes if categorized
+this way.
+
+'''
+
 class Room(DefaultRoom):
     """
     Rooms are like any Object, except their location is None

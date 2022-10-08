@@ -10,6 +10,8 @@ from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import PlayRoom, TravelRoom
+from typeclasses.cities import City, PersonalRoom
+from evennia.utils.search import search_tag, search_object
 
 
 
@@ -377,7 +379,7 @@ class CmdWarp(MuxCommand):
             return
         if destination:
             if not isinstance(destination, PlayRoom):
-                caller.msg("Destination is not a room.")
+                caller.msg("Destination is not an IC room.")
                 return
             else:
                 caller.move_to(destination)
@@ -441,29 +443,46 @@ class CmdLinkhere(MuxCommand):
             caller.location = caller.home
 
 
-
-
 class CmdEnterCity(MuxCommand):
     """
-    entering a city
+    Entering a city or private room object.
     
     Usage:
-      enter <city>
+      enter <place>
+      enter Neo Tokyo
 
-    This will be available to players in the same location
-    as a city and allows entering that city.
     """
 
     key = "enter"
     locks = "cmd:all()"
 
     def func(self):
+        caller = self.caller
         if not self.args:
             self.caller.msg("Enter where?")
             return
-        city = self.caller.search(self.args)
-        self.caller.msg("You enter the city.")
-        self.caller.move_to(city)
+        #is this object an enterable place?
+        destination = caller.search(self.args)
+        if isinstance(destination, City):
+            
+            entry = (destination.db.entry)
+            #todo - please add an exception handler to fail gracefully
+            entry = PlayRoom.objects.get(db_key__startswith=entry)
+            caller.msg("You enter the city.")
+            emit_string = "%s is entering %s." % (caller.name, destination)
+            caller.location.msg_contents(emit_string, from_obj=caller)
+            self.caller.move_to(entry)
+
+        elif isinstance(destination, PersonalRoom):
+            #todo - check to see if this room is unlocked before trying to enter.
+            entry = (destination.db.entry)
+            entry = PlayRoom.objects.get(db_key__startswith=entry)
+            caller.msg("You enter.")
+            emit_string = "%s is entering %s." % (caller.name, destination)
+            caller.location.msg_contents(emit_string, from_obj=caller)
+            self.caller.move_to(entry)
+        else:
+            caller.msg("That isn't an enterable location.")
 
 
 class CmdLeaveCity(MuxCommand):
@@ -473,7 +492,11 @@ class CmdLeaveCity(MuxCommand):
     Usage:
       leave
 
-    When inside a city, exit the city with this.
+    When inside a room that has a parent, you can exit 
+    the room with this.
+
+    Don't think this works yet as written.
+
     """
 
     key = "leave"
