@@ -23,10 +23,11 @@ from commands.cmdsets.pose import CmdThink,  CmdPose,  CmdMegaSay, CmdEmit, CmdO
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
-from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow
+from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from commands import command
 from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, CmdSetProfileAttr
+from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc
@@ -49,6 +50,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         super().at_cmdset_creation()
         #
         # any commands you add below will overload the default ones.
+
+        # use @typeclass/force self to reset yourself after adding new commands.
         #
         self.add(CmdSheet())
         self.add(CmdThink())
@@ -69,9 +72,17 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdDesc())
         self.add(CmdEnterCity())
         self.add(CmdLeaveCity())
+
+        self.add(CmdPortal())
+
         #self.add(multidescer.CmdMultiDesc()) 
         #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
 
+        # in the future, any command below this line will be staff only.
+        self.add(CmdWarp())       
+        self.add(CmdPortal())
+        self.add(CmdLinkTeleport())
+        self.add(CmdMakeCity())
         self.add(CmdStartChargen())
 
 
@@ -137,3 +148,37 @@ class SessionCmdSet(default_cmds.SessionCmdSet):
 
 
 
+class GMCmdSet(default_cmds.CharacterCmdSet):
+    """
+    These are commands that will belong to GMs and
+    be temporarily set on GMs.
+    """
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #
+
+
+class WizardCmdSet(default_cmds.CharacterCmdSet):
+    """
+    These are commands that will belong to staffers only, being 
+    set by wizards.
+
+    Empty for now during the testing phase. Everything is on
+    character. Later on this will be full of stuff from
+    above.
+    """
+
+    def at_cmdset_creation(self):
+        """
+        Populates the cmdset
+        """
+        super().at_cmdset_creation()
+        #
+        # any commands you add below will overload the default ones.
+        #

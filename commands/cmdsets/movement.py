@@ -9,7 +9,7 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.rooms import PlayRoom, TravelRoom
+from typeclasses.rooms import PlayRoom
 from typeclasses.cities import City, PersonalRoom
 from evennia.utils.search import search_tag, search_object
 
@@ -384,6 +384,60 @@ class CmdWarp(MuxCommand):
             else:
                 caller.move_to(destination)
                 caller.msg("Teleported to %s." % destination)
+
+
+class CmdPortal(MuxCommand):
+    """
+    teleport to another location
+    Usage:
+      +portal <location>
+      portal <location>
+      +portal/list
+
+
+    This allows a player to teleport to the locations
+    available on the teleportation grid.
+
+    Use +portal/list to get a list of valid
+    locations to teleport to.
+
+    """
+
+    key = "portal"
+    aliases = "+portal"
+    locks = "cmd:all()"
+
+    
+    def func(self):
+        """Performs the teleport"""
+
+        caller = self.caller
+        args = self.args
+
+        if "list" in self.switches:
+            #this search below is an example of how to categories db results by tag.
+            locations = search_tag(category="portal")
+            #todo: list format in a pretty grid with categories.
+            self.caller.msg(f"Teleport locations available: {', '.join(str(ob) for ob in locations)}")
+            return
+
+        else:
+            #todo: limit this to rooms with portal tag only. Accept partial matches.
+            #todo: make web-clickable.
+            locations = search_tag(category="portal")
+            destination = caller.search(args, global_search=True)
+            if not destination:
+                caller.msg("Destination not found.")
+                return
+            if destination:
+                if not isinstance(destination, PlayRoom):
+                    caller.msg("Destination is not an IC room.")
+                    return
+                else:
+                    caller.move_to(destination)
+                    caller.msg("Teleported to %s." % destination)
+
+
 
 #home doesn't care about private rooms or combat occuring for now
 

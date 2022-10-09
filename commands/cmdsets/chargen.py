@@ -78,7 +78,7 @@ class CmdStartChargen(MuxCommand):
     """
     
     key = "+chargen"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         caller = self.caller
@@ -119,7 +119,7 @@ class CmdCreatePC(Command):
     key = "+createpc"
     aliases = ["+createPC"]
     locks = "call:not perm(nonpcs)"
-    help_category = "staffonly"
+    help_category = "Chargen"
     
     def func(self):
         "creates the object and names it"
@@ -159,7 +159,7 @@ class CmdSetStat(MuxCommand):
     """
     
     key = "+setstat"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -225,7 +225,7 @@ class CmdSetSkills(MuxCommand):
     """
     
     key = "+setskill"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -292,7 +292,7 @@ class CmdSetProfileAttr(MuxCommand):
     """
     
     key = "+setprofile"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -353,7 +353,7 @@ class CmdSetAttribute(MuxCommand):
     """
     
     key = "+setattribute"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -401,7 +401,7 @@ class CmdSetSpecialty(Command):
     """
     
     key = "+setspecialty"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -430,7 +430,7 @@ class CmdSetTypes(Command):
     """
     
     key = "+settype"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -463,7 +463,7 @@ class CmdSetWeapons(MuxCommand):
     """
     
     key = "+setweapon"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -493,7 +493,7 @@ class CmdSetArmors(Command):
     """
     
     key = "+setarmor"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"
@@ -523,7 +523,7 @@ class CmdSetPowers(Command):
     """
     
     key = "+setpower"
-    help_category = "staffonly"
+    help_category = "Chargen"
 
     def func(self):
         "This performs the actual command"

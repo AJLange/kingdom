@@ -22,7 +22,7 @@ class City(Object):
     def at_object_creation(self):
 
         self.db.desc = "Default City Description."
-        self.db.entry = "#41"
+        self.db.entry = "City Landing"
 
 
         

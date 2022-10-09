@@ -58,33 +58,6 @@ class Room(DefaultRoom):
 
     pass
 
-class PlayRoom(Room):
-    """
-    This room class is the most standard playroom for most RP.
-
-    This room class does not have the commands associated with broader
-    grid travel.
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
-
-class ChargenRoom(Room):
-    """
-    This room class is used by character-generation rooms. It makes
-    the ChargenCmdset available.
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
-        
-
-
-class StaffRoom(Room):
-    """
-    This room class is used by staff for lounges and such.
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"      
-
 
 class OOCRoom(Room):
     """
@@ -95,17 +68,34 @@ class OOCRoom(Room):
         "this is called only at first creation"
 
 
-
-class TravelRoom(Room):
+class PlayRoom(Room):
     """
-    This room would contain commands for fast-travel 
-    and grid teleportation
+    This room class is the most standard playroom for most RP.
+
+    This room class does not have the commands associated with broader
+    grid travel.
     """
     def at_object_creation(self):
         "this is called only at first creation"
 
+class StaffRoom(Room):
+    """
+    This room class is used by staff for lounges and such.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"      
 
-class TrainingRoom(Room):
+class ChargenRoom(StaffRoom):
+    """
+    This room class is used by character-generation rooms. It makes
+    the ChargenCmdset available.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+        
+
+
+class TrainingRoom(PlayRoom):
     """
     This is an IC room that allows for no holds barred combat
     """
@@ -114,7 +104,7 @@ class TrainingRoom(Room):
 
 
 
-class QuartersRoom(Room):
+class QuartersRoom(PlayRoom):
     """
     This room type would allow people to set down quarters rooms of their own.
     """
@@ -124,7 +114,7 @@ class QuartersRoom(Room):
         
 
 
-class ShopRoom(Room):
+class ShopRoom(PlayRoom):
     """
     This room class will be used for player-run shops
     """
@@ -132,9 +122,27 @@ class ShopRoom(Room):
         "this is called only at first creation"
 
 
-class WarRoom(Room):
+class WarRoom(PlayRoom):
     """
     This room type would allow interaction with the war system
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
+
+class Cockpit(PlayRoom):
+    """
+    This room type is for driving mobile bases
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
+
+class PrivateRoom(PlayRoom):
+    """
+    A type of IC room with some additional lock functions.
     """
     def at_object_creation(self):
         "this is called only at first creation"
