@@ -27,6 +27,15 @@ put secret game- or server-specific settings in secret_settings.py.
 # Use the defaults from Evennia unless explicitly overridden
 from evennia.settings_default import *
 
+'''
+# We're looking for the number of seconds representing
+# the date in 2235, since the game is set in the future.
+# When going live, change this to the current date in 2235.
+'''
+from datetime import datetime
+import time
+start = datetime(2235, 8, 12, 20, 53)
+epoch_start = time.mktime(start.timetuple())
 
 ######################################################################
 # Evennia base server config
@@ -65,6 +74,18 @@ COMMAND_DEFAULT_ARG_REGEX = r"^[ /]+.*$|$"
 
 MAX_CHAR_LIMIT = 8000
 TIME_ZONE = "America/New_York"
+
+# The time factor dictates if the game world runs faster (timefactor>1)
+# or slower (timefactor<1) than the real world.
+TIME_FACTOR = 1
+
+# The starting point of your game time (the epoch), in seconds.
+# In Python a value of 0 means Jan 1 1970 (use negatives for earlier
+# start date). This will affect the returns from the utils.gametime
+# module.
+TIME_GAME_EPOCH = epoch_start
+
+
 
 ######################################################################
 # Settings given in secret_settings.py override those in this file.

@@ -5,7 +5,7 @@ Some random global commands
 
 from evennia import CmdSet
 from six import string_types
-from commands.command import BaseCommand
+from commands.command import BaseCommand, Command
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from evennia.accounts.models import AccountDB
@@ -13,6 +13,8 @@ from commands.cmdsets import places
 from evennia.server.sessionhandler import SESSIONS
 from evennia.utils import evtable, utils
 import time
+from server.utils import time_now
+from datetime import datetime, timezone, timedelta
 
 
 def prune_sessions(session_list):
@@ -262,3 +264,48 @@ class CmdXWho(MuxCommand):
     """
 
 '''
+
+class CmdICTime(Command):
+
+    """
+    Display the time in-game.
+    This displays the in-game time in the IC universe in several IC time zones.
+
+    Syntax:
+        ictime
+        gametime
+
+    """
+
+    key = "ictime"
+    aliases= "+ictime", "date", "+date","gametime", "+gametime"
+    locks = "cmd:all()"
+    help_category = "General"
+
+    def func(self):
+        """Execute the time command."""
+        # Get the actual current time
+        now = time_now()
+        realyear = now.strftime("%Y")
+        icyear = int(realyear) + 213
+
+        # functionality is OK, please make prettier later using https://www.evennia.com/docs/0.9.5/api/evennia.utils.evtable.html
+
+        # format the strings for all times
+        msg_string = "|430============================= |wIC Time |430=============================|/|w"
+        s_time = datetime.now(timezone(timedelta(hours=-8)))
+        sanan_time = s_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        n_time = datetime.now(timezone(timedelta(hours=-5)))
+        nyc_time = n_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        l_time = datetime.now(timezone.utc)
+        london_time = l_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        m_time = datetime.now(timezone(timedelta(hours=3)))
+        moscow_time = m_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        t_time = datetime.now(timezone(timedelta(hours=9)))
+        tokyo_time = t_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        i_time = datetime.now(timezone(timedelta(hours=9.5)))
+        innerp_time = i_time.strftime("%I:%M %p %a %b %d") + " " + str(icyear)
+        msg_string = (msg_string + "|/|_|_San Angeles Time: |_|_|_|_|_|_|_|_" + sanan_time + "|_|_|_|_|_|_|_PST" + "|/|_|_New York Time: |_|_|_|_|_|_|_|_|_|_|_" + nyc_time + "|_|_|_|_|_|_|_EST" + "|/|_|_London Time: |_|_|_|_|_|_|_|_|_|_|_|_|_" + london_time + "|_|_|_|_|_|_|_UTC" + "|/|_|_Moscow Time: |_|_|_|_|_|_|_|_|_|_|_|_|_" + moscow_time + "|_|_|_|_|_|_|_MSK" + "|/|_|_Tokyo Time: |_|_|_|_|_|_|_|_|_|_|_|_|_|_" + tokyo_time + "|_|_|_|_|_|_|_JST" + "|/|_|_Innerpeace Time: |_|_|_|_|_|_|_|_|_" + innerp_time + "|_|_|_|_|_|_ACST")
+        msg_string = msg_string + "|/|/|430==================================================================="
+        
+        self.msg(msg_string)
