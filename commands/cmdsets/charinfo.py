@@ -324,7 +324,7 @@ class CmdRPHooks(MuxCommand):
 
 class CmdSoundtrack(BaseCommand):
     '''
-    To be added
+    Soundtrack command not yet added.
     '''
     def func(self):
         "This performs the actual command"
@@ -353,18 +353,21 @@ class CmdSheet(BaseCommand):
 
             pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
             # right now this just pulls numbers/stats, to be fixed once skills are set in stone.
-            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana = self.caller.get_skills()
+            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= self.caller.get_skills()
+            border = "________________________________________________________________________________"
             line1 = "Name: "
             line2 = "Racetype: Power Types:" 
             line3 = "Current Mode:"            
             line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
-            line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (perception, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
+            #line5 = "Skills go here"
+            line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
             line6 = "Capabilities: "
             line7 =  "Size, Speed"
             line8 = "Elements: Weakness/Resistance:"
             # not sure yet about attack lists, if that will be a thing or not
-            sheetmsg = (line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8)
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + "border")
             self.caller.msg(sheetmsg)
+            return
 
 class CmdCookie(MuxCommand):
 

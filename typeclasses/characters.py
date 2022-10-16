@@ -45,7 +45,7 @@ class Character(DefaultCharacter):
     
         """
         # note this doesn't work right now, not until chargen machine allows adding all stats. 
-        return self.db.pow, self.db.dex, self.db.ten, self.db.cun, self.db.edu, self.db.chr, self.db.aur, self.db.cun, self.db.edu, self.db.chr, self.db.aur
+        return self.db.discern, self.db.aim, self.db.athletics, self.db.force, self.db.mechanics, self.db.medicine, self.db.computer, self.db.stealth, self.db.heist, self.db.convince, self.db.presence, self.db.arcana
 
 
 

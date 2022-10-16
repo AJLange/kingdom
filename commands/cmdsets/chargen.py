@@ -75,6 +75,19 @@ class CmdStartChargen(MuxCommand):
     enabled room.  For now, this command is only available
     to staffers in staff only areas.
 
+    To do chargen in order:
+    +chargen
+    +createpc <name>
+    +setstat/<namestat> <1-10> (for all 7 stats)
+    +setskill/<nameskill> <1-5> (for all 12 skills)
+    +setprofile/<attribute> <value> (for all 7 text attributes)
+    +settypes <type>, <type> (for all elemental types)
+    +setpower <name> (for the character's 'racetype' aka power set sources)
+    +chargen/finish
+
+    Armor modes, and characters with multiple power sets, are not working
+    in the pre-alpha build.
+
     """
     
     key = "+chargen"
@@ -83,7 +96,7 @@ class CmdStartChargen(MuxCommand):
     def func(self):
         caller = self.caller
         location = caller.location
-        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/finish."
+        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/finish. For the list of commands, see +help +chargen."
         
         if isinstance(location, ChargenRoom):
             '''
@@ -149,7 +162,7 @@ class CmdSetStat(MuxCommand):
 
     Usage:
       +setstat/power <1-10>
-      +setstat <namestat> <1-10> 
+      +setstat/<namestat> <1-10> 
 
 
     Stats in this system are 
@@ -415,7 +428,7 @@ class CmdSetSpecialty(Command):
             self.caller.msg(errmsg)
             return
         self.caller.db.quote = text
-        self.caller.msg("Added a specialty at: %i" % text)
+        self.caller.msg("Added a specialty at: %s" % text)
 
 # to do above, make it a proper list you can add to
 
@@ -444,7 +457,7 @@ class CmdSetTypes(Command):
             self.caller.msg(errmsg)
             return
         self.caller.db.quote = text
-        self.caller.msg("Added a specialty at: %i" % text)
+        self.caller.msg("Added a specialty at: %s" % text)
 
 class CmdSetWeapons(MuxCommand):
     """
@@ -477,7 +490,7 @@ class CmdSetWeapons(MuxCommand):
             self.caller.msg(errmsg)
             return
         self.caller.db.quote = text
-        self.caller.msg("Added this weapon: %i" % text)
+        self.caller.msg("Added this weapon: %s" % text)
 
 class CmdSetArmors(Command):
     """
@@ -486,10 +499,12 @@ class CmdSetArmors(Command):
     Usage:
       +setarmor <name>
 
-    not figured out how I intend to do this, but
-    stubbing it out.
+    This command currently doesn't do anything, 
+    but is a good test for if other chargen
+    commands are available to the user.
 
-
+    When you execute it, you'll get a confirmation
+    that you added an armor but nothing else happens yet.
     """
     
     key = "+setarmor"
@@ -507,7 +522,7 @@ class CmdSetArmors(Command):
             self.caller.msg(errmsg)
             return
         self.caller.db.quote = text
-        self.caller.msg("Added an armor named: %i" % text)
+        self.caller.msg("Added an armor named: %s" % text)
 
 class CmdSetPowers(Command):
     """
