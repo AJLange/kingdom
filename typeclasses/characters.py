@@ -44,8 +44,14 @@ class Character(DefaultCharacter):
         Simple access method to return skills
     
         """
-        # note this doesn't work right now, not until chargen machine allows adding all stats. 
         return self.db.discern, self.db.aim, self.db.athletics, self.db.force, self.db.mechanics, self.db.medicine, self.db.computer, self.db.stealth, self.db.heist, self.db.convince, self.db.presence, self.db.arcana
+
+
+    def get_finger(self):
+        """
+        haha, finger
+        """
+        return self.db.gender, self.db.type, self.db.quote, self.db.profile, self.db.game, self.db.function, self.db.specialties
 
 
 

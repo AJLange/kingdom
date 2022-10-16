@@ -24,12 +24,14 @@ class CmdFinger(BaseCommand):
 
     To get basic IC profile information about a character.
 
-    Useful for an OOC overview and for potential 
-    appers. Information here is a combination of 
-    what is known publically as well as what is 
-    more general about a character's personality
-    and backstory and is more individual to the
-    character.
+    Useful for an OOC overview and for potential appers. Information 
+    here is a combination of what is known publically as well as what 
+    is more general about a character's personality and backstory and 
+    is more individual to the character.
+
+    Players should not necessarily assume they ICly know everything about
+    what is in another player's +finger. For information that is IC
+    and public, use +efinger. (which is also aliased to +info)
 
     """
     key = "+finger"
@@ -46,13 +48,27 @@ class CmdFinger(BaseCommand):
         # find a player in the db who matches this string
         player = self.caller.search(self.args)
         if not player:
+            self.caller.msg("Character not found.")
             return
         char = player
         if not char:
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} |/ Finger information lives here.")
+            name = char.name
+            gender, type, quote, profile, game, function, specialties = self.caller.get_finger()
+
+            border = "________________________________________________________________________________"
+            line1 = "Name: %s"  % (name)               
+            line2= "Powers: %s  Function: %s"  % (type, function)
+            line3 = "Gender: %s Game: %s"  % (gender, game)
+            line4 = "%s" % (quote)
+            line5 = "%s" % (profile)
+            line6 = "%s" % (specialties)
+
+            fingermsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 +  "\n\n" + border + "\n")
+            self.caller.msg(fingermsg)
+            return
         except ValueError:
             self.caller.msg("Not a valid character.")
             return
@@ -65,10 +81,14 @@ class CmdEFinger(BaseCommand):
     +efinger <character>
     +info <character>
 
-    To get basic IC information about a character.
-    Usually set to what is publically known or can be
-    looked up about a character from an IC standpoint,
-    including their reputation and known abilities.
+    To get basic IC information about a character. Usually set to what 
+    is publically known or can be looked up about a character from an IC 
+    standpoint, including their reputation and known abilities.
+
+    Players can fill these out themselves but staff has a right to 
+    double-check this information for accuracy. You may fill out
+    as much or as little of your +efinger as you like, depending
+    on what can be ICly known or interesting to share.
     
     """
     key = "+efinger"
@@ -107,22 +127,19 @@ class CmdOOCFinger(MuxCommand):
     +oocfinger/discord <Your Discord here>
     +oocfinger/email <Your Email here>
     
-    To get basic OOC information which relates to 
-    the player of the character. You can find
-    personal RP hooks and other preferences
-    set here, as well as any OOC contact information
-    the player feels comfortable to provide.
+    To get basic OOC information which relates to the player of the character. 
+    You can find personal RP hooks and other preferences set here, as well 
+    as any OOC contact information the player feels comfortable to provide.
 
-    Set with switches such as +oocfinger/altchars
-    to add the fields provided to your own OOC finger.
+    Set with switches such as +oocfinger/altchars to add the fields provided 
+    to your own OOC finger.
+
     Fields included:
 
-    Email, Alias, Discord, Altchars, RPTimes,
-    Timezone, Voice, Info 
+    Email, Alias, Discord, Altchars, RPTimes, Timezone, Voice, Info 
 
-    Info is for free response where you can set RP 
-    preferences and hooks or anything you like.
-    Timezone should update automatically.
+    "Info" is for free response where you can set RP preferences and hooks 
+    or anything you like. Timezone should update automatically.
     
     """
     key = "+oocfinger"
@@ -352,12 +369,11 @@ class CmdSheet(BaseCommand):
             """implements the actual functionality"""
 
             pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
-            # right now this just pulls numbers/stats, to be fixed once skills are set in stone.
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= self.caller.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: "
-            line2 = "Racetype: Power Types:" 
-            line3 = "Current Mode:"            
+            line2 = "Power Types:" 
+            line3 = "Current Mode: Base"            
             line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
             #line5 = "Skills go here"
             line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
@@ -365,7 +381,7 @@ class CmdSheet(BaseCommand):
             line7 =  "Size, Speed"
             line8 = "Elements: Weakness/Resistance:"
             # not sure yet about attack lists, if that will be a thing or not
-            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + "border")
+            sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
             self.caller.msg(sheetmsg)
             return
 

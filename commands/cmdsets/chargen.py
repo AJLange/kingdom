@@ -310,6 +310,7 @@ class CmdSetProfileAttr(MuxCommand):
     def func(self):
         "This performs the actual command"
         errmsg = "Not a valid attribute."
+        caller = self.caller
         if "gender" in self.switches:
             if self.args:
                 caller.db.gender = self.args
