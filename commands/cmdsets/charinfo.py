@@ -154,7 +154,7 @@ class CmdOOCFinger(MuxCommand):
     # setting attributes switches
     # first pass
         
-        if "email" in self.switches:
+        if "email" in self.switches or "Email" in self.switches:
             if self.args:
                 caller.db.prefemail = self.args
                 self.msg("Email set to: %s" % self.args)
@@ -162,7 +162,7 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("prefemail")
                 self.msg("Email address cleared.")
             return
-        if "discord" in self.switches:
+        if "discord" in self.switches or "Discord" in self.switches:
             if self.args:
                 caller.db.discord = self.args
                 self.msg("Discord set to: %s" % self.args)
@@ -170,7 +170,7 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("discord")
                 self.msg("Discord cleared.")
             return
-        if "altchars" in self.switches:
+        if "altchars" in self.switches or "Altchars" in self.switches or "alts" in self.switches or "Alts" in self.switches in self.switches:
             if self.args:
                 caller.db.altchars = self.args
                 self.msg("AltChars set to: %s" % self.args)
@@ -178,7 +178,7 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("altchars")
                 self.msg("Alts cleared.")
             return
-        if "rptimes" in self.switches:
+        if "rptimes" in self.switches or "RPtimes" in self.switches or "Rptimes" in self.switches:
             if self.args:
                 caller.db.rptimes = self.args
                 self.msg("RP Times set to: %s" % self.args)
@@ -186,7 +186,7 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("rptimes")
                 self.msg("RP Times cleared.")
             return
-        if "voice" in self.switches:
+        if "voice" in self.switches or "Voice" in self.switches:
             if self.args:
                 caller.db.voice = self.args
                 self.msg("Voice set to: %s" % self.args)
@@ -194,7 +194,7 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("voice")
                 self.msg("Voice cleared.")
             return
-        if "info" in self.switches:
+        if "info" in self.switches or "Info" in self.switches:
             if self.args:
                 caller.db.info = self.args
                 self.msg("Info set to: %s" % self.args)
@@ -202,7 +202,11 @@ class CmdOOCFinger(MuxCommand):
                 caller.attributes.remove("info")
                 self.msg("Info cleared.")
             return
-
+            '''
+            I want a better error message here but I'll fix this during formatting later.
+            else:
+                self.msg("Not a valid oocfinger attribute. See +help +oocfinger.")
+            '''
 
         if not self.args:
             player = caller
@@ -219,12 +223,19 @@ class CmdOOCFinger(MuxCommand):
         try:
             # build the string for ooc finger
 
-            oocfingermsg = f"Name: {char.name} |/" 
-            f"Email:  {char.prefemail} |/ Alias: {char.alias} |/"
-            f"Discord: {char.discord} |/ Altchars: {char.alts} |/" 
-            f"Timezone: {char.timezone} |/ Voice: {char.voice} |/"
-            f" Info: |/ {char.info}"
-            caller.msg(oocfingermsg)
+            name = char.name
+            alias, prefemail, discord, rptimes, voice, altchars, info = self.caller.get_ocfinger()
+
+            border = "------------------------------------------------------------------------------"
+            line1 = "Name: %s Alias: %s"  % (name, alias)               
+            line2= "Email: %s  Discord: %s"  % (prefemail, discord)
+            line3 = "RP Times: %s Voice: %s"  % (rptimes, voice)
+            line4 = "Alts: %s" % (altchars)
+            line6 = "Info: %s" % (info)
+
+            fingermsg = (border + "\n\n" + line1 + "\n\n" + line2 + "\n" + line3 + "\n\n" + line4  +  "\n\n" + line6 +  "\n\n" + border + "\n")
+            
+            caller.msg(fingermsg)
         except ValueError:
             caller.msg("Some error occured.")
             return

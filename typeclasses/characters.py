@@ -53,6 +53,9 @@ class Character(DefaultCharacter):
         """
         return self.db.gender, self.db.type, self.db.quote, self.db.profile, self.db.game, self.db.function, self.db.specialties
 
+    def get_ocfinger(self):
+        return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
+
 
 
     """
