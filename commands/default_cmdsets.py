@@ -26,7 +26,7 @@ from commands.cmdsets.charinfo import CmdEFinger
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from commands import command
-from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetSpecialty, CmdSetProfileAttr
+from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetProfileAttr
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer

@@ -58,7 +58,7 @@ class CmdFinger(BaseCommand):
             name = char.name
             gender, type, quote, profile, game, function, specialties = self.caller.get_finger()
 
-            border = "________________________________________________________________________________"
+            border = "------------------------------------------------------------------------------"
             line1 = "Name: %s"  % (name)               
             line2= "Powers: %s  Function: %s"  % (type, function)
             line3 = "Gender: %s Game: %s"  % (gender, game)
@@ -66,7 +66,7 @@ class CmdFinger(BaseCommand):
             line5 = "%s" % (profile)
             line6 = "%s" % (specialties)
 
-            fingermsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 +  "\n\n" + border + "\n")
+            fingermsg = (border + "\n\n" + line1 + "\n\n" + line2 + "\n" + line3 + "\n\n" + line4  + "\n\n" + line5 + "\n\n" + line6 +  "\n\n" + border + "\n")
             self.caller.msg(fingermsg)
             return
         except ValueError:
