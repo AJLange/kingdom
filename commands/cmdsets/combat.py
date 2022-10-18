@@ -38,7 +38,7 @@ class CmdShowdown(Command):
     """
     
     key = "+showdown"
-    help_category = "Combat"
+    help_category = "Dice"
 
     def func(self):
         '''
@@ -84,7 +84,7 @@ class CmdGMRoll(Command):
     
     key = "+gmroll"
     aliases = ["gmroll"]
-    help_category = "Combat"
+    help_category = "Dice"
 
     def func(self):
         '''
@@ -114,7 +114,7 @@ class CmdGMRoll(Command):
     
     key = "+gmroll"
     aliases = ["gmroll"]
-    help_category = "Combat"
+    help_category = "Dice"
 
     def func(self):
         '''
