@@ -426,6 +426,9 @@ class CmdSetAttribute(MuxCommand):
         if "speed" in self.switches:
             if self.args:
                 caller.db.speed = self.args
+        if "strength" in self.switches:
+            if self.args:
+                caller.db.strength = self.args
             return
         
         if not self.args:

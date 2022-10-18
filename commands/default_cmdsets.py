@@ -26,13 +26,14 @@ from commands.cmdsets.charinfo import CmdEFinger
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from commands import command
-from commands.cmdsets.chargen import CmdSetStat, CmdSetSkills, CmdSetProfileAttr
+
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc
 from commands.cmdsets.utility import CmdWho, CmdICTime
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
+#from commands.cmdsets.bboards import CmdBBCreate, CmdBBNew, CmdBBReadOrPost, CmdBBSub, CmdBBUnsub, CmdGetUnreadPosts
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
     """
@@ -63,9 +64,6 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
         self.add(CmdEFinger())
-
-        self.add(CmdCookie())
-        self.add(CmdCookieCounter())
 
         self.add(CmdHome())
         self.add(CmdSummon())
@@ -108,6 +106,18 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        self.add(CmdCookie())
+        self.add(CmdCookieCounter())
+
+        '''
+        bboard commands do not work yet.
+        self.add(CmdBBCreate())
+        self.add(CmdBBUnsub())
+        self.add(CmdBBSub())
+        self.add(CmdBBReadOrPost())
+        self.add(CmdBBNew())
+        '''
+
 
 
 class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
