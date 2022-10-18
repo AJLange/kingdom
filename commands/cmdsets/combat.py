@@ -103,6 +103,42 @@ class CmdGMRoll(Command):
             caller.msg(errmsg)
             return
 
+class CmdRollSet(Command):
+    """
+
+    +rollset
+    +rollset/verbose
+    +rollset/basic
+
+    Swap between die view modes. Setting rollset to 'verbose' will show all of the 
+    individual roles that lead to a die result. Setting to 'basic' will only show
+    the final narrative result. 
+
+    +rollset on its own toggles between these two readout modes.
+
+    """
+    
+    key = "+rollset"
+    aliases = ["rollset"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
 
 class CmdGMRoll(Command):
     """
