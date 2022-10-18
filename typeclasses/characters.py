@@ -32,6 +32,7 @@ class Character(DefaultCharacter):
         self.db.aur = 1
         self.db.size = "Medium"
         self.db.speed = "Medium"
+        self.db.strength = "Normal"
         self.db.type = "Human"
         self.db.cookiecount = 0
 
@@ -61,7 +62,7 @@ class Character(DefaultCharacter):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
 
     def get_statobjs(self):
-        return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements
+        return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
 
 
 

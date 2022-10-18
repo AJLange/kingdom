@@ -380,7 +380,7 @@ class CmdSheet(BaseCommand):
             """implements the actual functionality"""
             caller = self.caller
             name = caller.name
-            types, size, cap, speed, weakness, resistance, elements = caller.get_statobjs()
+            types, size, cap, speed, weakness, resistance, elements, strength = caller.get_statobjs()
             pow, dex, ten, cun, edu, chr, aur = caller.get_abilities()
             discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= caller.get_skills()
             border = "________________________________________________________________________________"
@@ -391,7 +391,7 @@ class CmdSheet(BaseCommand):
             #line5 = "Skills go here"
             line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
             line6 = "Capabilities: %s" % (cap)
-            line7 =  "Size: %s Speed: %s" % (size,speed)
+            line7 =  "Size: %s Speed: %s Strength: %s"% (size,speed, strength)
             line8 = "Elements: %s Weakness: %s Resistance: %s" % (elements, weakness, resistance)
             # not sure yet about attack lists, if that will be a thing or not
             sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")

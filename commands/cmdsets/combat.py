@@ -38,7 +38,7 @@ class CmdShowdown(Command):
     """
     
     key = "+showdown"
-    help_category = "combat"
+    help_category = "Combat"
 
     def func(self):
         '''
@@ -72,3 +72,411 @@ class CmdShowdown(Command):
             return
         else:
             self.caller.msg("That person is already in a showdown.")
+
+
+class CmdGMRoll(Command):
+    """
+    GM free rolls a certain amount of dice.
+
+    +gmroll <number from 1-10>
+
+    """
+    
+    key = "+gmroll"
+    aliases = ["gmroll"]
+    help_category = "Combat"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdGMRoll(Command):
+    """
+    GM free rolls a certain amount of dice.
+
+    +gmroll <number from 1-10>
+
+    """
+    
+    key = "+gmroll"
+    aliases = ["gmroll"]
+    help_category = "Combat"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+class CmdAttack(Command):
+    """
+    GM free rolls a certain amount of dice.
+
+    +attack <target>
+
+    """
+    
+    key = "+attack"
+    aliases = ["ttack"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdAttack(Command):
+    """
+    GM free rolls a certain amount of dice.
+
+    +attack <target>
+
+    """
+    
+    key = "+attack"
+    aliases = ["ttack"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdRollSkill(Command):
+    """
+    Roll a Stat + Skill combo.
+
+    +check <stat> <skill>
+
+    """
+    
+    key = "+check"
+    aliases = ["check"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+'''
+
++Aim - sacrifice a round for a higher chance of hitting next round.
++Charge - sacrifice around for a higher crit chance next round. If a charge crit hits 
+a weakness it does triple damage.
++Assist - sacrifice your round to add your dice to another player's roll.
++Heal (this has several varieties)
++Guard - sacrifice a round to counter/deflect
++Taunt - presence roll to do damage. Makes it slightly harder for target to 
+hit other people next round
++intimidate - presence roll to do damage. Makes it slightly harder for 
+target to hit you next round
++Persuade/+negotiate/+moralhighground - make a convince roll to do damage
+
+'''
+
+
+class CmdAim(Command):
+
+    """
+
+    +aim
+
+    Sacrifice a combat round for a higher chance of hitting next round.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+aim"
+    aliases = ["aim"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdCharge(Command):
+
+    """
+
+    +charge
+
+    Sacrifice a combat round for a higher crit chance next round.
+    If a charge crit hits a weakness, it does triple damage.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+charge"
+    aliases = ["charge"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdTaunt(Command):
+
+    """
+
+    +taunt <target>
+
+    This type of assail makes a presence roll to do damage. Using this makes 
+    it slightly harder for your target to hit other people next round, 
+    but slightly easier to hit you.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+taunt"
+    aliases = ["taunt"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdIntimidate(Command):
+
+    """
+
+    +intimidate <target>
+
+    This type of assail makes a presence roll to do damage. Using this makes 
+    it slightly harder for your target to hit you next round.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+intimidate"
+    aliases = ["intimidate", "spook", "+spook"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+class CmdTaunt(Command):
+
+    """
+
+    +guard <target>
+
+    Go fully defensive against a target, making it quite a bit
+    harder for them to hit and damage you, but at the cost of
+    any other meaningful action for the turn.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+guard"
+    aliases = ["guard"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+class CmdHeal(Command):
+
+    """
+
+    +heal <target>
+
+    Don't really know how to balance this yet, won't 
+    implement in early alpha.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+heal"
+    aliases = ["heal"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdPersuade(Command):
+
+    """
+
+    +persuade <target>
+
+    This type of assail uses your convince skill to do damage to a target.
+
+    Only can be used in a Sequence or Showdown.
+
+    """
+    
+    key = "+persuade"
+    aliases = ["persuade", "negotiate" ,"+negotiate", "moralhighground" , "+moralhighground"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Roll how many dice?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
