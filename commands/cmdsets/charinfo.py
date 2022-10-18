@@ -378,22 +378,24 @@ class CmdSheet(BaseCommand):
 
         def func(self):
             """implements the actual functionality"""
-
-            pow, dex, ten, cun, edu, chr, aur = self.caller.get_abilities()
-            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= self.caller.get_skills()
+            caller = self.caller
+            name = caller.name
+            types, size, cap, speed, weakness, resistance, elements = caller.get_statobjs()
+            pow, dex, ten, cun, edu, chr, aur = caller.get_abilities()
+            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= caller.get_skills()
             border = "________________________________________________________________________________"
-            line1 = "Name: "
-            line2 = "Power Types:" 
+            line1 = "Name: %s" % (name)
+            line2 = "Power Types: %s" % (types)
             line3 = "Current Mode: Base"            
             line4= "POW: %s, DEX: %s, TEN: %s, CUN: %s, EDU: %s, CHR: %s, AUR: %s"  % (pow, dex, ten, cun, edu, chr, aur)
             #line5 = "Skills go here"
             line5 = "Discern: %s, Aim: %s, Athletics: %s Force: %s, Mechanics: %s, Medicine: %s, Computer: %s, Stealth: %s , Heist: %s , Convince: %s, Presence: %s, Arcana: %s"  % (discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana)
-            line6 = "Capabilities: "
-            line7 =  "Size, Speed"
-            line8 = "Elements: Weakness/Resistance:"
+            line6 = "Capabilities: %s" % (cap)
+            line7 =  "Size: %s Speed: %s" % (size,speed)
+            line8 = "Elements: %s Weakness: %s Resistance: %s" % (elements, weakness, resistance)
             # not sure yet about attack lists, if that will be a thing or not
             sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
-            self.caller.msg(sheetmsg)
+            caller.msg(sheetmsg)
             return
 
 class CmdCookie(MuxCommand):
@@ -413,6 +415,7 @@ class CmdCookie(MuxCommand):
     key = "cookie"
     aliases = ["+cookie", "vote", "+vote"]
     locks = "cmd:all()"
+    help_category = "Rewards"
 
     def func(self):
         "This performs the actual command"
@@ -451,9 +454,11 @@ class CmdCookieCounter(MuxCommand):
     key = "tally"
     aliases = ["+tally"]
     locks = "cmd:all()"
+    help_category = "Rewards"
 
     def func(self):
-        self.caller.msg("Wow here's how many cookies you have!")
+        caller = self.caller
+        caller.msg("You have %s cookies!" % (caller.db.cookiecount))
 
 
 
@@ -470,6 +475,7 @@ class CmdCookiemonsters(MuxCommand):
     key = "100check"
     aliases = ["+100check", "monsters", "+monsters"]
     locks = "cmd:all()"
+    help_category = "Rewards"
 
     def func(self):
         self.caller.msg("Wow here's all the people with 100 cookies!")
@@ -485,9 +491,10 @@ class CmdCookieBomb(MuxCommand):
       This command locked to staff gives a +cookie to everyone
       in the room that is not set +observer.
     """
-    key = "cookiebomb"
-    aliases = []
+    key = "+cookiebomb"
+    aliases = ["cookiebomb"]
     locks = "cmd:all()"
+    help_category = "Admin"
 
     def func(self):
         self.caller.msg("You give everybody a cookie!")
@@ -512,9 +519,10 @@ class CmdCookieMsg(MuxCommand):
 
     """
 
-    key = "cookie"
+    key = "cookiemsg"
     aliases = ["+cookiemsg"]
     locks = "cmd:all()"
+    help_category = "Rewards"
 
     def func(self):
         "This performs the actual command"

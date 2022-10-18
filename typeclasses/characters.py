@@ -29,7 +29,11 @@ class Character(DefaultCharacter):
         self.db.cun = 1
         self.db.edu = 1
         self.db.chr = 1
-        self.db.aur = 4
+        self.db.aur = 1
+        self.db.size = "Medium"
+        self.db.speed = "Medium"
+        self.db.type = "Human"
+        self.db.cookiecount = 0
 
 
     def get_abilities(self):
@@ -55,6 +59,9 @@ class Character(DefaultCharacter):
 
     def get_ocfinger(self):
         return self.db.alias, self.db.prefemail, self.db.discord, self.db.rptimes, self.db.voice, self.db.altchars, self.db.info
+
+    def get_statobjs(self):
+        return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements
 
 
 
