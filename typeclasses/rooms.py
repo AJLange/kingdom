@@ -54,7 +54,7 @@ class Room(DefaultRoom):
             options=options,
             mapping=None,
         )
-
+    
 
     pass
 

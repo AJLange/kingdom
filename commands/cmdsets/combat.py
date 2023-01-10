@@ -178,37 +178,7 @@ class CmdAttack(Command):
     """
     
     key = "+attack"
-    aliases = ["ttack"]
-    help_category = "Dice"
-
-    def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        
-        if not self.args:
-            caller.msg("Roll how many dice?")
-            return
-        try:
-            self.caller.msg("You Roll.")
-        except ValueError:
-            caller.msg(errmsg)
-            return
-
-
-class CmdAttack(Command):
-    """
-    GM free rolls a certain amount of dice.
-
-    +attack <target>
-
-    """
-    
-    key = "+attack"
-    aliases = ["ttack"]
+    aliases = ["attack"]
     help_category = "Dice"
 
     def func(self):

@@ -10,7 +10,10 @@ creation commands.
 # mygame/typeclasses/characters.py
 
 from evennia import DefaultCharacter
+from evennia.utils import ansi
+import inflect
 
+_INFLECT = inflect.engine()
 
 class Character(DefaultCharacter):
     """
@@ -64,7 +67,16 @@ class Character(DefaultCharacter):
     def get_statobjs(self):
         return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
 
-
+    def get_numbered_name(self, count, looker, **kwargs):
+                """
+                simply overloading this method to squash pluralization of character objects
+                """
+                key = kwargs.get("key", self.key)
+                key = ansi.ANSIString(key)  
+                plural = key
+                singular = key
+                
+                return singular, plural
 
     """
     The Character defaults to reimplementing some of base Object's hook methods with the

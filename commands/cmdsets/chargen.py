@@ -78,6 +78,7 @@ class CmdStartChargen(MuxCommand):
     To do chargen in order:
     +chargen
     +createpc <name>
+    +workchar <name>
     +setstat/<namestat> <1-10> (for all 7 stats)
     +setskill/<nameskill> <1-5> (for all 12 skills)
     +setprofile/<attribute> <value> (for all 7 text attributes)
@@ -156,6 +157,48 @@ class CmdCreatePC(Command):
         return 
 
 
+class CmdWorkChar(Command):
+    """
+    Work on a Character. This sets the character that you 
+    are working on. To be used after creating the PC using +createpc.
+
+    Usage:
+        +workchar <name>
+
+    Sets the character to work on. Only works in the chargen room.
+    Is persisent on server reset, just in case you get interrupted.
+
+    """
+    key = "+workchar"
+    aliases = ["workchar"]
+    locks = "call:not perm(nonpcs)"
+    help_category = "Chargen"
+    
+    def func(self):
+        "creates the object and names it"
+        caller = self.caller
+        if not self.args:
+            caller.msg("Usage: +workchar <name>")
+            return
+
+        # set name as set
+        name = self.args
+        # create in caller's location
+        character = self.caller.search(name)
+        if not character:
+            caller.msg("Sorry, couldn't find that PC.")
+            return
+        
+        # announce
+        caller.db.workingchar = character
+        
+        message = "%s now working on the PC '%s'."
+        caller.msg(message % ("You're", name))
+        caller.location.msg_contents(message % (caller.key, name),
+                                                exclude=caller)
+        return 
+
+
 class CmdSetStat(MuxCommand):
     """
     Sets the stats on a character. 
@@ -178,7 +221,7 @@ class CmdSetStat(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which stat?")
@@ -245,7 +288,7 @@ class CmdSetSkills(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which skill?")
@@ -318,7 +361,7 @@ class CmdSetProfileAttr(MuxCommand):
         "This performs the actual command"
         errmsg = "Set value to what?"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         if "gender" in self.switches or "Gender" in self.switches:
             if self.args:
                 text = self.args
@@ -414,7 +457,7 @@ class CmdSetAttribute(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "Not a valid attribute."
         if "weakness" in self.switches:
             if self.args:
@@ -502,7 +545,7 @@ class CmdSetTypes(Command):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "What text?"
         if not self.args:
             caller.msg(errmsg)
@@ -538,7 +581,7 @@ class CmdSetWeapons(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "What text?"
         if not self.args:
             self.caller.msg(errmsg)
@@ -572,7 +615,7 @@ class CmdSetArmors(Command):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "What text?"
         if not self.args:
             caller.msg(errmsg)
@@ -607,7 +650,7 @@ class CmdSetPowers(Command):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = self.caller
+        character = caller.db.workingchar 
         errmsg = "What text?"
         if not self.args:
             caller.msg(errmsg)
@@ -631,6 +674,7 @@ class ChargenCmdset(CmdSet):
         "This is called at initialization"
         self.add(CmdCreatePC())
         self.add(CmdSetStat())
+        self.add(CmdWorkChar())
         #self.add(CmdSetSpecialty())
         self.add(CmdSetSkills())
         self.add(CmdSetTypes())

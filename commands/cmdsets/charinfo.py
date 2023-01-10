@@ -56,7 +56,7 @@ class CmdFinger(BaseCommand):
             return
         try:
             name = char.name
-            gender, type, quote, profile, game, function, specialties = self.caller.get_finger()
+            gender, type, quote, profile, game, function, specialties = char.get_finger()
 
             border = "------------------------------------------------------------------------------"
             line1 = "Name: %s"  % (name)               
