@@ -130,7 +130,7 @@ class CmdCreatePC(Command):
     Creates a new, named PC. 
     """
     key = "+createpc"
-    aliases = ["+createPC"]
+    aliases = ["createPC"]
     locks = "call:not perm(nonpcs)"
     help_category = "Chargen"
     
@@ -141,10 +141,10 @@ class CmdCreatePC(Command):
             caller.msg("Usage: +createPC <name>")
             return
 
-        # make name always start with capital letter
-        name = self.args.strip().capitalize()
+        # set name as set
+        name = self.args
         # create in caller's location
-        npc = create_object("characters.Character",
+        character = create_object("characters.Character",
                       key=name,
                       location=caller.location,
                       locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
@@ -153,6 +153,7 @@ class CmdCreatePC(Command):
         caller.msg(message % ("You", name))
         caller.location.msg_contents(message % (caller.key, name),
                                                 exclude=caller)
+        return 
 
 
 class CmdSetStat(MuxCommand):
@@ -177,6 +178,7 @@ class CmdSetStat(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
+        character = self.caller
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which stat?")
@@ -194,21 +196,21 @@ class CmdSetStat(MuxCommand):
             return
         # at this point the argument is tested as valid. Let's set it.
         if "power" in self.switches:
-            caller.db.pow = stat
+            character.db.pow = stat
         if "dexterity" in self.switches:
-            caller.db.dex = stat
+            character.db.dex = stat
         if "tenacity" in self.switches:
-            caller.db.ten = stat
+            character.db.ten = stat
         if "cunning" in self.switches:
-            caller.db.cun = stat
+            character.db.cun = stat
         if "education" in self.switches:
-            caller.db.edu = stat
+            character.db.edu = stat
         if "charisma" in self.switches:
-            caller.db.chr = stat
+            character.db.chr = stat
         if "aura" in self.switches:
-            caller.db.aur = stat
+            character.db.aur = stat
 
-        caller.msg(f"Your {self.switches} was set to %i." % stat)
+        caller.msg(f"The PC's {self.switches} was set to %i." % stat)
 
 class CmdSetSkills(MuxCommand):
     """
@@ -243,6 +245,7 @@ class CmdSetSkills(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
+        character = self.caller
         errmsg = "You must supply a number between 1 and 10."
         if not self.switches:
             caller.msg("Set which skill?")
@@ -260,30 +263,30 @@ class CmdSetSkills(MuxCommand):
             return
         # at this point the argument is tested as valid. Let's set it.
         if "discern" in self.switches:
-            caller.db.discern = stat
+            character.db.discern = stat
         if "aim" in self.switches:
-            caller.db.aim = stat
+            character.db.aim = stat
         if "athletics" in self.switches:
-            caller.db.althetics = stat
+            character.db.althetics = stat
         if "force" in self.switches:
-            caller.db.force = stat
+            character.db.force = stat
         if "mechanics" in self.switches:
-            caller.db.mechanics = stat
+            character.db.mechanics = stat
         if "medicine" in self.switches:
-            caller.db.medicine = stat
+            character.db.medicine = stat
         if "computer" in self.switches:
-            caller.db.computer = stat
+            character.db.computer = stat
         if "stealth" in self.switches:
-            caller.db.stealth = stat
+            character.db.stealth = stat
         if "heist" in self.switches:
-            caller.db.heist = stat
+            character.db.heist = stat
         if "convince" in self.switches:
-            caller.db.convince = stat
+            character.db.convince = stat
         if "presence" in self.switches:
-            caller.db.presence = stat
+            character.db.presence = stat
         if "arcana" in self.switches:
-            caller.db.arcana = stat
-        caller.msg(f"Your {self.switches} was set to %i." % stat)
+            character.db.arcana = stat
+        caller.msg(f"The PC's {self.switches} was set to %i." % stat)
 
 
 
@@ -315,61 +318,62 @@ class CmdSetProfileAttr(MuxCommand):
         "This performs the actual command"
         errmsg = "Set value to what?"
         caller = self.caller
+        character = self.caller
         if "gender" in self.switches or "Gender" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.gender = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.gender = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "type" in self.switches or "Type" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.type = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.type = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "quote" in self.switches or "Quote" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.quote = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.quote = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "profile" in self.switches or "Profile" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.profile = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.profile = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "game" in self.switches or "Game" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.game = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.game = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "function" in self.switches or "Function" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.function = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.function = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return
         if "specialties" in self.switches or "Specialties" in self.switches:
             if self.args:
                 text = self.args
-                caller.db.specialties = self.args
-                self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+                character.db.specialties = self.args
+                caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
             else:
-                self.caller.msg(errmsg)
+                caller.msg(errmsg)
             return 
         if not self.args:
             self.caller.msg("Not a valid attribute.")
@@ -410,37 +414,38 @@ class CmdSetAttribute(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
+        character = self.caller
         errmsg = "Not a valid attribute."
         if "weakness" in self.switches:
             if self.args:
-                caller.db.weakness = self.args
+                character.db.weakness = self.args
             return
         if "resistance" in self.switches:
             if self.args:
-                caller.db.resistance = self.args
+                character.db.resistance = self.args
             return
         if "height" in self.switches:
             if self.args:
-                caller.db.height = self.args
+                character.db.height = self.args
             return
         if "speed" in self.switches:
             if self.args:
-                caller.db.speed = self.args
+                character.db.speed = self.args
         if "strength" in self.switches:
             if self.args:
-                caller.db.strength = self.args
+                character.db.strength = self.args
             return
         
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
             text = self.args
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
 
-        self.caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
+        caller.msg(f"Profile Attribute {self.switches} was set to: %s" % text)
 
 
 '''
@@ -496,16 +501,18 @@ class CmdSetTypes(Command):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
+        character = self.caller
         errmsg = "What text?"
         if not self.args:
-            self.caller.msg(errmsg)
-            self.caller.db.attacktype = text
-            self.caller.msg("Added an attack type at: %s" % text)
+            caller.msg(errmsg)
+            character.db.attacktype = text
+            caller.msg("Added an attack type at: %s" % text)
             return
         try:
             text = self.args
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         
 
@@ -530,6 +537,8 @@ class CmdSetWeapons(MuxCommand):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
+        character = self.caller
         errmsg = "What text?"
         if not self.args:
             self.caller.msg(errmsg)
@@ -537,10 +546,10 @@ class CmdSetWeapons(MuxCommand):
         try:
             text = self.args
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        self.caller.db.quote = text
-        self.caller.msg("Added this weapon: %s" % text)
+        character.db.quote = text
+        caller.msg("Added this weapon: %s" % text)
 
 class CmdSetArmors(Command):
     """
@@ -562,17 +571,19 @@ class CmdSetArmors(Command):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
+        character = self.caller
         errmsg = "What text?"
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
             text = self.args
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        self.caller.db.quote = text
-        self.caller.msg("Added an armor named: %s" % text)
+        character.db.quote = text
+        caller.msg("Added an armor named: %s" % text)
 
 class CmdSetPowers(Command):
     """
@@ -595,16 +606,18 @@ class CmdSetPowers(Command):
 
     def func(self):
         "This performs the actual command"
+        caller = self.caller
+        character = self.caller
         errmsg = "What text?"
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
             text = self.args
-            self.caller.db.type = text
-            self.caller.msg("Added the power: %i" % text)
+            character.db.type = text
+            caller.msg("Added the power: %i" % text)
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         
 
@@ -616,6 +629,7 @@ class ChargenCmdset(CmdSet):
     key = "Chargen"
     def at_cmdset_creation(self):
         "This is called at initialization"
+        self.add(CmdCreatePC())
         self.add(CmdSetStat())
         #self.add(CmdSetSpecialty())
         self.add(CmdSetSkills())
