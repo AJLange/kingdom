@@ -19,13 +19,14 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
-from commands.cmdsets.pose import CmdThink,  CmdPose,  CmdMegaSay, CmdEmit, CmdOOCSay
+from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie
 from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from commands import command
+from commands.default.account import CmdOOC, CmdOOCLook, CmdWho
 
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
@@ -77,6 +78,11 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdPortal())
         self.add(CmdICTime())
 
+
+        #cookie commands will be moved to account level at a later time
+        self.add(CmdCookie())
+        self.add(CmdCookieCounter())
+
         #self.add(multidescer.CmdMultiDesc()) 
         #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
 
@@ -106,8 +112,10 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-        self.add(CmdCookie())
-        self.add(CmdCookieCounter())
+
+        self.add(CmdWho())
+        self.add(CmdOOCLook())
+        self.add(CmdOOC())
 
         '''
         bboard commands do not work yet.
@@ -136,7 +144,7 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
-        self.add(CmdWho())
+
 
 
 class SessionCmdSet(default_cmds.SessionCmdSet):

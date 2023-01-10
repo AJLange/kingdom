@@ -74,6 +74,7 @@ COMMAND_DEFAULT_ARG_REGEX = r"^[ /]+.*$|$"
 
 MAX_CHAR_LIMIT = 8000
 TIME_ZONE = "America/New_York"
+MULTISESSION_MODE = 1
 
 # The time factor dictates if the game world runs faster (timefactor>1)
 # or slower (timefactor<1) than the real world.

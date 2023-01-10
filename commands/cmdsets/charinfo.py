@@ -452,7 +452,7 @@ class CmdCookieCounter(MuxCommand):
     """
 
     key = "tally"
-    aliases = ["+tally"]
+    aliases = ["+tally", "checkcookies", "+checkcookies"]
     locks = "cmd:all()"
     help_category = "Rewards"
 
