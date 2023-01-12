@@ -29,8 +29,6 @@ def get_movement_message(verb, stage):
 # ------------------------------------------------------------
 
 
-
-
 class CmdMakeStage(MuxCommand):
     """
     Create a stage.

@@ -11,10 +11,11 @@ from evennia.server.sessionhandler import SESSIONS
 import time
 import re
 from evennia import ObjectDB, AccountDB
-from evennia import default_cmds
+from evennia import default_cmds, create_object
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from typeclasses.rooms import Room
 from evennia.commands.default.muxcommand import MuxCommand
+from typeclasses.cities import City
 
 
 '''
@@ -49,8 +50,41 @@ class CmdMakeCity(MuxCommand):
     def func(self):
         """Implements command"""
         caller = self.caller
-        
+        '''
+        do I have build permissions?
+        '''
+        if not caller.check_permstring("builders"):
+            caller.msg("Only staff can use this command. For players, see help construct.")
+            return
 
+        if not self.args:
+            caller.msg("Usage: +makecity <Name>=<Landing Room>")
+            return
+
+        if "=" in self.args:
+            cityname, enterroom = self.args.rsplit("=", 1)
+            city = create_object("cities.City",key=cityname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+            '''
+            link entry room to city created
+            '''
+            try:
+                city.db.entry = enterroom
+            except:
+                '''
+                to-do- this currently doesn't search for a valid room so it won't error.
+                '''
+                caller.msg("Can't find a room called %s." % enterroom)
+            caller.msg("Created the city: %s" % cityname)
+
+        else: 
+            caller.msg("Usage: +makecity <Name>=<Landing Room>")
+            return
+
+'''
+Todo - return of the fix rooms command that makes rooms created into IC rooms 
+
+
+'''
 
 class CmdLinkTeleport(MuxCommand):
     """

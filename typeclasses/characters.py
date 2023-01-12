@@ -38,6 +38,9 @@ class Character(DefaultCharacter):
         self.db.strength = "Normal"
         self.db.type = "Human"
         self.db.cookiecount = 0
+        self.db.stagequota = 10
+        self.db.roomquota = 10
+        self.db.craftquota = 10
 
 
     def get_abilities(self):
