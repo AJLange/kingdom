@@ -79,28 +79,30 @@ class PersonalRoom(Object):
         self.db.desc = "This is a personal room."
 
 
-class Place(Object):
+class Stage(Object):
     '''
-    A Place is an object that, when entered, still broadcasts to 
-    the room that it's in.
-    (This may replace the current way that Places is coded.)
-    This does not leave the current location.
+    A Stage is an object that, when entered, still broadcasts to 
+    the room that it's in, but appends its name to the front of
+    the pose.
+
     '''
 
     def at_object_creation(self):
-        self.db.desc = "This is a Place. Enter it to append your location to the room."
+        self.db.desc = "This is a Stage. Enter it to append your location to the room."
 
 
-class Vehicle(Place):
+class Vehicle(Stage):
     '''
-    A vehicle is a type of Place.
-    The difference between a vehicle and an ordinary Place
+    A vehicle is a type of Stage.
+    The difference between a vehicle and an ordinary Stage
     is that a vehicle can be moved around from the inside via
-    a series of driving commans.
+    a series of driving commands.
+
+    Doesn't work now. May not get used. Leaving it here anyway.
 
     '''
 
     def at_object_creation(self):
-        self.db.desc = "This is a Place. Enter it to append your location to the room."
+        self.db.desc = "This is a Stage. Enter it to append your location to the room."
 
 
