@@ -9,6 +9,8 @@ from evennia import CmdSet
 from commands.command import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
+from random import randint
+from evennia import Command, InterruptCommand
 
 
 """
@@ -71,14 +73,20 @@ class CmdShowdown(Command):
             self.caller.msg(errmsg)
             return
         else:
-            self.caller.msg("That person is already in a showdown.")
+            self.caller.msg("That person is already in a duel.")
 
 
 class CmdGMRoll(Command):
     """
     GM free rolls a certain amount of dice.
 
-    +gmroll <number from 1-10>
+    Usage:
+       +gmroll <number from 1-10>
+
+    This is for if you just need to roll D10s for whatever reason in a 
+    scene you may be running.
+
+    To roll a die with an arbitrary amount of sides, see +roll.
 
     """
     
@@ -87,28 +95,135 @@ class CmdGMRoll(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        
+        caller = self.caller
         if not self.args:
             caller.msg("Roll how many dice?")
             return
+        '''convert argument to a number'''
+        args = self.args.lstrip()
         try:
-            self.caller.msg("You Roll.")
+            numdice = int(args)
+            if not 1 <= numdice <=10:
+                raise ValueError
+        except ValueError:
+            caller.msg("Number of dice must be an integer between 1 and 10.")
+            raise InterruptCommand
+
+        result = list(range(numdice))
+        outputmsg = (f"{caller.name} rolls:")
+        errmsg = "An error occured."
+        for i in range(1, numdice):
+            random = randint(1,10)
+            result[i] = random
+            outputmsg = outputmsg + " " + str(result[i])
+
+        try:
+            caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
 
+        '''
+        to-do: parse this to an amount of successes
+        '''
+
+
+class CmdRoll(Command):
+    """
+    Roll an arbitrary die.
+
+    Usage:
+       +roll <number from 1-100>
+
+    This will choose a random integer, depending on the 
+    size of the die you choose to roll. This is a purely 
+    random choice to be used for arbitrary decision making.
+
+    Rolling a die other than 1d10 is not an official game 
+    mechanic or part of the combat system, but can sometimes
+    be useful.
+
+    """
+    
+    key = "+roll"
+    aliases = ["roll"]
+    help_category = "Dice"
+
+    def func(self):
+        errmsg = "An error occured."
+        caller = self.caller
+
+        if not self.args:
+            caller.msg("Roll what size die?")
+            return
+        '''convert argument to a number'''
+        args = self.args.lstrip()
+        try:
+            dice = int(args)
+            if not 1 <= dice <=100:
+                raise ValueError
+        except ValueError:
+            self.msg("Please choose a die size as an integer between 1 and 100.")
+            raise InterruptCommand
+
+        result = randint(1,dice)
+        name = caller.name
+        try:
+            message = (f"{name} rolls a D{dice} and rolls a {result}.")
+            caller.location.msg_contents(message, from_obj=caller)
+
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
+class CmdFlip(Command):
+    """
+    Flip a coin.
+
+    Usage:
+       +flip
+
+    This command flips a coin, with a result of heads or tails.
+
+    There are two uses for this command. One is of an OOC nature, when
+    you may just be trying to choose between two outcomes. If you 
+    need to choose between more than two possible outcomes, see +roll.
+
+    This command may also be used to indicate an IC flip of a coin, as 
+    in the opening round of a Battle and Chase sporting match, or for
+    other dramatic reasons.
+
+    Please note that when the coin flip mechanic is used IC, some characters
+    do have the ability to cheat on the coin flip.
+
+    """
+    
+    key = "+flip"
+    aliases = ["flip"]
+    help_category = "Dice"
+
+    def func(self):
+        caller = self.caller
+        errmsg = "An error occured."
+
+        '''
+        to do: the rest of the command
+        '''
+
+        try:
+            caller.msg(f"You flipped a coin.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
 class CmdRollSet(Command):
     """
-
-    +rollset
-    +rollset/verbose
-    +rollset/basic
+    Usage:
+      +rollset
+      +rollset/verbose
+      +rollset/basic
 
     Swap between die view modes. Setting rollset to 'verbose' will show all of the 
     individual roles that lead to a die result. Setting to 'basic' will only show
@@ -139,35 +254,40 @@ class CmdRollSet(Command):
             caller.msg(errmsg)
             return
 
+'''
 
-class CmdGMRoll(Command):
+holding this space, might not use this command
+
+class CmdStatRoll(Command):
     """
-    GM free rolls a certain amount of dice.
+    Stat roll an individual stat. Useful for a quick check.
 
-    +gmroll <number from 1-10>
+    Usage:
+      +statroll <stat>
+      +statroll Aur
+
 
     """
     
-    key = "+gmroll"
-    aliases = ["gmroll"]
+    key = "+statroll"
+    aliases = ["statroll"]
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
+
         errmsg = "An error occured."
         
         caller= self.caller
         
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Roll which stat?")
             return
         try:
             self.caller.msg("You Roll.")
         except ValueError:
             caller.msg(errmsg)
             return
+'''
 
 class CmdAttack(Command):
     """
@@ -211,6 +331,15 @@ class CmdRollSkill(Command):
     aliases = ["check"]
     help_category = "Dice"
 
+    def parse(self):
+
+        args = self.args
+        try:
+            stat, skill = args.split(" ",1)
+        except ValueError:
+            self.caller.msg("Wrong syntax. Please enter a valid stat and skill seperated by a space.")
+        return stat, skill
+
     def func(self):
         '''
         doesn't function yet just stubbing out commands.
@@ -220,7 +349,7 @@ class CmdRollSkill(Command):
         caller= self.caller
         
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Roll which stat and skill combo?")
             return
         try:
             self.caller.msg("You Roll.")
