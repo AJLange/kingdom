@@ -68,7 +68,7 @@ class CmdStartChargen(MuxCommand):
     """
     
     +chargen
-    +chargen/finish
+    +chargen/check
 
     This command will temporarily give you access to the rest
     of the chargen commands. It can only be done in a chargen
@@ -97,14 +97,13 @@ class CmdStartChargen(MuxCommand):
     def func(self):
         caller = self.caller
         location = caller.location
-        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/finish. For the list of commands, see +help +chargen."
+        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/check to make sure you didn't miss anything. For the list of commands, see +help +chargen."
         
         if isinstance(location, ChargenRoom):
             '''
-            deleting command doesn't work but adding it does? idk.
-            commenting this out until i understand this better.
+            in the future, this will run a check to make sure the character is done and ready.
 
-            if "finish" in self.switches or "done" in self.switches:
+            if "check" in self.switches:
                 caller.msg("You finish generating a character.")
                 #remove the chargen command set
                 self.cmdset.delete(ChargenCmdset)
