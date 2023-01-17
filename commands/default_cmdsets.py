@@ -27,7 +27,7 @@ from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, Cmd
 from evennia import CmdSet
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho
-from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip
+from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet
 
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
@@ -82,6 +82,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFlip())
         self.add(CmdGMRoll())
         self.add(CmdRoll())
+        self.add(CmdRollSet())
 
 
         #cookie commands will be moved to account level at a later time

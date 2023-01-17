@@ -26,6 +26,10 @@ class Character(DefaultCharacter):
         Intended use is that stats and skills are set as a 
         list and come in as a list from the chargen machine.
         """
+
+        '''
+        stats and basic setup
+        '''
         self.db.pow = 1
         self.db.dex = 1
         self.db.ten = 1
@@ -42,6 +46,17 @@ class Character(DefaultCharacter):
         self.db.roomquota = 10
         self.db.craftquota = 10
 
+        '''
+        Default display setup
+        '''
+        self.db.rollset = 1
+        self.db.roomformat = 1
+
+
+        '''
+        combat-related toggles
+        '''
+        self.db.bonusdice = 0
 
     def get_abilities(self):
         """

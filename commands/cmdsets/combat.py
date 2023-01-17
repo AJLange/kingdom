@@ -13,6 +13,14 @@ from random import randint
 from evennia import Command, InterruptCommand
 
 
+def do_roll(self):
+    '''
+    roll a particular stat-skill combo. Used in combat commands.
+    '''
+    stat_roll = 0
+    skill_roll = 0
+    return stat_roll, skill_roll
+
 """
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
 
@@ -218,42 +226,6 @@ class CmdFlip(Command):
             return
 
 
-class CmdRollSet(Command):
-    """
-    Usage:
-      +rollset
-      +rollset/verbose
-      +rollset/basic
-
-    Swap between die view modes. Setting rollset to 'verbose' will show all of the 
-    individual roles that lead to a die result. Setting to 'basic' will only show
-    the final narrative result. 
-
-    +rollset on its own toggles between these two readout modes.
-
-    """
-    
-    key = "+rollset"
-    aliases = ["rollset"]
-    help_category = "Dice"
-
-    def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        
-        if not self.args:
-            caller.msg("Roll how many dice?")
-            return
-        try:
-            self.caller.msg("You Roll.")
-        except ValueError:
-            caller.msg(errmsg)
-            return
-
 '''
 
 holding this space, might not use this command
@@ -289,6 +261,51 @@ class CmdStatRoll(Command):
             return
 '''
 
+class CmdRollSkill(Command):
+    """
+    Roll a Stat + Skill combo.
+
+    Usage:
+        +check <stat> + <skill>
+
+    This allows any combination of rolls. Can be used to check any two stats.
+    Useful in one-off confrontations, if trying to do something unusual, or
+    if a particular roll is called by a GM in a Sequence.
+
+    Currently it is not possible to check just a stat. Always choose
+    which skill you want to roll. See news files for combo examples.
+
+    """
+    
+    key = "+check"
+    aliases = ["check"]
+    help_category = "Dice"
+
+    def parse(self):
+
+        args = self.args
+        try:
+            stat, skill = args.split("+",1)
+        except ValueError:
+            self.caller.msg("Wrong syntax. Please enter a valid stat and skill seperated by +.")
+        return stat, skill
+
+    def func(self):
+        
+        errmsg = "An error occured. Contact staff to help debug this."
+        
+        caller= self.caller
+        stat, skill = self.parse()
+        if not stat or skill:
+            caller.msg("Roll which stat and skill combo?")
+            return
+        try:
+            self.caller.msg(f"You Roll {stat} and {skill}:" )
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
+
 class CmdAttack(Command):
     """
     GM free rolls a certain amount of dice.
@@ -318,45 +335,6 @@ class CmdAttack(Command):
             caller.msg(errmsg)
             return
 
-
-class CmdRollSkill(Command):
-    """
-    Roll a Stat + Skill combo.
-
-    +check <stat> <skill>
-
-    """
-    
-    key = "+check"
-    aliases = ["check"]
-    help_category = "Dice"
-
-    def parse(self):
-
-        args = self.args
-        try:
-            stat, skill = args.split(" ",1)
-        except ValueError:
-            self.caller.msg("Wrong syntax. Please enter a valid stat and skill seperated by a space.")
-        return stat, skill
-
-    def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        
-        if not self.args:
-            caller.msg("Roll which stat and skill combo?")
-            return
-        try:
-            self.caller.msg("You Roll.")
-        except ValueError:
-            caller.msg(errmsg)
-            return
-
 '''
 
 +Aim - sacrifice a round for a higher chance of hitting next round.
@@ -372,7 +350,6 @@ target to hit you next round
 +Persuade/+negotiate/+moralhighground - make a convince roll to do damage
 
 '''
-
 
 class CmdAim(Command):
 
@@ -489,6 +466,9 @@ class CmdIntimidate(Command):
     it slightly harder for your target to hit you next round.
 
     Only can be used in a Sequence or Showdown.
+    
+    Only can be used once per target per Sequence/Showdown. The effect
+    does not stack.
 
     """
     
@@ -615,3 +595,66 @@ class CmdPersuade(Command):
         except ValueError:
             caller.msg(errmsg)
             return
+
+
+class CmdRollSet(MuxCommand):
+    """
+    Usage:
+      +rollset
+      +rollset/verbose
+      +rollset/basic
+
+    Swap between die view modes. Setting rollset to 'verbose' will show all of the 
+    individual roles that lead to a die result. Setting to 'basic' will only show
+    the final narrative result. 
+
+    +rollset on its own toggles between these two readout modes.
+
+    """
+    
+    key = "+rollset"
+    aliases = ["rollset"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        Doesn't function yet. Just sets the value to allow this to function in the future.
+        '''
+        errmsg = "A value error occured. Contact staff about this error."
+        
+        caller = self.caller
+
+        '''
+        rollset 1 is verbose. rollset 2 is basic.
+
+        if there's no switch, check current value and toggle.
+        '''
+
+        if not self.switches:
+            if caller.db.rollset == 1:
+                caller.db.rollset = 2
+                caller.msg("Set roll view type to basic.")
+                return
+            elif caller.db.rollset == 2:
+                caller.db.rollset = 1
+                caller.msg("Set roll view type to verbose.")
+                return
+            else:
+                caller.msg(errmsg)        
+
+        '''
+        had a switch, so just set the value
+        '''
+
+        if "verbose" in self.switches:
+            caller.db.rollset = 1
+            caller.msg("Set roll view type to verbose.")
+            return
+        elif "basic" in self.switches:
+            caller.db.rollset = 2
+            caller.msg("Set roll view type to basic.")
+            return
+        else:
+            caller.msg("Not a valid choice. Choose verbose or basic.")
+            return
+        
