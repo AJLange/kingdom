@@ -52,11 +52,11 @@ class Character(DefaultCharacter):
         self.db.rollset = 1
         self.db.roomformat = 1
 
-
         '''
         combat-related toggles
         '''
         self.db.bonusdice = 0
+
 
     def get_abilities(self):
         """

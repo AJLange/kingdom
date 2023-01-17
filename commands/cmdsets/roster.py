@@ -2,10 +2,9 @@
 commands related to groups and rosters
 """
 
-
-
 from evennia import CmdSet
 from evennia import Command
+from evennia.default_cmds import MuxCommand
 
 class CmdSetGroups(Command):
     """
@@ -19,7 +18,7 @@ class CmdSetGroups(Command):
     """
     
     key = "+addgroup"
-    help_category = "roster"
+    help_category = "Roster"
 
     def func(self):
         "This performs the actual command"
@@ -50,7 +49,7 @@ class CmdSetXWho(Command):
     """
     
     key = "xwho"
-    help_category = "roster"
+    help_category = "Roster"
 
     def func(self):
         
@@ -71,7 +70,7 @@ class CmdSetWho(Command):
     """
     
     key = "who"
-    help_category = "roster"
+    help_category = "Roster"
 
     def func(self):
         
@@ -98,7 +97,7 @@ given; such as 'whot' would display everyone whose name starts with T.
 """
 
 
-class CmdWho(default_cmds.MuxCommand):
+class CmdWho(MuxCommand):
     """
     list who is currently online
     Usage:
@@ -116,6 +115,7 @@ class CmdWho(default_cmds.MuxCommand):
 
     # this is used by the parent
     account_caller = True
+    help_category = "General"
 
     # Here we have modified "who" to display the locations of players to other players
     # and to add "where" as an alias.
@@ -191,3 +191,21 @@ class CmdWho(default_cmds.MuxCommand):
             "|wAccounts:|n\n%s\n%s unique account%s logged in."
             % (table, "One" if is_one else naccounts, "" if is_one else "s")
         )
+
+class CmdFCList(MuxCommand):
+
+    """
+
+    Usage:
+      +fclist
+
+    """
+    
+    key = "+fclist"
+    aliases = ["fclist","+roster","roster"]
+    help_category = "Roster"
+
+    def func(self):
+        
+        self.caller.msg("Get list of available and unavailable characters.")
+        return
