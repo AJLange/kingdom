@@ -12,13 +12,35 @@ from server.utils import sub_old_ansi
 from random import randint
 from evennia import Command, InterruptCommand
 
+'''
+constants set here for testing purposes
+'''
 
-def do_roll(self):
+DUEL_HP = 9
+STANDARD_HP = 6
+
+
+def do_roll(stat, skill):
+
     '''
     roll a particular stat-skill combo. Used in combat commands.
+    These are pooled rolls so return a list.
+
     '''
-    stat_roll = 0
-    skill_roll = 0
+
+    '''
+    to-do: exploding 10s
+    K&T as written: 10s explode for PCs but not for GMs/NPCs.
+    dice are also success if 7 or higher - use colors.
+    '''
+    stat_roll = list(range(stat))
+    skill_roll = list(range(skill))
+    for i in range(0, stat):
+        random = randint(1,10)
+        stat_roll[i] = random
+    for j in range(0,skill):
+        random = randint(1,10)
+        skill_roll[j] = random
     return stat_roll, skill_roll
 
 """
@@ -32,18 +54,15 @@ class CmdShowdown(Command):
 
     Usage:
         +showdown <name>
-        +showdown <name>,<name>
         +showdown/boss
 
-
     +showdown with a single name challenges that person to a duel.
-    +showdown with multiple targets invites everyone to partake.
     +showdown/boss begins a showdown with everyone in the room who is not
     set as observer.
 
-    If a showdown is in progress between multiple people, initiating a 
-    showdown with one of those targets invites you to combat with all
-    of those targets.
+    This is currently not balanced for 2 on 1 or other configurations.
+    A duel in progress can't be third-partied. However, multiple
+    boss fights can be initiated in the same location.
 
     """
     
@@ -53,6 +72,10 @@ class CmdShowdown(Command):
     def func(self):
         '''
         doesn't function yet just stubbing out commands.
+
+        to-do: test balance for other configurations.
+        occupied check needs to sync with db in case of reset.
+
         '''
         errmsg = "You must supply a target, or choose +showdown/boss to attack everyone."
         
@@ -60,28 +83,39 @@ class CmdShowdown(Command):
         caller= self.caller
         if self.switches or self.args:
             if "boss" in self.switches:
-                self.caller.msg("You start a boss fight in this location!")
+                caller.msg("You start a boss fight in this location!")
                 caller.location.msg_contents(caller.name + " has begun a Boss Showdown in this location!" )
 
                 '''
                     what needs to happen:
                     Set HP based on the involved number of attackers
                 '''
+            
 
         if not self.args:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
         try:
-            self.caller.msg("You attack.")
+            '''
+            do-to: error check - is target a character? are they in the room?
+            '''
+            target = self.args
+            caller.msg(f"You start a showdown with {target.name}.")
+            target.msg(f"{caller.name} has challenged you a duel!")
+            ''' 
+            set duel HP
+            '''
+            target.db.hp = DUEL_HP
+            caller.db.hp = DUEL_HP
+
+            if not (occupied):
+                occupied = True
+                return
+            else:
+                caller.msg("That person is already in a duel.")
         except ValueError:
-            self.caller.msg(errmsg)
+            caller.msg(errmsg)
             return
-        if not (occupied):
-            occupied = True
-            self.caller.msg(errmsg)
-            return
-        else:
-            self.caller.msg("That person is already in a duel.")
 
 
 class CmdGMRoll(Command):
@@ -120,7 +154,7 @@ class CmdGMRoll(Command):
         result = list(range(numdice))
         outputmsg = (f"{caller.name} rolls:")
         errmsg = "An error occured."
-        for i in range(1, numdice):
+        for i in range(0, numdice):
             random = randint(1,10)
             result[i] = random
             outputmsg = outputmsg + " " + str(result[i])
@@ -281,26 +315,41 @@ class CmdRollSkill(Command):
     aliases = ["check"]
     help_category = "Dice"
 
-    def parse(self):
 
+    def func(self):
+
+        
+        caller = self.caller
+        errmsg = "Wrong syntax. Please enter a valid stat and skill seperated by +."
+        if not self.args:
+            caller.msg(errmsg)
+            return
         args = self.args
         try:
             stat, skill = args.split("+",1)
+            stat = stat.strip()
+            skill = skill.strip()
         except ValueError:
-            self.caller.msg("Wrong syntax. Please enter a valid stat and skill seperated by +.")
-        return stat, skill
-
-    def func(self):
+            caller.msg(errmsg)
+            return
         
         errmsg = "An error occured. Contact staff to help debug this."
         
-        caller= self.caller
-        stat, skill = self.parse()
-        if not stat or skill:
-            caller.msg("Roll which stat and skill combo?")
-            return
         try:
-            self.caller.msg(f"You Roll {stat} and {skill}:" )
+            stat_check = caller.get_a_stat(stat)
+            skill_check = caller.get_a_skill(skill)
+
+            # build the string
+
+            result = do_roll(stat_check,skill_check)
+            if len(result[0]) == 0 or len(result[1]) == 0:
+                caller.msg("Skill + stat combination invalid. Try again.")
+                return
+            else:
+                str_result = str(result)
+                outputmsg = (f"{caller.name} rolls {stat} and {skill}: {str_result}" )
+                caller.location.msg_contents(outputmsg, from_obj=caller)
+            
         except ValueError:
             caller.msg(errmsg)
             return
