@@ -424,10 +424,9 @@ class CmdCookie(MuxCommand):
             return
         
         # find a player in the db who matches this string
-        player = self.caller.search(self.args)
-        if not player:
-            return
-        char = player
+        char = self.caller.search(self.args)
+
+        #todo - make sure this is a valid player, but they don't have to be in the same room as me!
         if not char:
             self.caller.msg("Character not found.")
             return

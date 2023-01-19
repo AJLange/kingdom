@@ -250,11 +250,16 @@ class CmdFlip(Command):
         errmsg = "An error occured."
 
         '''
-        to do: the rest of the command
+        to do: cheating stuff.
         '''
-
         try:
-            caller.msg(f"You flipped a coin.")
+            result = randint(0,1)
+            if result == 1:
+                str_result = "|rheads.|n"
+            else:
+                str_result = "|gtails.|n"
+            outputmsg = (f"{caller.name} flips a coin in the air and it comes down {str_result}" )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
