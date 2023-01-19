@@ -383,11 +383,17 @@ class CmdAim(Command):
 
     """
 
-    +aim
+    Usage:
+        +aim
 
-    Sacrifice a combat round for a higher chance of hitting next round.
+    Sacrifice a combat round for a higher chance of hitting next 
+    time you +attack.
 
     Only can be used in a Sequence or Showdown.
+
+    An aim will be held until an +attack is used, or the 
+    Sequence/Showdown is over. If the scene ends before you
+    +attack, the aiming action is lost.
 
     """
     
@@ -396,30 +402,40 @@ class CmdAim(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
+        
         errmsg = "An error occured."
         
         caller= self.caller
-        
+
+        if caller.db.aimdice == 1:
+            caller.msg("You are already aiming!")
         try:
-            self.caller.msg("You Roll.")
+            caller.location.msg_contents(f"{caller.name} forfeits their turn to Aim.", from_obj=caller)
+            caller.db.aimdice = 1
         except ValueError:
             caller.msg(errmsg)
             return
+        '''
+        todo: remember to clear out aimdice if combat ends
+        '''
 
 
 class CmdCharge(Command):
 
     """
+    Usage:
+        +charge
 
-    +charge
+    Sacrifice a combat round for a higher crit chance next round,
+    provided your next action is an +attack.
 
-    Sacrifice a combat round for a higher crit chance next round.
     If a charge crit hits a weakness, it does triple damage.
 
     Only can be used in a Sequence or Showdown.
+    
+    A charge will be held until an +attack is used, or the 
+    Sequence/Showdown is over. If the scene ends before you
+    +attack, the charge is lost.
 
     """
     
@@ -473,7 +489,9 @@ class CmdAttack(Command):
             caller.msg("Attack who?")
             return
         try:
-            self.caller.msg("You Roll.")
+            caller.msg("You attack.")
+            if self.db.aimdice:
+                caller.msg("Don't forget to add aimdice to the attack roll.")
         except ValueError:
             caller.msg(errmsg)
             return

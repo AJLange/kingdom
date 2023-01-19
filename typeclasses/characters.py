@@ -52,11 +52,11 @@ class Character(DefaultCharacter):
         self.db.rollset = 1
         self.db.roomformat = 1
 
-
         #combat-related toggles
 
         self.db.bonusdice = 0
         self.db.hp = 6
+        self.db.aimdice = 0
 
 
     def get_stats(self):
