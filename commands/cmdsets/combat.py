@@ -318,7 +318,8 @@ class CmdRollSkill(Command):
 
     def func(self):
 
-        
+        #todo: any bonus dice that need added might be added?
+
         caller = self.caller
         errmsg = "Wrong syntax. Please enter a valid stat and skill seperated by +."
         if not self.args:
@@ -355,34 +356,7 @@ class CmdRollSkill(Command):
             return
 
 
-class CmdAttack(Command):
-    """
-    GM free rolls a certain amount of dice.
 
-    +attack <target>
-
-    """
-    
-    key = "+attack"
-    aliases = ["attack"]
-    help_category = "Dice"
-
-    def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
-        caller= self.caller
-        
-        if not self.args:
-            caller.msg("Roll how many dice?")
-            return
-        try:
-            self.caller.msg("You Roll.")
-        except ValueError:
-            caller.msg(errmsg)
-            return
 
 '''
 
@@ -424,9 +398,6 @@ class CmdAim(Command):
         
         caller= self.caller
         
-        if not self.args:
-            caller.msg("Roll how many dice?")
-            return
         try:
             self.caller.msg("You Roll.")
         except ValueError:
@@ -468,6 +439,39 @@ class CmdCharge(Command):
             caller.msg(errmsg)
             return
 
+'''
+            
+todo: the assail commands below are stubs, need to take an argument (target)
+'''
+
+class CmdAttack(Command):
+    """
+    Attacking a particular target. 
+
+    +attack <target>
+
+    """
+    
+    key = "+attack"
+    aliases = ["attack"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
+        
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Attack who?")
+            return
+        try:
+            self.caller.msg("You Roll.")
+        except ValueError:
+            caller.msg(errmsg)
+            return
 
 class CmdTaunt(Command):
 
@@ -488,18 +492,24 @@ class CmdTaunt(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "An error occured."        
         caller= self.caller
-        
+
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Taunt who?")
             return
+        '''
+        todo: get cunning, charisma, aura, tenacity, use highest value
+        '''
+        stat = caller.get_a_stat("chr")
+        skill = caller.get_a_skill("presence")
+
         try:
-            self.caller.msg("You Roll.")
+            result = do_roll(stat, skill)
+            str_result = str(result)
+            outputmsg = (f"{caller.name} rolls to taunt: {str_result}" )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
@@ -526,23 +536,29 @@ class CmdIntimidate(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "An error occured."        
         caller= self.caller
         
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Intimidate who?")
             return
+        '''
+        todo: get power, charisma, aura, and use the highest value
+        '''
+        stat = caller.get_a_stat("chr")
+        skill = caller.get_a_skill("presence")
+
         try:
-            self.caller.msg("You Roll.")
+            result = do_roll(stat, skill)
+            str_result = str(result)
+            outputmsg = (f"{caller.name} rolls to intimidate: {str_result}" )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
 
-class CmdTaunt(Command):
+class CmdGuard(Command):
 
     """
 
@@ -561,15 +577,13 @@ class CmdTaunt(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "An error occured."        
         caller= self.caller
         
+        # does not function yet
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Guard who?")
             return
         try:
             self.caller.msg("You Roll.")
@@ -595,11 +609,8 @@ class CmdHeal(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "An error occured."        
         caller= self.caller
         
         if not self.args:
@@ -629,18 +640,26 @@ class CmdPersuade(Command):
     help_category = "Dice"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "An error occured."        
         caller= self.caller
         
         if not self.args:
-            caller.msg("Roll how many dice?")
+            caller.msg("Persuade who?")
             return
+
+        '''
+        todo: charisma, cunning, education, get the highest value
+        apply any bonus dice for pose or circumstance
+        '''
+        stat = caller.get_a_stat("chr")
+        skill = caller.get_a_skill("convince")
+
         try:
-            self.caller.msg("You Roll.")
+            result = do_roll(stat, skill)
+            str_result = str(result)
+            outputmsg = (f"{caller.name} rolls to persuade: {str_result}" )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
