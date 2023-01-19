@@ -55,10 +55,13 @@ class CmdShowdown(Command):
     Usage:
         +showdown <name>
         +showdown/boss
+        +showdown/end
 
     +showdown with a single name challenges that person to a duel.
     +showdown/boss begins a showdown with everyone in the room who is not
     set as observer.
+
+    +showdown/end ends your current combat if you are a boss or duelist.
 
     This is currently not balanced for 2 on 1 or other configurations.
     A duel in progress can't be third-partied. However, multiple
@@ -89,6 +92,11 @@ class CmdShowdown(Command):
                 '''
                     what needs to happen:
                     Set HP based on the involved number of attackers
+                '''
+            if "end" in self.switches:
+                caller.db.hp = STANDARD_HP
+                ''' 
+                remove everyone's aimdice and bonus dice
                 '''
             
 
