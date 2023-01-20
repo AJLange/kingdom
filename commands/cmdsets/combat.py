@@ -417,6 +417,11 @@ class CmdAim(Command):
 
         if caller.db.aimdice == 1:
             caller.msg("You are already aiming!")
+
+        '''
+        future check: if the Sniper capability is present, stack Aim up to 3x
+        '''
+
         try:
             caller.location.msg_contents(f"{caller.name} forfeits their turn to Aim.", from_obj=caller)
             caller.db.aimdice = 1
@@ -458,12 +463,17 @@ class CmdCharge(Command):
         errmsg = "An error occured."
         
         caller= self.caller
+
+        if caller.db.chargedice == 1:
+            caller.msg("You can't charge any more!")
+
+        '''
+        future check: if the Megablast capability is present, stack Charge up to 3x
+        '''
         
-        if not self.args:
-            caller.msg("Roll how many dice?")
-            return
         try:
-            self.caller.msg("You Roll.")
+            caller.location.msg_contents(f"{caller.name} is charging their shot!", from_obj=caller)
+            caller.db.chargedice = 1
         except ValueError:
             caller.msg(errmsg)
             return
@@ -498,6 +508,17 @@ class CmdAttack(Command):
             return
         try:
             caller.msg("You attack.")
+            '''
+            do a couple checks:
+                is the target a person?
+                is that person present here?
+
+                is attacker charging?
+                is attacker aiming?
+                is the target being guarded?
+                does the target have active deflect or reflect?
+            '''
+            
             if self.db.aimdice:
                 caller.msg("Don't forget to add aimdice to the attack roll.")
         except ValueError:
@@ -532,6 +553,9 @@ class CmdTaunt(Command):
             return
         '''
         todo: get cunning, charisma, aura, tenacity, use highest value
+        better make sure any target is:
+            a player
+            present in the room
         '''
         stat = caller.get_a_stat("chr")
         skill = caller.get_a_skill("presence")
@@ -576,6 +600,9 @@ class CmdIntimidate(Command):
             return
         '''
         todo: get power, charisma, aura, and use the highest value
+                better make sure any target is:
+            a player
+            present in the room
         '''
         stat = caller.get_a_stat("chr")
         skill = caller.get_a_skill("presence")
@@ -592,12 +619,20 @@ class CmdIntimidate(Command):
 class CmdGuard(Command):
 
     """
+    Usage:
+        +guard 
+        +guard <target>
 
-    +guard <target>
+    Go fully defensive this round, making it quite a bit
+    harder to be attacked or damaged, but at the cost of any
+    meaningful action this turn.
 
-    Go fully defensive against a target, making it quite a bit
-    harder for them to hit and damage you, but at the cost of
-    any other meaningful action for the turn.
+    If +guard is used on a target, this instead makes you 
+    more likely to hit, but less likely for that target to be hit.
+    
+    Choose wisely.
+
+    +guard has no effect on attempts to pursuade.
 
     Only can be used in a Sequence or Showdown.
 

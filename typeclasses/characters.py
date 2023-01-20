@@ -57,6 +57,7 @@ class Character(DefaultCharacter):
         self.db.bonusdice = 0
         self.db.hp = 6
         self.db.aimdice = 0
+        self.db.chargedice = 0
 
 
     def get_stats(self):
