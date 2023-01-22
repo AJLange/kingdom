@@ -6,6 +6,21 @@ Rooms are simple containers that has no location of their own.
 """
 
 from evennia import DefaultRoom
+from evennia.utils import create
+from evennia.utils import search
+from evennia.utils import logger
+from evennia.utils import ansi
+from typeclasses.objects import MObject
+from collections import defaultdict
+from evennia.utils.utils import (
+    class_from_module,
+    variable_from_module,
+    lazy_property,
+    make_iter,
+    is_iter,
+    list_to_string,
+    to_str,
+)
 
 
 '''
@@ -16,6 +31,7 @@ you do not need that many discreet roomtypes if categorized
 this way.
 
 '''
+
 
 class Room(DefaultRoom):
     """
@@ -54,9 +70,57 @@ class Room(DefaultRoom):
             options=options,
             mapping=None,
         )
-    
+    def return_appearance(self, looker, **kwargs):
+        """
+        This formats a description. It is the hook a 'look' command
+        should call.
 
-    pass
+        Args:
+        looker (Object): Object doing the looking.
+        **kwargs (dict): Arbitrary, optional arguments for users
+        overriding the call (unused by default).
+        """
+        if not looker:
+            return ""
+        # get and identify all objects
+        visible = (con for con in self.contents if con != looker and con.access(looker, "view"))
+        exits, users, destinations, things = [], [], [], defaultdict(list)
+        for con in visible:
+            key = con.get_display_name(looker)
+            if con.destination:
+                exits.append(key)
+                destinations.append(con.destination)
+            elif con.has_account:
+                users.append("|c%s|n" % key)
+            else:
+            # things can be pluralized
+                things[key].append(con)
+        # get description, build string
+        string = "|c%s|n\n" % self.get_display_name(looker)
+        desc = self.db.desc
+        if desc:
+            string += "%s" % desc
+        if exits:
+            destination = 0
+            string += "\n"
+            for exit in exits:
+                string += "\n " + list_to_string(exit) + " leads to " + list_to_string(destinations[destination])
+                destination += 1
+            string += "\n"
+        if users or things:
+            # handle pluralization of things (never pluralize users)
+            thing_strings = []
+            for key, itemlist in sorted(things.items()):
+                nitem = len(itemlist)
+                if nitem == 1:
+                    key, _ = itemlist[0].get_numbered_name(nitem, looker, key=key)
+                else:
+                    key = [item.get_numbered_name(nitem, looker, key=key)[1] for item in itemlist][0]
+                thing_strings.append(key)
+
+            string += "\n|wYou see:|n " + list_to_string(users + thing_strings)
+
+        return string
 
 
 class OOCRoom(Room):
