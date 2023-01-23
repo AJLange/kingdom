@@ -9,7 +9,7 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.rooms import PlayRoom
+from typeclasses.rooms import Room
 from typeclasses.cities import City, PersonalRoom
 from evennia.utils.search import search_tag, search_object
 
@@ -61,7 +61,7 @@ class CmdSummon(MuxCommand):
                     caller.msg("Destination not found.")
                     return
                 if destination:
-                    if not isinstance(destination, PlayRoom):
+                    if not isinstance(destination, Room):
                         caller.msg("Destination is not a room.")
                     return
             else:
@@ -126,7 +126,7 @@ class CmdJoin(MuxCommand):
                     caller.msg("Destination not found.")
                     return
                 if destination:
-                    if not isinstance(destination, PlayRoom):
+                    if not isinstance(destination, Room):
                         caller.msg("Destination is not a room.")
                     return
             else:
@@ -378,7 +378,7 @@ class CmdWarp(MuxCommand):
             caller.msg("Destination not found.")
             return
         if destination:
-            if not isinstance(destination, PlayRoom):
+            if not isinstance(destination, Room):
                 caller.msg("Destination is not an IC room.")
                 return
             else:
@@ -430,7 +430,7 @@ class CmdPortal(MuxCommand):
                 caller.msg("Destination not found.")
                 return
             if destination:
-                if not isinstance(destination, PlayRoom):
+                if not isinstance(destination, Room):
                     caller.msg("Destination is not an IC room.")
                     return
                 else:
@@ -521,7 +521,7 @@ class CmdEnterCity(MuxCommand):
             
             entry = (destination.db.entry)
             #todo - please add an exception handler to fail gracefully
-            entry = PlayRoom.objects.get(db_key__startswith=entry)
+            entry = Room.objects.get(db_key__startswith=entry)
             caller.msg("You enter the city.")
             emit_string = "%s is entering %s." % (caller.name, destination)
             caller.location.msg_contents(emit_string, from_obj=caller)
@@ -530,7 +530,7 @@ class CmdEnterCity(MuxCommand):
         elif isinstance(destination, PersonalRoom):
             #todo - check to see if this room is unlocked before trying to enter.
             entry = (destination.db.entry)
-            entry = PlayRoom.objects.get(db_key__startswith=entry)
+            entry = Room.objects.get(db_key__startswith=entry)
             caller.msg("You enter.")
             emit_string = "%s is entering %s." % (caller.name, destination)
             caller.location.msg_contents(emit_string, from_obj=caller)

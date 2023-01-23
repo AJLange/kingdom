@@ -132,20 +132,13 @@ class OOCRoom(Room):
     """
     This is an OOC room that is missing play features but allows
     for people to go IC.
+    
+    Probably deprecated and won't be used. Saving just in case 
+    we need to stash commands here.
     """
     def at_object_creation(self):
         "this is called only at first creation"
 
-
-class PlayRoom(Room):
-    """
-    This room class is the most standard playroom for most RP.
-
-    This room class does not have the commands associated with broader
-    grid travel.
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
 
 class StaffRoom(Room):
     """
@@ -164,7 +157,7 @@ class ChargenRoom(StaffRoom):
         
 
 
-class TrainingRoom(PlayRoom):
+class TrainingRoom(Room):
     """
     This is an IC room that allows for no holds barred combat
     """
@@ -173,7 +166,7 @@ class TrainingRoom(PlayRoom):
 
 
 
-class QuartersRoom(PlayRoom):
+class QuartersRoom(Room):
     """
     This room type would allow people to set down quarters rooms of their own.
     """
@@ -183,24 +176,8 @@ class QuartersRoom(PlayRoom):
         
 
 
-class ShopRoom(PlayRoom):
-    """
-    This room class will be used for player-run shops
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
 
-
-class WarRoom(PlayRoom):
-    """
-    This room type would allow interaction with the war system
-    """
-    def at_object_creation(self):
-        "this is called only at first creation"
-
-
-
-class Cockpit(PlayRoom):
+class Cockpit(Room):
     """
     This room type is for driving mobile bases
     """
@@ -209,9 +186,17 @@ class Cockpit(PlayRoom):
 
 
 
-class PrivateRoom(PlayRoom):
+class PrivateRoom(Room):
     """
     A type of IC room with some additional lock functions.
+    """
+    def at_object_creation(self):
+        "this is called only at first creation"
+
+
+class PlayRoom(Room):
+    """
+    Deprecated - wasn't needed, saved for DB reasons
     """
     def at_object_creation(self):
         "this is called only at first creation"
