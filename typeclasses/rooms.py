@@ -100,13 +100,10 @@ class Room(DefaultRoom):
         desc = self.db.desc
         if desc:
             string += "%s" % desc
-        if exits:
-            destination = 0
-            string += "\n"
-            for exit in exits:
-                string += "\n " + list_to_string(exit) + " leads to " + list_to_string(destinations[destination])
-                destination += 1
-            string += "\n"
+
+        '''
+        todo: treat characters and objects and cities all differently here
+        '''
         if users or things:
             # handle pluralization of things (never pluralize users)
             thing_strings = []
@@ -117,8 +114,16 @@ class Room(DefaultRoom):
                 else:
                     key = [item.get_numbered_name(nitem, looker, key=key)[1] for item in itemlist][0]
                 thing_strings.append(key)
-
             string += "\n|wYou see:|n " + list_to_string(users + thing_strings)
+        if exits:
+            destination = 0
+            string += "\n"
+            for exit in exits:
+                string += "\n " + list_to_string(exit) + " leads to " + list_to_string(destinations[destination])
+                destination += 1
+            string += "\n"
+
+
 
         return string
 
