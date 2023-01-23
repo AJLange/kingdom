@@ -46,11 +46,10 @@ class CmdFinger(BaseCommand):
             return
 
         # find a player in the db who matches this string
-        player = self.caller.search(self.args)
-        if not player:
-            self.caller.msg("Character not found.")
-            return
-        char = player
+        # todo- match on alias 
+        char_string = self.args.strip()
+        char = self.caller.search(char_string, global_search=True)
+        
         if not char:
             self.caller.msg("Character not found.")
             return
@@ -102,16 +101,13 @@ class CmdEFinger(BaseCommand):
             self.caller.msg("Finger who?")
             return
 
-        # find a player in the db who matches this string
-        player = self.caller.search(self.args)
-        if not player:
-            return
-        char = player
+        char_string = self.args.strip()
+        char = self.caller.search(char_string, global_search=True)
         if not char:
             self.caller.msg("Character not found.")
             return
         try:
-            self.caller.msg(f"{char.name} Eventually Efinger information would go here.")
+            self.caller.msg(f"{char.name}: Eventually Efinger information would go here.")
         except ValueError:
             self.caller.msg("Some error occured.")
             return
@@ -209,14 +205,11 @@ class CmdOOCFinger(MuxCommand):
             '''
 
         if not self.args:
-            player = caller
+            char = caller
         else:     
         # find a player in the db who matches this string
-            player = caller.search(self.args)
-
-        if not player:
-            return
-        char = player
+            char_string = self.args.strip()
+            char = self.caller.search(char_string, global_search=True)
         if not char:
             caller.msg("Character not found.")
             return
@@ -424,7 +417,8 @@ class CmdCookie(MuxCommand):
             return
         
         # find a player in the db who matches this string
-        char = self.caller.search(self.args)
+        char_string = self.args.strip()
+        char = self.caller.search(char_string, global_search=True)
 
         #todo - make sure this is a valid player, but they don't have to be in the same room as me!
         if not char:
