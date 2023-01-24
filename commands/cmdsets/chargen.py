@@ -68,7 +68,6 @@ class CmdStartChargen(MuxCommand):
     """
     
     +chargen
-    +chargen/check
 
     This command will temporarily give you access to the rest
     of the chargen commands. It can only be done in a chargen
@@ -84,10 +83,14 @@ class CmdStartChargen(MuxCommand):
     +setprofile/<attribute> <value> (for all 7 text attributes)
     +settypes <type>, <type> (for all elemental types)
     +setpower <name> (for the character's 'racetype' aka power set sources)
-    +chargen/finish
+    +setpassword <password>
+    +finishchargen
 
     Armor modes, and characters with multiple power sets, are not working
     in the pre-alpha build.
+
+    Please note that if the database is reset, your working character is not
+    reset, but you will lose access to +chargen commands.
 
     """
     
@@ -97,19 +100,10 @@ class CmdStartChargen(MuxCommand):
     def func(self):
         caller = self.caller
         location = caller.location
-        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +chargen/check to make sure you didn't miss anything. For the list of commands, see +help +chargen."
+        chargeninit = "You have begun character creation. You now have access to character setup commands. When you are done making a character, +finishchargen to make sure you didn't miss anything. For the list of commands, see +help +chargen."
         
         if isinstance(location, ChargenRoom):
-            '''
-            in the future, this will run a check to make sure the character is done and ready.
-
-            if "check" in self.switches:
-                caller.msg("You finish generating a character.")
-                #remove the chargen command set
-                self.cmdset.delete(ChargenCmdset)
-                
-            else:
-                '''
+            
             caller.msg(chargeninit)
                 # add the chargen command set
             self.cmdset.add(ChargenCmdset)
@@ -148,6 +142,7 @@ class CmdCreatePC(Command):
                       key=name,
                       location=caller.location,
                       locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+        
         # announce
         message = "%s created the PC '%s'."
         caller.msg(message % ("You", name))
@@ -195,6 +190,40 @@ class CmdWorkChar(Command):
         caller.msg(message % ("You're", name))
         caller.location.msg_contents(message % (caller.key, name),
                                                 exclude=caller)
+        return 
+
+
+class CmdCSetPassword(MuxCommand):
+    '''
+    Set a password.
+
+    Usage:
+        +setpassword <password>
+
+    This command has two uses. During first-time setup it's necessary
+    to use this command to set up an account with password so the 
+    character can be logged in.
+
+    After the character has been logged in once, this only resets the 
+    password of whatever character you are actively working on.
+    '''
+
+    key = "+setpassword"
+    help_category = "Chargen"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+        errmsg = "Something went wrong."
+        
+        '''
+        what needs to happen: check and see if an account is associated
+        with the current working character
+        if there is, just reset the password
+        if there is not, create an account with the supplied password
+        '''
+
         return 
 
 
@@ -663,6 +692,36 @@ class CmdSetPowers(Command):
             return
         
 
+class CmdFinishChargen(MuxCommand):
+    """
+    This command makes sure the character you are working on
+    is complete.
+
+    Usage:
+      +finishchargen
+
+    This will return errors if any attributes are missing from the
+    character that you are working on.
+
+    """
+    
+    key = "+finishchargen"
+    help_category = "Chargen"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+        errmsg = "What text?"
+        if not self.args:
+            caller.msg(errmsg)
+            return
+        try:
+            caller.msg("Command doesn't do anything yet")
+        except ValueError:
+            caller.msg(errmsg)
+            return
+
 
 class ChargenCmdset(CmdSet):
     """
@@ -681,3 +740,5 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetArmors())
         self.add(CmdSetProfileAttr())
         self.add(CmdSetPowers())
+        self.add(CmdFinishChargen())
+        self.add(CmdCSetPassword())
