@@ -711,13 +711,35 @@ class CmdFinishChargen(MuxCommand):
     def func(self):
         "This performs the actual command"
         caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "What text?"
-        if not self.args:
-            caller.msg(errmsg)
-            return
+        char = caller.db.workingchar 
+        errmsg = "Some error occured."
+        if not char.db.weakness:
+            caller.msg("Missing attribute: weakness\n")
+        if not char.db.resistance:
+            caller.msg("Missing attribute: resistance\n")
+        if not char.db.height:
+            caller.msg("Missing attribute: height\n")
+        if not char.db.speed:
+            caller.msg("Missing attribute: speed\n")
+        if not char.db.strength:
+            caller.msg("Missing attribute: strength\n")
+        if not char.db.gender:
+            caller.msg("Missing attribute: gender\n")
+        if not char.db.type:
+            caller.msg("Missing attribute: type\n")
+        if not char.db.quote:
+            caller.msg("Missing attribute: quote\n")
+        if not char.db.profile:
+            caller.msg("Missing attribute: profile\n")
+        if not char.db.game:
+            caller.msg("Missing attribute: game\n")
+        if not char.db.function:
+            caller.msg("Missing attribute: function\n")
+        if not char.db.specialties:
+            caller.msg("Missing attribute: specialties\n")
+
         try:
-            caller.msg("Command doesn't do anything yet")
+            caller.msg("Char Creation Done. Make sure your character has stats and abilities set.")
         except ValueError:
             caller.msg(errmsg)
             return
