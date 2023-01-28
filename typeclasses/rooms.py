@@ -43,6 +43,8 @@ class Room(DefaultRoom):
     See examples/object.py for a list of
     properties and methods available on all Objects.
     """
+    def at_object_creation(self):
+        self.db.protector = None
 
     def at_say(
         self,
@@ -123,8 +125,6 @@ class Room(DefaultRoom):
                 destination += 1
             string += "\n"
 
-
-
         return string
 
 
@@ -191,7 +191,13 @@ class PrivateRoom(Room):
     A type of IC room with some additional lock functions.
     """
     def at_object_creation(self):
-        "this is called only at first creation"
+        # private rooms have an owner, the owner is also the protector.
+        # try getting the contents since the first person in should be owner.
+        # this wont work long term prevents breaking for now.
+        owner = self.contents_get[0]
+        self.db.owner = owner
+        self.db.protector = owner
+        self.db.locked = False
 
 
 class PlayRoom(Room):

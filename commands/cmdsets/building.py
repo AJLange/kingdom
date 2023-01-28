@@ -16,6 +16,7 @@ from evennia.utils import utils, create, evtable, make_iter, inherits_from, date
 from typeclasses.rooms import Room
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.cities import City
+from typeclasses.cities import PersonalRoom
 
 
 '''
@@ -157,5 +158,151 @@ class CmdPlotroom(MuxCommand):
 
         #check. Am I an active GM? If so, do the thing:
 
-        
-        
+
+class CmdLockRoom(MuxCommand):
+    """
+    Lock your private room.
+
+    Usage:
+        +lock 
+
+    When you are standing in a room you own, you can use
+    +lock to prevent other people from entering the room.
+    This is for if you need privacy for whatever reason.
+
+    +lock does not prevent players from leaving your private
+    room. You cannot +lock someone in. It prevents entrance 
+    only. +lock will not lock the room owner out of their own
+    room. Just everyone else.
+
+    +lock only works on private rooms you own, but does not
+    extend to rooms that you protect. (See help +protector)
+
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        here = caller.location
+
+        #check if I own this room
+        if here.db.owner == caller:
+            if here.db.locked == False:
+                here.db.locked = True
+                # find the exit and make sure it doesn't work
+            else:
+                caller.msg("This room is already locked.")
+
+        ''' to add: I can always enter my own private room even if it's locked'''
+
+
+
+
+
+class CmdLockRoom(MuxCommand):
+    """
+    Unlock your private room.
+
+    Usage:
+        +unlock 
+
+    A private room object looks like an object from the outside
+    but behaves like a room on the inside.
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        here = caller.location
+
+        #check if I own this room
+        if here.db.owner == caller:
+            if here.db.locked == True:
+                here.db.locked = False
+                # I can now move freely into this room.
+            else:
+                caller.msg("This room is already unlocked.")
+
+
+class CmdProtector(MuxCommand):
+    """
+    Create a private room object.
+    Players will have a limited quota of private room objects.
+    Construct a room using 
+
+    construct <name of room>
+    eg
+    construct Doctor's Office
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("What do you want to construct?")
+            return
+
+        '''
+        check if I'm an admin. If I'm not admin, check and see if I have quota.
+        '''
+
+        '''
+        subtract from my available quota and make an object of the private room
+        type.
+        '''
+
+        ''' to do: the rest of the command '''
+
+
+class CmdProtector(MuxCommand):
+    """
+    Create a private room object.
+    Players will have a limited quota of private room objects.
+    Construct a room using 
+
+    construct <name of room>
+    eg
+    construct Doctor's Office
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+
+        if not args:
+            caller.msg("What do you want to construct?")
+            return
+
+        '''
+        check if I'm an admin. If I'm not admin, check and see if I have quota.
+        '''
+
+        '''
+        subtract from my available quota and make an object of the private room
+        type.
+        '''
+
+        ''' to do: the rest of the command '''

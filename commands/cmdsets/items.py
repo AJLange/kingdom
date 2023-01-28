@@ -1,44 +1,6 @@
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.cities import PersonalRoom
+
 from typeclasses.objects import MObject
-
-
-
-class CmdConstruct(MuxCommand):
-    """
-    Create a private room object.
-    Players will have a limited quota of private room objects.
-    Construct a room using 
-
-    construct <name of room>
-    eg
-    construct Doctor's Office
-    """
-
-    key = "construct"
-    locks = "cmd:all()"
-    help_category = "Building"
-    
-
-    def func(self):
-        """Implements command"""
-        caller = self.caller
-        args = self.args
-
-        if not args:
-            caller.msg("What do you want to construct?")
-            return
-
-        '''
-        check if I'm an admin. If I'm not admin, check and see if I have quota.
-        '''
-
-        '''
-        subtract from my available quota and make an object of the private room
-        type.
-        '''
-
-        ''' to do: the rest of the command '''
 
 
 class CmdCraft(MuxCommand):
