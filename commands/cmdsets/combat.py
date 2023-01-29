@@ -90,8 +90,9 @@ class CmdShowdown(Command):
                 caller.location.msg_contents(caller.name + " has begun a Boss Showdown in this location!" )
 
                 '''
-                    what needs to happen:
-                    Set HP based on the involved number of attackers
+                what needs to happen:
+                Set HP based on the involved number of attackers
+                check if the room has a protector, return a warning if it does.
                 '''
             if "end" in self.switches:
                 caller.db.hp = STANDARD_HP

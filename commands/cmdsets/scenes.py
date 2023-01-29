@@ -432,80 +432,6 @@ class CmdSequenceStart(MuxCommand):
     A Sequence is used to indicate an open-GMed scene that contains
     action components but is not a direct combat or duel.
 
-    When you initiate a Sequence, you're setting yourself as a GM 
-    in that scene. You can appoint a co-GM by using +sequence/gm <name>
-    +sequence/stepdown will turn off your GM flag (if you are done, 
-    or want to pass off the GMing role to someone else while still
-    leaving the sequence active).
-
-    +sequence/stop ends the sequence for all participants.
-
-    Usage:
-            +sequence/start
-            +sequence/stop
-            +sequence/gm <name>
-            +sequence/stepdown
-    """
-
-    key = "+sequence"
-    aliases = ["sequence"]
-    locks = "cmd:all()"
-
-    def func(self):
-        caller = self.caller
-
-        if not self.switches:
-            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
-            return
-
-        #this is from the event code, make it actually do the thing at a later time.
-
-        elif "start" in self.switches:
-            # Make sure the current room doesn't already have an active event, and otherwise mark it
-            if caller.location.db.active_event:
-                caller.msg("There is currently an active event running in this room already.")
-                return
-            caller.location.db.active_event = True
-            event = Scene.objects.create(
-                name='Unnamed Event',
-                start_time=datetime.now(),
-                description='Placeholder description of scene plz change k thx bai',
-                location=caller.location,
-            )
-
-            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
-
-            caller.location.db.event_id = event.id
-
-            self.caller.location.msg_contents("|y<SCENE>|n A log has been started in this room with scene ID {0}.".format(event.id))
-            return
-
-        elif "stop" in self.switches:
-            # Make sure the current room's event hasn't already been stopped
-            if not caller.location.db.active_event:
-                caller.msg("There is no active event running in this room.")
-                return
-
-            # Find the scene object that matches the scene/event reference on the
-            # location.
-            try:
-                events = Scene.objects.filter(id=caller.location.db.event_id).get()
-            except Exception as original:
-                raise Exception("Found zero or multiple Scenes :/") from original
-
-            # Stop the Room's active event by removing the active event attribute.
-            Scene.objects.filter(id=caller.location.db.event_id).update(end_time=datetime.now())
-            self.caller.location.msg_contents("|y<SCENE>|n A log has been stopped in this room with scene ID {0}.".format(events.id))
-            del caller.location.db.active_event
-            return
-
-
-class CmdSequenceStart(MuxCommand):
-    """
-    This command declares a Sequence.
-    A Sequence is used to indicate an open-GMed scene that contains
-    action components but is not a direct combat or duel.
-
         Usage:
             +sequence/start <optional number>
             +sequence/stop
@@ -552,6 +478,7 @@ class CmdSequenceStart(MuxCommand):
             return
 
         #this is from the event code, make it actually do the thing at a later time.
+        # if the room has a protector, remind the player to check that.
 
         elif "start" in self.switches:
             # Make sure the current room doesn't already have an active event, and otherwise mark it
@@ -592,3 +519,77 @@ class CmdSequenceStart(MuxCommand):
             del caller.location.db.active_event
             return
 
+class CmdAutolog(MuxCommand):
+    """
+    This command begins the autologger.
+   
+    Usage:
+        +log/start
+        +log/stop
+
+    This begins an auto logger at this location.
+    Use +log/stop to turn off autologger.
+
+    Scenes set on calendar with the +scene/schedule command
+    are auto-logged automatically.
+
+    This command warns the room about the log starting. 
+    Logs created this way are private to the involved players
+    by default, but can be made public with a command
+    that I'll figure out later.
+
+    """
+
+    key = "+sequence"
+    aliases = ["sequence"]
+    locks = "cmd:all()"
+
+    def func(self):
+        caller = self.caller
+
+        if not self.switches:
+            caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
+            return
+
+        #this is from the event code, make it actually do the thing at a later time.
+
+        # if the room has a protector, remind the player to check that.
+
+        elif "start" in self.switches:
+            # Make sure the current room doesn't already have an active event, and otherwise mark it
+            if caller.location.db.active_event:
+                caller.msg("There is currently an active event running in this room already.")
+                return
+            caller.location.db.active_event = True
+            event = Scene.objects.create(
+                name='Unnamed Event',
+                start_time=datetime.now(),
+                description='Placeholder description of scene plz change k thx bai',
+                location=caller.location,
+            )
+
+            caller.msg("DEBUG: this event has the following information:\nname = {0}\ndescription = {1}\nlocation = {2}\nid = {3}".format(event.name, event.description, event.location, event.id))
+
+            caller.location.db.event_id = event.id
+
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been started in this room with scene ID {0}.".format(event.id))
+            return
+
+        elif "stop" in self.switches:
+            # Make sure the current room's event hasn't already been stopped
+            if not caller.location.db.active_event:
+                caller.msg("There is no active event running in this room.")
+                return
+
+            # Find the scene object that matches the scene/event reference on the
+            # location.
+            try:
+                events = Scene.objects.filter(id=caller.location.db.event_id).get()
+            except Exception as original:
+                raise Exception("Found zero or multiple Scenes :/") from original
+
+            # Stop the Room's active event by removing the active event attribute.
+            Scene.objects.filter(id=caller.location.db.event_id).update(end_time=datetime.now())
+            self.caller.location.msg_contents("|y<SCENE>|n A log has been stopped in this room with scene ID {0}.".format(events.id))
+            del caller.location.db.active_event
+            return

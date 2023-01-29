@@ -201,10 +201,7 @@ class CmdLockRoom(MuxCommand):
         ''' to add: I can always enter my own private room even if it's locked'''
 
 
-
-
-
-class CmdLockRoom(MuxCommand):
+class CmdUnLockRoom(MuxCommand):
     """
     Unlock your private room.
 
@@ -236,13 +233,48 @@ class CmdLockRoom(MuxCommand):
 
 class CmdProtector(MuxCommand):
     """
-    Create a private room object.
-    Players will have a limited quota of private room objects.
-    Construct a room using 
+    See who is protecting a location.
 
-    construct <name of room>
-    eg
-    construct Doctor's Office
+    Usage:
+        +protector
+
+    This returns a list of the characters or groups that are protecting a 
+    location on the grid.
+
+    If you intend to do violence or scheming in a particular location,
+    you should alert the protectors of a location before proceeding.
+
+    If this returns the value 'Staff' in its list, that location
+    is off-limits for violent scenes without asking staff first.
+
+    """
+
+    key = "construct"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+
+        
+
+class CmdSetProtector(MuxCommand):
+    """
+    Set the protector of a room.
+    Staff only command.
+
+    Usage:
+        +setprotector <name>
+
+    This command sets the protector of a current area, or adds
+    to the list if there are muiltiple protectors. 
+
+    A protector can be a Group, or a Player, or both.
+
+    See help +protector.    
+    
     """
 
     key = "construct"
@@ -255,54 +287,16 @@ class CmdProtector(MuxCommand):
         caller = self.caller
         args = self.args
 
-        if not args:
-            caller.msg("What do you want to construct?")
-            return
-
-        '''
-        check if I'm an admin. If I'm not admin, check and see if I have quota.
-        '''
-
-        '''
-        subtract from my available quota and make an object of the private room
-        type.
-        '''
-
-        ''' to do: the rest of the command '''
-
-
-class CmdProtector(MuxCommand):
-    """
-    Create a private room object.
-    Players will have a limited quota of private room objects.
-    Construct a room using 
-
-    construct <name of room>
-    eg
-    construct Doctor's Office
-    """
-
-    key = "construct"
-    locks = "cmd:all()"
-    help_category = "Building"
-    
-
-    def func(self):
-        """Implements command"""
-        caller = self.caller
-        args = self.args
+        #todo: am I staff? be sure.
 
         if not args:
-            caller.msg("What do you want to construct?")
+            caller.msg("Add what protector?")
             return
 
-        '''
-        check if I'm an admin. If I'm not admin, check and see if I have quota.
-        '''
 
-        '''
-        subtract from my available quota and make an object of the private room
-        type.
-        '''
-
-        ''' to do: the rest of the command '''
+        #todo - is this location a viable room?
+        #todo - don't assign, append to list.
+        #todo - is the assigned thing a valid group? if not a group, then player?
+        #todo also accept 'staff' as a value
+        caller.location.db.protector = args
+        return
