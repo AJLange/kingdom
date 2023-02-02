@@ -85,7 +85,12 @@ TIME_FACTOR = 1
 # start date). This will affect the returns from the utils.gametime
 # module.
 TIME_GAME_EPOCH = epoch_start
+WEBSERVER_PORTS = [(80,4001)]
 
+INSTALLED_APPS +=  ["world.character", 
+                    "world.scenes",
+                    "world.msgs",
+                    "world.groups"]
 
 
 ######################################################################
@@ -95,3 +100,5 @@ try:
     from server.conf.secret_settings import *
 except ImportError:
     print("secret_settings.py file not found or failed to import.")
+
+
