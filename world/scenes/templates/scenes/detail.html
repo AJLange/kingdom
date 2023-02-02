@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load tz %}
+{% load scene_filters %}
+{% load scene_tags %}
+
+{% block titleblock %}Scene: {{ scene.name }}{% endblock %}
+
+{% block header_ext %}
+    <link rel="stylesheet" type="text/css" href="{% static 'scenes/scenes.css' %}">
+{% endblock %}
+
+{% block content %}
+<a href={% url 'scenes:list' %} class="back-button">Back to list</a>
+
+{% if user.is_superuser or user.is_staff %}
+    <a href={% url 'admin:scenes_scene_change' scene.id %} class="edit-button">Edit</a>
+{% endif %}
+
+<h1>{{ scene.name }}</h1>
+<h2>Scene details</h2>
+<ul>
+    <li>Start date: {{ scene.start_time|localtime }}</li>
+    <li>
+        End date: {{ scene.end_time|localtime|or_default:"still in progress" }}
+    </li>
+    <li>Location: {{ scene.location.key }}</li>
+    <li>Participants: {% show_participants scene %}</li>
+</ul>
+{% autoescape off %}
+<p>
+    <em>Setting:</em> {{ scene.description|convert_texttags }}
+</p>
+{% endautoescape %}
+<h2>Log</h2>
+<p>
+    {% render_scene_log scene %}
+</p>
+{% endblock %}

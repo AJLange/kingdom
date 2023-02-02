@@ -1,0 +1,33 @@
+{% load scene_filters %}
+{% load humanize %}
+
+{% for entry in entries %}
+    <article class="scene-log-entry">
+        <ul class="entry-stats">
+            <li>
+                Character:
+                <a href={{ entry.character.web_get_detail_url }}>{{ entry.character.name }}</a>
+            </li>
+            <li>
+                {{ entry.created_at|naturaltime }}
+            </li>
+        </ul>
+        {% autoescape off %}
+        <p>
+            {% if entry.type == 3 %}
+                <strong>{{ entry.character.key }}</strong>
+            {% elif entry.type == 2 %}
+                <strong>{{ entry.character.key }} says,</strong> <em>"
+            {% endif %}
+            {{ entry.content|convert_texttags }}
+            {% if entry.type == 2 %}
+                "</em>
+            {% endif %}
+        </p>
+        {% endautoescape %}
+    </article>
+{% empty %}
+    <article class="scene-log-entry empty-log">
+        No entries so far in this scene.
+    </article>
+{% endfor %}
