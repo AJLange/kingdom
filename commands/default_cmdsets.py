@@ -28,7 +28,7 @@ from evennia import CmdSet
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
-
+from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
@@ -78,6 +78,9 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         self.add(CmdPortal())
         self.add(CmdICTime())
+
+        self.add(CmdSetGroups())
+        self.add(CmdShowGroups())
 
         #commands related to dice 
 
