@@ -8,11 +8,10 @@ from django.utils import timezone
 
 class Squad(models.Model):
 
-    db_key = models.CharField(max_length=100, db_index=True, default=0)
-    db_name = models.CharField('Group Name', max_length=100)
+    db_name = models.CharField('Squad Name', max_length=100)
     db_leader = models.CharField('Leader', max_length=120)
-    db_orders = models.TextField(blank=True)
-    db_members = models.ManyToManyField(Character, blank=True)
+    db_orders = models.TextField('Orders',blank=True)
+    db_members = models.ManyToManyField("objects.ObjectDB", blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 
@@ -22,16 +21,15 @@ class Squad(models.Model):
 
 class PlayerGroup(models.Model):
 
-    db_key = models.CharField(max_length=80, db_index=True, default=0)
     db_name = models.CharField('Group Name', max_length=100)
     db_leader = models.CharField('Leader', max_length=120)
-    db_description = models.TextField(blank=True)
-    db_color = models.CharField(max_length=20)
-    db_radio_a = models.CharField(max_length=10)
-    db_radio_b = models.CharField(max_length=10)
-    db_motd = models.TextField(blank=True)
+    db_description = models.TextField('Description',blank=True)
+    db_color = models.CharField('Color', max_length=20)
+    db_radio_a = models.CharField('Radio A',max_length=10)
+    db_radio_b = models.CharField('Radio B',max_length=10)
+    db_motd = models.TextField('Message of the Day',blank=True)
     db_squads = models.ForeignKey(Squad, blank=True, null=True, on_delete=models.CASCADE)
-    db_members = models.ManyToManyField(Character, blank=True)
+    db_members = models.ManyToManyField("objects.ObjectDB", blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 
