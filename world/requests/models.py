@@ -9,8 +9,8 @@ class Request(models.Model):
     db_title = models.CharField('Title', max_length=200)
     db_submitter = models.CharField('Submitter', max_length=120)
     db_message_body = models.TextField('Message Body')
-    db_assigned_to = models.CharField('Assigned To', max_length=120)
-    db_copied_to = models.TextField('Copied To')
+    db_assigned_to = models.CharField('Assigned To', max_length=120,blank=True)
+    db_copied_to = models.TextField('Copied To',blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
     class RequestCategory(models.IntegerField):
@@ -36,8 +36,6 @@ class Request(models.Model):
         choices=RequestCategory.TYPE_CHOICES
     )
 
+
     def __str__(self):
-        return self.db_name
-
-
-
+        return self.db_title

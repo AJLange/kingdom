@@ -4,6 +4,13 @@ from world.requests.models import Request
 # Register your models here.
 
 class RequestAdmin(admin.ModelAdmin):
-    model = Request
+    list_display = ("id", "db_title", "type",)
+    list_display_links  = ("id",)
     
-admin.site.register(Request)
+    search_fields = ["db_key", "^db_date_created", "^db_title"]
+    save_as = True
+    save_on_top = True
+    list_select_related = True
+
+
+admin.site.register(Request, RequestAdmin)

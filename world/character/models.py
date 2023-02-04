@@ -1,8 +1,10 @@
 from django.db import models
 from django.urls import reverse
+from evennia.utils.idmapper.models import SharedMemoryModel
 
 
-class Character(models.Model):
+
+class Character(SharedMemoryModel):
 
     class Meta:
         managed = False
@@ -14,11 +16,11 @@ class Character(models.Model):
         )
         
 
-class ArmorMode(models.Model):
+class ArmorMode(SharedMemoryModel):
     # armor mode object for holding stats
     class Meta:
         managed = False
 
-class Weapon(models.Model):
+class Weapon(SharedMemoryModel):
     #weapon obj for copyswap
     pass

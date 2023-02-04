@@ -29,20 +29,32 @@ from evennia.commands.default.muxcommand import MuxCommand
 class CmdRequest(BaseCommand):
     """
     +request - Make a request for GM help
-    
-    Usage:
-       +request [<#>]
-       +request <title>=<message>
-          
-    Arx's ticketing system with extra command methods removed.
-    Will update to match M3's ticket system, but this may
-    need refactored due to different usage. 
 
-    The alias for this on M3 is +jobs/+myjobs.
+    Usage:
+       +request
+       +request [<#>]
+
+       +request <title>=<description>
+       +request/bug <title>=<description>
+       +request/char <title>=<description>
+       +request/news <title>=<description>
+          
+    This command requests <title> and <description> from staff. The request is    
+    added to the jobs list and will be tended to as soon as possible. There is a  
+    standard three to four day turnaround time on +requests.                      
+                                                                              
+    +request is a method of getting information about any subject, IC or OOC, from
+    the administration. It is used to get details about the world, request        
+    background plot information, investigate ongoing TPs, and to contact the admin
+    for various OOC purposes.
+
+    Typing just +request with no arguments gives you back your list of active
+    +requests. +request <#> to view the text of that request.
+    
     """
 
     key = "request"
-    aliases = ["requests"]
+    aliases = ["requests", "+request","+requests","myjobs","+myjobs"]
     help_category = "Admin"
     locks = "cmd:all()"
 
