@@ -186,3 +186,71 @@ class CmdRequest(BaseCommand):
             )
 
 
+class CmdCheckJobs(BaseCommand):
+    """
+    Command for admin to check request queue.
+
+    Usage:
+       +jobs
+       +job <#>
+
+       +job/assign <#>=<person>
+       +job/category <#>=<category>
+       +job/file <#>=<file>
+       +job/respond <#>=<description>
+       +job/add <#>=<description>
+          
+    This command is for staff to answer requests.
+
+    It's just outlined.
+    +job/assign to flag a job for a certain staffer to answer.
+    +job/category to put a job in a particular category.
+    +job/file attaches a file to a job.
+    +job/respond creates a one-off response and sends it out.
+    Be careful not to create one-off off responses that should be files.
+
+    Finally, +job/add will allow you to tag in other people to a job.
+
+    """
+
+    key = "job"
+    aliases = ["jobs","job", "+job"]
+    help_category = "Admin"
+    locks = "cmd:all()"
+
+    def display_ticket(self, ticket):
+        """Display the ticket to the caller"""
+        self.msg(ticket.display())
+
+
+class CmdCheckFiles(BaseCommand):
+    """
+    Command to read files sent to you about story.
+
+    Usage:
+       +files
+       +file <#>
+
+       +file/send <#>=<person>
+       +file/share <#>=<group>
+
+          
+    This command is to share files among players.
+
+    It's just outlined.
+    +file/send to send along a file to another player.
+    +file/share to share a file to an entire group.
+
+    Files contain lore which is ICly known. It is usually the subject of a research
+    +request.
+
+    """
+
+    key = "file"
+    aliases = ["files", "+file","files"]
+    help_category = "Admin"
+    locks = "cmd:all()"
+
+    def display_ticket(self, ticket):
+        """Display the ticket to the caller"""
+        self.msg(ticket.display())
