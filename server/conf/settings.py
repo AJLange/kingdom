@@ -90,7 +90,8 @@ WEBSERVER_PORTS = [(80,4001)]
 INSTALLED_APPS +=  ["world.character", 
                     "world.scenes",
                     "world.msgs",
-                    "world.groups"]
+                    "world.groups", 
+                    "world.requests"]
 
 
 ######################################################################

@@ -28,6 +28,15 @@ class Character(DefaultCharacter):
         """
 
 
+        '''
+        time to unfortunately refactor this as a character
+        has armor modes and armor modes contain the stats
+
+        and armor modes in turn hold weapons which contain the elemental
+        properties
+
+        '''
+
         # stats and basic setup
 
         self.db.pow = self.db.dex  = self.db.ten = self.db.cun = self.db.edu = self.db.chr = self.db.aur = 1

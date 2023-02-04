@@ -1,8 +1,6 @@
 from django.db import models
 from evennia import ObjectDB
 from world.character.models import Character
-from evennia.utils.idmapper.models import SharedMemoryModel
-from django.utils import timezone
 
 # Storage of groups for PCs
 

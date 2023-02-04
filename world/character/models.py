@@ -12,3 +12,13 @@ class Character(models.Model):
             "character-detail",
             kwargs={"pk": self.pk, "slug": self.name},
         )
+        
+
+class ArmorMode(models.Model):
+    # armor mode object for holding stats
+    class Meta:
+        managed = False
+
+class Weapon(models.Model):
+    #weapon obj for copyswap
+    pass

@@ -1,10 +1,9 @@
 """
-Job/Request and character application command module.
-Jobs and Apps will be two more manager objects that will
-be cloned and set to some staff location or carried around
-on the superuser. While a little clunky that they are in-
-game objects, it allows for easy @ex, and doesn't require
-database migration to add in their functionality.
+Job/Request module.
+
+Jobs and apps will be in the database using a Request and Application model.
+
+Player applications will still be by email until PC self-creation is working.
 """
 from django.conf import settings
 
@@ -27,21 +26,10 @@ from evennia.comms.models import Msg
 from evennia.commands.default.muxcommand import MuxCommand
 
 
-def get_apps_manager():
-    """
-    returns apps manager object
-    """
-    try:
-        return AppsManager.objects.get()
-    except AppsManager.DoesNotExist:
-        return create_object(AppsManager, key="Apps Manager", home=None, location=None)
-    except AppsManager.MultipleObjectsReturned:
-        return AppsManager.objects.first()
-
-
 class CmdRequest(BaseCommand):
     """
     +request - Make a request for GM help
+    
     Usage:
        +request [<#>]
        +request <title>=<message>
