@@ -24,6 +24,7 @@ from evennia import ObjectDB, AccountDB
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from evennia.comms.models import Msg
 from evennia.commands.default.muxcommand import MuxCommand
+from world.requests.models import Request,RequestResponse,File,Topic
 
 
 class CmdRequest(BaseCommand):

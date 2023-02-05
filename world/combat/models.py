@@ -207,7 +207,7 @@ System: '<player> activates <pronoun>'s <name> system!'
 Armor: '<player>' activates <pronoun>'s <name> armor!'
 '''
 
-class Armor(SharedMemoryModel):
+class ArmorMode(SharedMemoryModel):
     # armor mode object for holding stats
 
     db_name = models.CharField('Name', max_length=120)
@@ -223,8 +223,8 @@ class Armor(SharedMemoryModel):
         VR = 5
         SUMMON = 6
         MINION = 7
-        SYSTEM = 6
-        ARMOR = 7
+        SYSTEM = 8
+        ARMOR = 9
         TYPE_CHOICES = (
             (MODE, 'Mode'),
             (STANCE, 'Stance'),
@@ -234,10 +234,10 @@ class Armor(SharedMemoryModel):
             (SUMMON, 'Summon'),
             (MINION, 'Minion'),
             (SYSTEM, 'System'),
-            (ARMOR, 'Armor')
+            (ARMOR, 'Armor'),
         )
     db_swap = models.IntegerField('Swap Style',
-        choices=ModeSwap.TYPE_CHOICES, default=1
+        choices=ModeSwap.TYPE_CHOICES,default=1
     )
     
     #stats   
@@ -276,8 +276,6 @@ class Armor(SharedMemoryModel):
     
     db_capabilities = models.TextField('Capabilities',blank=True,null=True)
 
-    def __str__(self):
-        return self.db_name
 
 class BusterList(SharedMemoryModel):
     '''
