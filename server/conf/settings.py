@@ -91,7 +91,8 @@ INSTALLED_APPS +=  ["world.character",
                     "world.scenes",
                     "world.msgs",
                     "world.groups", 
-                    "world.requests"]
+                    "world.requests",
+                    "world.combat"]
 
 
 ######################################################################
