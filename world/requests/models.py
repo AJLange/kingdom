@@ -51,7 +51,7 @@ class Request(models.Model):
 
 
 class Keyword(SharedMemoryModel):
-    db_key = models.CharField('Keyword', max_length=200, primary_key=True)
+    db_key = models.CharField('Keyword', max_length=200, unique = True)
     
     def __str__(self):
         return self.db_key

@@ -1,41 +1,42 @@
 from django.db import models
 from django.urls import reverse
+from django.conf import settings
 from evennia.utils.idmapper.models import SharedMemoryModel
+from world.character.manager import MuRosterManager
+# from cloudinary.models import CloudinaryField
+from evennia.locks.lockhandler import LockHandler
+import traceback
 
 
 
 class Character(SharedMemoryModel):
 
-    class Meta:
-        managed = False
     db_name = models.CharField('Name', max_length=120)
 
+    '''
     def web_get_detail_url(self):
         return reverse(
             "character-detail",
             kwargs={"pk": self.pk, "slug": self.name},
         )
         
+    '''
     def __str__(self):
         return self.db_name
 
-class ArmorMode(SharedMemoryModel):
-    # armor mode object for holding stats
-    class Meta:
-        managed = False
-
-class Weapon(SharedMemoryModel):
-    #weapon obj for copyswap
-    pass
-
-
 '''
 Roster Code from Arx. Examine this later for recompiling characters.
+'''
+
+'''
 
 class Photo(SharedMemoryModel):
     """
     Used for uploading photos to cloudinary. It holds a reference to cloudinary-stored
     image and contains some metadata about the image.
+
+    I'm not using this right now, just keeping it, later will have a custom upload 
+    solution.
     """
 
     #  Misc Django Fields
@@ -55,7 +56,7 @@ class Photo(SharedMemoryModel):
         "Optional 'alt' text when mousing over your image", max_length=200, blank=True
     )
 
-    # Points to a Cloudinary image
+    # Points to an image
     image = CloudinaryField("image")
 
     """ Informative name for mode """
@@ -66,8 +67,7 @@ class Photo(SharedMemoryModel):
         except AttributeError:
             public_id = ""
         return "Photo <%s:%s>" % (self.title, public_id)
-
-
+'''
 
 class Roster(SharedMemoryModel):
     """
@@ -81,7 +81,7 @@ class Roster(SharedMemoryModel):
     lock_storage = models.TextField(
         "locks", blank=True, help_text="defined in setup_utils"
     )
-    objects = ArxRosterManager()
+    objects = MuRosterManager()
 
     def __init__(self, *args, **kwargs):
         super(Roster, self).__init__(*args, **kwargs)
@@ -100,13 +100,18 @@ class Roster(SharedMemoryModel):
         return self.name or "Unnamed Roster"
 
 
-class RosterEntry(SharedMemoryModel):
+class PlayerCharacter(SharedMemoryModel):
     """
-    Main model for the character app. This is used both as an extension of an evennia AccountDB model (which serves as
-    USER_AUTH_MODEL and a Character typeclass, and links the two together. It also is where some data used for the
-    character lives, such as action points, the profile picture for their webpage, the PlayerAccount which currently
-    is playing the character, and who played it previously. RosterEntry is used for most other models in the app,
-    such as investigations, discoveries of clues/revelations/mysteries, etc.
+    Main model for the character app. This is used both as an extension of an evennia 
+    AccountDB model which serves as USER_AUTH_MODEL and a Character typeclass, and links 
+    the two together. It also is where some data used for the
+    character lives, the profile picture for their webpage, 
+    the PlayerAccount which currently is playing the character, and who played it previously. 
+
+    This is based on Arx modified RosterEntry minus the stuff that's specific to Arx, until
+    I refactor it again.
+    
+    This model will be referenced in the future as a rebuild of basic character setup.
     """
 
     roster = models.ForeignKey(
@@ -141,33 +146,35 @@ class RosterEntry(SharedMemoryModel):
         blank=True,
         null=True,
     )
-    previous_accounts = models.ManyToManyField(
-        "PlayerAccount", through="AccountHistory", blank=True
-    )
+
     gm_notes = models.TextField(blank=True)
     # different variations of reasons not to display us
     inactive = models.BooleanField(default=False, null=False)
     frozen = models.BooleanField(default=False, null=False)
     # profile picture for sheet and also thumbnail for list
-    profile_picture = models.ForeignKey(
+
+    '''
+    profile setup for web, not using this yet.
+
+        profile_picture = models.ForeignKey(
         "Photo", blank=True, null=True, on_delete=models.SET_NULL
     )
+    
     portrait_height = models.PositiveSmallIntegerField(default=480)
     portrait_width = models.PositiveSmallIntegerField(default=320)
+    '''
+
     # going to use for determining how our character page appears
     sheet_style = models.TextField(blank=True)
     lock_storage = models.TextField(
         "locks", blank=True, help_text="defined in setup_utils"
     )
-    action_points = models.SmallIntegerField(default=100, blank=100)
-    show_positions = models.BooleanField(default=False)
-    pose_count = models.PositiveSmallIntegerField(default=0)
-    previous_pose_count = models.PositiveSmallIntegerField(default=0)
+
     brief_mode = models.BooleanField(default=False)
     dice_string = models.TextField(blank=True)
 
     def __init__(self, *args, **kwargs):
-        super(RosterEntry, self).__init__(*args, **kwargs)
+        super(PlayerCharacter, self).__init__(*args, **kwargs)
         self.locks = LockHandler(self)
 
     class Meta:
@@ -193,7 +200,7 @@ class RosterEntry(SharedMemoryModel):
         return self.locks.check(accessing_obj, access_type=access_type, default=default)
 
     def fake_delete(self):
-        """We don't really want to delete RosterEntries for reals. So we fake it."""
+        """for some reason this is fake delete. I am not gonna mess with it for now."""
         self.roster = Roster.objects.deleted
         self.inactive = True
         self.frozen = True
@@ -206,37 +213,12 @@ class RosterEntry(SharedMemoryModel):
         self.frozen = False
         self.save()
 
-    def adjust_xp(self, val):
-        """Stores xp the player's earned in their history of playing the character."""
-        try:
-            if val < 0:
-                return
-            history = self.accounthistory_set.filter(
-                account=self.current_account
-            ).last()
-            history.xp_earned += val
-            history.save()
-        except AttributeError:
-            pass
-
-    @property
-    def undiscovered_clues(self):
-        """Clues that we -haven't- discovered. We might have partial progress or not"""
-        return Clue.objects.exclude(id__in=self.clues.all())
-
     @property
     def alts(self):
         """Other roster entries played by our current PlayerAccount"""
         if self.current_account:
             return self.current_account.characters.exclude(id=self.id)
         return []
-
-    def discover_clue(self, clue, method="Prior Knowledge", message=""):
-        """Discovers and returns the clue, if not already."""
-        disco, created = self.clue_discoveries.get_or_create(clue=clue)
-        if created:
-            disco.mark_discovered(method=method, message=message or "")
-        return disco
 
     @property
     def current_history(self):
@@ -247,133 +229,6 @@ class RosterEntry(SharedMemoryModel):
     def previous_history(self):
         """Gets all previous accounthistories after current"""
         return self.accounthistory_set.order_by("-id")[1:]
-
-    @property
-    def postable_flashbacks(self):
-        """Queryset of flashbacks we can post to."""
-        retired = FlashbackInvolvement.RETIRED
-        return self.flashbacks.exclude(
-            Q(concluded=True) | Q(flashback_involvements__status__lte=retired)
-        )
-
-    @property
-    def impressions_of_me(self):
-        """Gets queryset of all our current first impressions"""
-        try:
-            return self.current_history.received_contacts.all()
-        except AttributeError:
-            return []
-
-    @property
-    def previous_impressions_of_me(self):
-        """Gets queryset of first impressions written on previous"""
-        return FirstContact.objects.filter(to_account__in=self.previous_history)
-
-    @property
-    def public_impressions_of_me(self):
-        """Gets queryset of non-private impressions_of_me"""
-        try:
-            return self.impressions_of_me.filter(private=False).order_by(
-                "from_account__entry__character__db_key"
-            )
-        except AttributeError:
-            return []
-
-    @property
-    def impressions_for_all(self):
-        """Public impressions that both the writer and receiver have signed off on sharing"""
-        try:
-            return self.public_impressions_of_me.filter(
-                writer_share=True, receiver_share=True
-            )
-        except AttributeError:
-            return []
-
-    def get_impressions_str(self, player=None, previous=False):
-        """Returns string display of first impressions"""
-        if previous:
-            qs = self.previous_impressions_of_me.filter(private=False)
-        else:
-            qs = self.impressions_of_me.filter(private=False)
-        if player:
-            qs = qs.filter(from_account__entry__player=player)
-
-        def public_str(obj):
-            """Returns markup of the first impression based on its visibility"""
-            if obj.viewable_by_all:
-                return "{w(Shared by Both){n"
-            if obj.writer_share:
-                return "{w(Marked Public by Writer){n"
-            if obj.receiver_share:
-                return "{w(Marked Public by You){n"
-            return "{w(Private){n"
-
-        return "\n\n".join(
-            "{c%s{n wrote %s: %s" % (ob.writer, public_str(ob), ob.summary) for ob in qs
-        )
-
-    @property
-    def known_tags(self):
-        """Returns a queryset of our collection of tags."""
-        dompc = self.player.Dominion
-        clu_q = Q(clues__in=self.clues.all())
-        rev_q = Q(revelations__in=self.revelations.all())
-        plot_q = Q(plots__in=dompc.active_plots)
-        beat_q = Q(plot_updates__plot__in=dompc.active_plots)
-        act_q = Q(actions__in=self.player.participated_actions)
-        evnt_q = Q(events__dompcs=dompc) | Q(events__orgs__in=dompc.current_orgs)
-        flas_q = Q(plot_updates__flashbacks__in=self.flashbacks.all())
-        obj_q = Q(game_objects__db_location=self.character)
-        qs = SearchTag.objects.filter(
-            clu_q | rev_q | plot_q | beat_q | act_q | evnt_q | flas_q | obj_q
-        )
-        return qs.distinct().order_by("name")
-
-    def display_tagged_objects(self, tag):
-        """
-        Returns a string listing tagged objects sorted by class, or empty string.
-            Args:
-                tag: SearchTag object
-        """
-        from server.utils.arx_utils import qslist_to_string
-        from world.dominion.models import RPEvent
-        from world.dominion.plots.models import PlotUpdate
-        from web.helpdesk.models import KBItem, KBCategory
-
-        dompc = self.player.Dominion
-        querysets = []
-        # knowledge base categories & items:
-        querysets.append(KBCategory.objects.filter(search_tags=tag))
-        querysets.append(KBItem.objects.filter(search_tags=tag))
-        # append clues/revelations we know:
-        for related_name in ("clues", "revelations"):
-            querysets.append(getattr(self, related_name).filter(search_tags=tag))
-        # append our plots:
-        querysets.append(dompc.active_plots.filter(search_tags=tag))
-        all_beats = PlotUpdate.objects.filter(search_tags=tag)  # ALL tagged beats
-        # append our beats~
-        querysets.append(all_beats.filter(plot__in=dompc.active_plots))
-        # append beat-attached experiences we were part of, but don't have plot access to~
-        # actions:
-        querysets.append(self.player.participated_actions.filter(search_tags=tag))
-        # events:
-        querysets.append(
-            RPEvent.objects.filter(
-                Q(search_tags=tag) & (Q(dompcs=dompc) | Q(orgs__in=dompc.current_orgs))
-            )
-        )
-        # flashbacks:
-        querysets.append(self.flashbacks.filter(beat__in=all_beats))
-        # append our tagged inventory items:
-        querysets.append(
-            self.character.locations_set.filter(search_tags=tag).order_by(
-                "db_typeclass_path"
-            )
-        )
-        msg = qslist_to_string(querysets)
-        if msg:
-            msg = ("|wTagged as '|235%s|w':|n" % tag) + msg
-        return msg
 
     def save(self, *args, **kwargs):
         """check if a database lock during profile_picture setting has put us in invalid state"""
@@ -391,68 +246,27 @@ class RosterEntry(SharedMemoryModel):
             if not self.profile_picture.pk:
                 print("profile_picture has no pk, clearing it.")
                 self.profile_picture = None
-        return super(RosterEntry, self).save(*args, **kwargs)
+        return super(PlayerCharacter, self).save(*args, **kwargs)
 
-    @property
-    def max_action_points(self):
-        """Maximum action points we're allowed"""
-        return 300
+    '''
+    this except for properties I actually want
 
     @property
     def action_point_regen(self):
         """How many action points we get back in a week."""
         return 150 + self.action_point_regen_modifier
+    '''
 
-    @CachedProperty
-    def action_point_regen_modifier(self):
-        """AP penalty from our number of fealties"""
-        from world.dominion.plots.models import PlotAction, PlotActionAssistant
-        from evennia.server.models import ServerConfig
-
-        ap_mod = 0
-        # they lose 10 AP per fealty they're in
-        try:
-            ap_mod -= 10 * self.player.Dominion.num_fealties
-        except AttributeError:
-            pass
-        # gain 20 AP for not having an investigation
-        if not self.investigations.filter(active=True).exists():
-            ap_mod += 20
-        val = ServerConfig.objects.conf(key="BONUS_AP_REGEN", default=0)
-        try:
-            ap_mod += int(val)
-        except (TypeError, ValueError):
-            pass
-
-        return ap_mod
-
-    @classmethod
-    def clear_ap_cache_in_cached_instances(cls):
-        """Invalidate cached_ap_penalty in all cached RosterEntries when Fealty chain changes. Won't happen often."""
-        for instance in cls.get_all_cached_instances():
-            delattr(instance, "action_point_regen_modifier")
 
 class PlayerAccount(SharedMemoryModel):
     """
-    This is used to represent a player, who might be playing one or more RosterEntries. They're uniquely identified
-    by their email address. Karma is for any OOC goodwill they've built up over time. Not currently used. YET.
+    This is used to represent a player, who might be playing one or more RosterEntries. 
+    They're uniquely identified by their email address which is all we use for matching right now.
     """
 
     email = models.EmailField(unique=True)
-    karma = models.PositiveSmallIntegerField(default=0, blank=True)
     gm_notes = models.TextField(blank=True, null=True)
-    episodes = models.ManyToManyField(
-        "character.Episode",
-        related_name="accounts",
-        through="dominion.ActionPerEpisode",
-    )
+    
 
     def __str__(self):
         return str(self.email)
-
-    @property
-    def total_xp(self):
-        """Total xp they've earned over all time"""
-        qs = self.accounthistory_set.all()
-        return sum(ob.xp_earned for ob in qs)
-'''
