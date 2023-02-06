@@ -87,7 +87,7 @@ TIME_FACTOR = 1
 TIME_GAME_EPOCH = epoch_start
 WEBSERVER_PORTS = [(80,4001)]
 
-INSTALLED_APPS +=  ["world.character", 
+INSTALLED_APPS +=  ["world.roster", 
                     "world.scenes",
                     "world.msgs",
                     "world.groups", 
