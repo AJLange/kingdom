@@ -9,21 +9,6 @@ import traceback
 
 
 
-class Character(SharedMemoryModel):
-
-    db_name = models.CharField('Name', max_length=120)
-
-    '''
-    def web_get_detail_url(self):
-        return reverse(
-            "character-detail",
-            kwargs={"pk": self.pk, "slug": self.name},
-        )
-        
-    '''
-    def __str__(self):
-        return self.db_name
-
 '''
 Roster Code from Arx. Examine this later for recompiling characters.
 '''
@@ -71,30 +56,21 @@ class Photo(SharedMemoryModel):
 
 class Roster(SharedMemoryModel):
     """
-    A model for storing lists of entries of characters. Each RosterEntry has
-    information on the Player and Character objects of that entry, information
-    on player emails of previous players, GM notes, etc. The Roster itself just
-    has locks for determining who can view the contents of a roster.
+    A model for storing lists of entries of characters. 
+    
+    I'm not worried about locking access to the Roster. Used for +FClist.
     """
 
     name = models.CharField(blank=True, null=True, max_length=255, db_index=True)
+    
+    objects = MuRosterManager()
     lock_storage = models.TextField(
         "locks", blank=True, help_text="defined in setup_utils"
     )
-    objects = MuRosterManager()
 
     def __init__(self, *args, **kwargs):
         super(Roster, self).__init__(*args, **kwargs)
         self.locks = LockHandler(self)
-
-    def access(self, accessing_obj, access_type="view", default=True):
-        """
-        Determines if another object has permission to access.
-        accessing_obj - object trying to access this one
-        access_type - type of access sought
-        default - what to return if no lock of access_type was found
-        """
-        return self.locks.check(accessing_obj, access_type=access_type, default=default)
 
     def __str__(self):
         return self.name or "Unnamed Roster"
@@ -180,7 +156,7 @@ class PlayerCharacter(SharedMemoryModel):
     class Meta:
         """Define Django meta options"""
 
-        verbose_name_plural = "Roster Entries"
+        verbose_name = "Character"
         unique_together = ("player", "character")
 
     def __str__(self):

@@ -1,6 +1,6 @@
 from django.db import models
 from evennia import ObjectDB
-from world.character.models import Character
+from world.character.models import PlayerCharacter
 
 # Storage of groups for PCs
 

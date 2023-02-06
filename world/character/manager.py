@@ -9,6 +9,11 @@ class MuRosterManager(models.Manager):
     """
     Manager for the game's Roster. A lot of our methods will actually retrieve Character/ObjectDB instances
     for convenience.
+
+    Active - for PCs played
+    Available - for PCs unplayed
+    Unavailable - for PCs on reserve or being used in plots.
+    
     """
 
     @property
