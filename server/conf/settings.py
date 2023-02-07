@@ -92,7 +92,8 @@ INSTALLED_APPS +=  ["world.roster",
                     "world.msgs",
                     "world.groups", 
                     "world.requests",
-                    "world.combat"]
+                    "world.combat",
+                    "world.boards"]
 
 
 ######################################################################
