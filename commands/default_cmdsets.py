@@ -26,7 +26,7 @@ from commands.cmdsets.charinfo import CmdEFinger
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from commands import command
-from commands.default.account import CmdOOC, CmdOOCLook, CmdWho
+from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
@@ -35,6 +35,7 @@ from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc
 from commands.cmdsets.utility import CmdWho, CmdICTime
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
+from commands.default.unloggedin import CmdUnconnectedCreate
 #from commands.cmdsets.bboards import CmdBBCreate, CmdBBNew, CmdBBReadOrPost, CmdBBSub, CmdBBUnsub, CmdGetUnreadPosts
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -132,6 +133,9 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdWho())
         self.add(CmdOOCLook())
         self.add(CmdOOC())
+        self.add(CmdCharCreate())
+        self.add(CmdCharDelete())
+        
 
         '''
         bboard commands do not work yet.
@@ -160,6 +164,9 @@ class UnloggedinCmdSet(default_cmds.UnloggedinCmdSet):
         #
         # any commands you add below will overload the default ones.
         #
+        
+        self.add(CmdUnconnectedCreate())
+
 
 
 

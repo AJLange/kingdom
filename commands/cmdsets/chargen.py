@@ -227,6 +227,67 @@ class CmdCSetPassword(MuxCommand):
         return 
 
 
+
+class CmdSetPlayer(MuxCommand):
+    '''
+    Give a character to a player.
+
+    Usage:
+        +player <character>=<account>
+
+    This will assign the character you specify to the account you specify.
+
+    To remove a character from an account, use +unplayer.
+    '''
+
+    key = "+player"
+    help_category = "Chargen"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+        errmsg = "Something went wrong."
+        
+        '''
+        what needs to happen: make sure there is a character by this name
+        make sure there is an account by this name
+        give the account permissions to puppet the character.
+        '''
+
+        return 
+
+
+class CmdUnPlayer(MuxCommand):
+    '''
+    Take a character away from a player.
+
+    Usage:
+        +unplayer <character>=<account>
+
+    This will remove a character from a particular account.
+
+    To add a character to an account, use +player.
+    '''
+
+    key = "+unplayer"
+    help_category = "Chargen"
+
+    def func(self):
+        "This performs the actual command"
+        caller = self.caller
+        character = caller.db.workingchar 
+        errmsg = "Something went wrong."
+        
+        '''
+        what needs to happen: make sure there is a character by this name
+        make sure there is an account by this name
+        give the account permissions to puppet the character.
+        '''
+
+        return 
+
+
 class CmdSetStat(MuxCommand):
     """
     Sets the stats on a character. 
@@ -764,3 +825,4 @@ class ChargenCmdset(CmdSet):
         self.add(CmdSetPowers())
         self.add(CmdFinishChargen())
         self.add(CmdCSetPassword())
+        self.add(CmdSetPlayer())

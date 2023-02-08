@@ -122,15 +122,9 @@ class CmdOOCLook(MuxAccountLookCommand):
 
 class CmdCharCreate(COMMAND_DEFAULT_CLASS):
     """
-    create a new character
 
-    Usage:
-      charcreate <charname> [= desc]
+    Character creation is currently locked to staff only.
 
-    Create a new character, optionally giving it a description. You
-    may use upper-case letters in the name - you will nevertheless
-    always be able to access your character using lower-case letters
-    if you want.
     """
 
     key = "charcreate"
@@ -141,7 +135,10 @@ class CmdCharCreate(COMMAND_DEFAULT_CLASS):
     account_caller = True
 
     def func(self):
+        self.msg("Character creation is currently locked to staff only. \nFor assistance see help application.")
         """create the new character"""
+
+        '''
         account = self.account
         if not self.args:
             self.msg("Usage: charcreate <charname> [= description]")
@@ -193,6 +190,7 @@ class CmdCharCreate(COMMAND_DEFAULT_CLASS):
             "Character Created: %s (Caller: %s, IP: %s)."
             % (new_character, account, self.session.address)
         )
+        '''
 
 
 class CmdCharDelete(COMMAND_DEFAULT_CLASS):
@@ -202,7 +200,7 @@ class CmdCharDelete(COMMAND_DEFAULT_CLASS):
     Usage:
         chardelete <charname>
 
-    Permanently deletes one of your characters.
+    This command is not available to players.
     """
 
     key = "chardelete"
@@ -210,7 +208,10 @@ class CmdCharDelete(COMMAND_DEFAULT_CLASS):
     help_category = "General"
 
     def func(self):
+
+        self.msg("This command is not available.")
         """delete the character"""
+        '''
         account = self.account
 
         if not self.args:
@@ -264,7 +265,7 @@ class CmdCharDelete(COMMAND_DEFAULT_CLASS):
                 "|rThis will permanently destroy '%s'. This cannot be undone.|n Continue yes/[no]?"
             )
             get_input(account, prompt % match.key, _callback)
-
+'''
 
 class CmdIC(COMMAND_DEFAULT_CLASS):
     """
