@@ -11,6 +11,7 @@ from evennia.server.sessionhandler import SESSIONS
 
 from evennia.utils import class_from_module, create, logger, utils, gametime
 from evennia.commands.cmdhandler import CMD_LOGINSTART
+from evennia.objects.models import ObjectDB
 
 COMMAND_DEFAULT_CLASS = utils.class_from_module(settings.COMMAND_DEFAULT_CLASS)
 
@@ -197,13 +198,17 @@ class CmdUnconnectedCreate(COMMAND_DEFAULT_CLASS):
             )
             session.msg(string)
             return
+        
 
         username, password = parts
+        if ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_key__iexact=username):
+            session.msg("Sorry, you can't make an account with the same name as a character.")
+            return
 
         # everything's ok. Create the new account account.
         account, errors = Account.create(
             username=username, password=password, ip=address, session=session
-        )
+            )
         if account:
             # tell the caller everything went well.
             string = "A new account '%s' was created. Welcome!"

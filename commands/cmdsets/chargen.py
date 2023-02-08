@@ -7,12 +7,14 @@ Later may add a monster-maker or something for
 player GMs to use.
 """
 
-
+from django.conf import settings
 from evennia import CmdSet
 from evennia import Command
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.rooms import ChargenRoom
 from evennia import create_object
+from evennia.objects.models import ObjectDB
+from typeclasses.accounts import Account
 
 
 '''
@@ -83,8 +85,10 @@ class CmdStartChargen(MuxCommand):
     +setprofile/<attribute> <value> (for all 7 text attributes)
     +settypes <type>, <type> (for all elemental types)
     +setpower <name> (for the character's 'racetype' aka power set sources)
-    +setpassword <password>
     +finishchargen
+
+    +player <character> = <player>
+    to assign this character to a player account.
 
     Armor modes, and characters with multiple power sets, are not working
     in the pre-alpha build.
@@ -138,11 +142,16 @@ class CmdCreatePC(Command):
         # set name as set
         name = self.args
         # create in caller's location
-        character = create_object("characters.Character",
+        typeclass = settings.BASE_CHARACTER_TYPECLASS
+        start_location = caller.location
+        default_home = ObjectDB.objects.get_id(settings.DEFAULT_HOME)
+        permissions = settings.PERMISSION_ACCOUNT_DEFAULT
+        character = create_object(typeclass,
                       key=name,
-                      location=caller.location,
+                      location=caller.location, home=default_home, permissions=permissions,
                       locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
-        
+
+            
         # announce
         message = "%s created the PC '%s'."
         caller.msg(message % ("You", name))
@@ -177,7 +186,7 @@ class CmdWorkChar(Command):
 
         # set name as set
         name = self.args
-        # create in caller's location
+        
         character = self.caller.search(name)
         if not character:
             caller.msg("Sorry, couldn't find that PC.")
@@ -245,15 +254,40 @@ class CmdSetPlayer(MuxCommand):
 
     def func(self):
         "This performs the actual command"
-        caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "Something went wrong."
+
+        if not self.args:
+            self.msg("Usage: player <charname> = <account>")
+            return
+        char = self.lhs
+        account = self.rhs
+
+        '''
+        Make sure there is a character by this name
+        Make sure there is an account by this name
+        '''
+        if not ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_key__iexact=char):
+            
+            self.msg("|rA character named '|w%s|r' wasn't found.|n" % char)
+            return
+        else:
+            this_char = ObjectDB.objects.filter(db_key__iexact=char)[0]
+
+        if not Account.objects.filter(db_typeclass_path=settings.BASE_ACCOUNT_TYPECLASS, username__iexact=account):
+            
+            self.msg("|rAn account named '|w%s|r' wasn't found.|n" % account)
+            return
+        else:
+            this_account = Account.objects.filter(username__iexact=account)[0]
         
+        '''        
+        We found it, so give the account permissions to puppet the character.
         '''
-        what needs to happen: make sure there is a character by this name
-        make sure there is an account by this name
-        give the account permissions to puppet the character.
-        '''
+        this_char.locks.add(
+            "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);delete:id(%i) or perm(Admin)"
+            % (this_char.id, this_account.id, this_account.id)
+        )
+        this_account.db._playable_characters.append(this_char)
+        self.msg("|rAssigned character '|w%s|r' to player '|w%s|r'|n" % (char,account))
 
         return 
 
@@ -273,19 +307,49 @@ class CmdUnPlayer(MuxCommand):
     key = "+unplayer"
     help_category = "Chargen"
 
+
     def func(self):
         "This performs the actual command"
-        caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "Something went wrong."
+        if not self.args:
+            self.msg("Usage: player <charname> = <account>")
+            return
+        char = self.lhs
+        account = self.rhs
+
+        '''
+        Make sure there is a character by this name
+        Make sure there is an account by this name
+        '''
+        if not ObjectDB.objects.filter(db_typeclass_path=settings.BASE_CHARACTER_TYPECLASS, db_key__iexact=char):
+            
+            self.msg("|rA character named '|w%s|r' wasn't found.|n" % char)
+            return
+        else:
+            this_char = ObjectDB.objects.filter(db_key__iexact=char)[0]
+
+        if not Account.objects.filter(db_typeclass_path=settings.BASE_ACCOUNT_TYPECLASS, username__iexact=account):
+            
+            self.msg("|rAn account named '|w%s|r' wasn't found.|n" % account)
+            return
+        else:
+            this_account = Account.objects.filter(username__iexact=account)[0]
         
+        '''        
+        We found it. Was this person actually playing this character? if so, remove.
         '''
-        what needs to happen: make sure there is a character by this name
-        make sure there is an account by this name
-        give the account permissions to puppet the character.
-        '''
+        if this_account.db._playable_characters.count(this_char):
+            this_char.locks.remove(
+            "puppet:id(%i) or pid(%i) or perm(Developer) or pperm(Developer);delete:id(%i) or perm(Admin)"
+            % (this_char.id, this_account.id, this_account.id)
+        )
+            this_account.db._playable_characters.remove(this_char)
+            this_account.db._last_puppet = 0
+            self.msg("|rRemoved character '|w%s|r' from player '|w%s|r'|n" % (char,account))
+        else:
+            self.msg("|rDidn't find '|w%s|r' in '|w%s|r''s account.|n" % (char,account))
 
         return 
+
 
 
 class CmdSetStat(MuxCommand):
@@ -826,3 +890,4 @@ class ChargenCmdset(CmdSet):
         self.add(CmdFinishChargen())
         self.add(CmdCSetPassword())
         self.add(CmdSetPlayer())
+        self.add(CmdUnPlayer())
