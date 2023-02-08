@@ -140,7 +140,7 @@ class CmdCreatePC(Command):
             return
 
         # set name as set
-        name = self.args
+        name = self.args.lstrip()
         # create in caller's location
         typeclass = settings.BASE_CHARACTER_TYPECLASS
         start_location = caller.location
