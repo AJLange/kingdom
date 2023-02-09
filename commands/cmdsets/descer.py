@@ -194,7 +194,7 @@ class CmdMultiDesc(MuxCommand):
             try:
                 desc = self.args
                 desc = ("\n" + sub_old_ansi(desc) + "\n")
-                caller.db.desc = desc
+                caller.db.desc = str(desc)
                 caller.msg("The description was set.")
             except:
                 caller.msg("Error in adding description. Check +help +multidesc.")
