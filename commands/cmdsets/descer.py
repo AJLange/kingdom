@@ -12,44 +12,6 @@ class DescValidateError(ValueError):
     "Used for tracebacks from desc systems"
     pass
 
-def _update_store(caller, key=None, desc=None, delete=False, swapkey=None):
-    """
-    Helper function for updating the database store.
-
-    Args:
-        caller (Object): The caller of the command.
-        key (str): Description identifier
-        desc (str): Description text.
-        delete (bool): Delete given key.
-    """
-    if not caller.db.multidesc:
-        # initialize the multidesc attribute
-        caller.db.multidesc = [("Default", caller.db.desc or "")]
-    if not key:
-        return
-    lokey = key.lower()
-    match = [ind for ind, tup in enumerate(caller.db.multidesc) if tup[0] == lokey]
-    if match:
-        idesc = match[0]
-        if delete:
-            # delete entry
-            del caller.db.multidesc[idesc]
-        
-        elif desc:
-            # update in-place
-            caller.db.multidesc[idesc] = (lokey, desc)
-        else:
-            raise DescValidateError("No description was set.")
-    else:
-        # no matching key
-        if delete:
-            raise DescValidateError("Description key '|w%s|n' not found." % key)
-        elif desc:
-            # insert new at the top of the stack
-            caller.db.multidesc.insert(0, (lokey, desc))
-        else:
-            raise DescValidateError("No description was set.")
-
 
 #permissions on desc are strange. 
 #todo, allow PCs to desc themselves, but not rooms.
@@ -178,6 +140,7 @@ class CmdMultiDesc(MuxCommand):
                     caller.msg("No multidescs set. See +help +multidesc.")
                     return
                 for mkey, desc in desc_list:
+                    mkey = mkey.lower()
                     if key == mkey:
                         caller.db.desc = desc
                         caller.msg("|wDecsription %s was set." % (key))
@@ -196,6 +159,7 @@ class CmdMultiDesc(MuxCommand):
                     caller.msg("No multidescs set. See +help +multidesc.")
                     return
                 for mkey, desc in desc_list:
+                    mkey = mkey.lower()
                     if key == mkey:
                         caller.msg("|wDecsription %s:|n\n%s" % (key, desc))
                         return
@@ -210,13 +174,19 @@ class CmdMultiDesc(MuxCommand):
                 return
 
             desc_list = caller.db.multidesc
+            
             key_list = [key[0] for key in desc_list]
             i = 0
             for desc_name in key_list:
-                if desc_name == args:
+                ldesc = desc_name.lower()
+                match = args.lower()
+                if ldesc == match:
                     del caller.db.multidesc[i]
+                    caller.msg("Deleted description named '%s'." % args)
+                    return
                 i+=1
-            caller.msg("Deleted description named '%s'." % args)
+            # if we get here, didn't find that desc
+            caller.msg("No desc named %s was found." % args)
             return
 
         else:
