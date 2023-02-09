@@ -32,7 +32,7 @@ from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
-from commands.cmdsets.descer import CmdDesc
+from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
 from commands.cmdsets.utility import CmdWho, CmdICTime
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
@@ -74,6 +74,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdFollow())
         self.add(CmdDitch())
         self.add(CmdDesc())
+        self.add(CmdMultiDesc())
         self.add(CmdEnterCity())
         self.add(CmdLeaveCity())
 

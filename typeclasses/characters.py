@@ -55,18 +55,19 @@ class Character(DefaultCharacter):
         self.db.roomquota = 10
         self.db.craftquota = 10
 
+        # transposing combat variables as they may change in the future
+        self.set_initial_combat()
+        
+        # self.set_armors()
 
         # Default display setup
 
         self.db.rollset = 1
         self.db.roomformat = 1
 
-        #combat-related toggles
 
-        self.db.bonusdice = 0
-        self.db.hp = 6
-        self.db.aimdice = 0
-        self.db.chargedice = 0
+        self.db.desc = "You see a character. Desc yourself with +mdesc and a new desc."
+        self.db.multidesc = [("Default", "You see a character.")]
 
 
     def get_stats(self):
@@ -152,15 +153,22 @@ class Character(DefaultCharacter):
         return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
 
     def get_numbered_name(self, count, looker, **kwargs):
-                """
-                simply overloading this method to squash pluralization of character objects
-                """
-                key = kwargs.get("key", self.key)
-                key = ansi.ANSIString(key)  
-                plural = key
-                singular = key
+        """
+        simply overloading this method to squash pluralization of character objects
+        """
+        key = kwargs.get("key", self.key)
+        key = ansi.ANSIString(key)  
+        plural = key
+        singular = key
                 
-                return singular, plural
+        return singular, plural
+
+    def set_initial_combat(self):
+        self.db.aimdice = 0
+        self.db.chargedice = 0
+        self.db.bonusdice = 0
+        self.db.hp = 6
+        return
 
     """
     The Character defaults to reimplementing some of base Object's hook methods with the

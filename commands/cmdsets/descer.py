@@ -1,14 +1,55 @@
 """
-Better multidescer to match the old multidescer.
+Custom multidescer - Evennia's default refactored slightly for M3 use patterns.
 
 """
-
-
-from evennia.contrib import multidescer 
-from evennia.objects.models import ObjectDB
+import re
 from evennia import default_cmds
+from evennia.objects.models import ObjectDB
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
+
+class DescValidateError(ValueError):
+    "Used for tracebacks from desc systems"
+    pass
+
+def _update_store(caller, key=None, desc=None, delete=False, swapkey=None):
+    """
+    Helper function for updating the database store.
+
+    Args:
+        caller (Object): The caller of the command.
+        key (str): Description identifier
+        desc (str): Description text.
+        delete (bool): Delete given key.
+    """
+    if not caller.db.multidesc:
+        # initialize the multidesc attribute
+        caller.db.multidesc = [("Default", caller.db.desc or "")]
+    if not key:
+        return
+    lokey = key.lower()
+    match = [ind for ind, tup in enumerate(caller.db.multidesc) if tup[0] == lokey]
+    if match:
+        idesc = match[0]
+        if delete:
+            # delete entry
+            del caller.db.multidesc[idesc]
+        
+        elif desc:
+            # update in-place
+            caller.db.multidesc[idesc] = (lokey, desc)
+        else:
+            raise DescValidateError("No description was set.")
+    else:
+        # no matching key
+        if delete:
+            raise DescValidateError("Description key '|w%s|n' not found." % key)
+        elif desc:
+            # insert new at the top of the stack
+            caller.db.multidesc.insert(0, (lokey, desc))
+        else:
+            raise DescValidateError("No description was set.")
+
 
 #permissions on desc are strange. 
 #todo, allow PCs to desc themselves, but not rooms.
@@ -55,78 +96,135 @@ class CmdDesc(MuxCommand):
             obj.db.desc = sub_old_ansi(desc)
             caller.msg("The new description was set on %s." % obj.get_display_name(caller))
         else:
-            caller.msg("You don't have permission to edit the description of %s." % obj.key)
+            caller.msg("You don't have permission to edit the description of %s. For yourself, try +multidesc." % obj.key)
 
 
 class CmdMultiDesc(MuxCommand):
     """
-    +multidesc = <text of desc>
-    +mdesc = <text of desc>
-    +multidesc/store <name>
-    +multidesc/wear <name>
-    +multidesc/view <name>
-    +multidesc/list
+
+    Descing yourself with the multidescer.
+
+    Usage:
+       +multidesc = <text of desc>
+       +mdesc = <text of desc>
+       +multidesc/store <name>
+       +multidesc/set <name>
+       +multidesc/view <name>
+       +multidesc/del <name>
+       +multidesc/list
     
     Use the multidescer to describe yourself. 
-    Multidesc, by itself, lists your current descs, or use +mutidesc/list
-    for the same functionality.
+
+    +multidesc/list to list your current descs.
 
     +multidesc/store stores your current desc under the name you
     have provided.
 
-    +multidesc/wear will put on a desc you've already stored.
-
+    +multidesc/set will put on a desc you've already stored.
     +multidesc/view shows the desc before you wear it.
+    +multidesc/del to delete the desc by that name.
 
     +mdesc is an alias for +multidesc and does the same thing.
 
-    this doesn't work yet I'm just typing out this stuff.
+    This is just for descing yourself. To check objects and rooms you own,
+    use +build and +craft.
+
+    To match a desc in your list to an armor form, see +armor.
 
     """
 
     key = "multidesc"
-    aliases = "+multidesc, mdesc, +mdesc"
-    switch_options = ("list","store","wear","view")
+    aliases = ["+multidesc", "mdesc", "+mdesc"]
+    switch_options = ("list","store","set","view", "del", "add","delete")
     help_category = "Building"
 
     def func(self):
         """Define command"""
 
         caller = self.caller
-        if not self.args and "edit" not in self.switches:
-            caller.msg("Usage: desc [<obj> =] <description>")
-            return
+        args = self.args
 
         if "list" in self.switches:
-            
+            #_update_store(caller)
+            desc_list = caller.db.multidesc
+            outtext = "Stored Descs: \n"
+            key_list = [key[0] for key in desc_list]
+            for key in key_list:
+                outtext += ("|w" + str(key)+ "|n, ")
+            caller.msg(outtext)
             return
 
-        if "store" in self.switches:
-            
+        if "store" in self.switches or "add" in self.switches:
+            #_update_store(caller)
+            if not args:
+                caller.msg("Usage: +multidesc/store <name>")
+                return
+            desc_list = caller.db.multidesc
+            cur_desc = caller.db.desc
+            desc_list.append((args, cur_desc))
+            caller.msg("Successfully stored desc %s." % args)
             return
 
-        if "wear" in self.switches:
+        if "set" in self.switches:
             
-            return
+            if not args:
+                caller.msg("Usage: +multidesc/set <name>")
+                return
+
+            if args:
+                key = args.lower()
+                desc_list = caller.db.multidesc
+                if not desc_list:
+                    caller.msg("No multidescs set. See +help +multidesc.")
+                    return
+                for mkey, desc in desc_list:
+                    if key == mkey:
+                        caller.db.desc = desc
+                        caller.msg("|wDecsription %s was set." % (key))
+                        return
+                caller.msg("Description '%s' not found." % key)
+            else:
+                caller.msg("|wCurrent desc:|n\n%s" % caller.db.desc)
+            return    
+
 
         if "view" in self.switches:
-            
+            if args:
+                key = args.lower()
+                desc_list = caller.db.multidesc
+                if not desc_list:
+                    caller.msg("No multidescs set. See +help +multidesc.")
+                    return
+                for mkey, desc in desc_list:
+                    if key == mkey:
+                        caller.msg("|wDecsription %s:|n\n%s" % (key, desc))
+                        return
+                caller.msg("Description '%s' not found." % key)
+            else:
+                caller.msg("|wCurrent desc:|n\n%s" % caller.db.desc)
             return
 
-        if "=" in self.args:
+        if "del" in self.switches or "delete" in self.switches:
+            if not args:
+                caller.msg("Usage: +multidesc/delete <name>")
+                return
+
+            desc_list = caller.db.multidesc
+            key_list = [key[0] for key in desc_list]
+            i = 0
+            for desc_name in key_list:
+                if desc_name == args:
+                    del caller.db.multidesc[i]
+                i+=1
+            caller.msg("Deleted description named '%s'." % args)
+            return
+
+        else:
             # We have an =
-            obj = caller.search(self.lhs)
-            if not obj:
-                return
-            desc = self.rhs or ""
-        else:
-            obj = caller.location or self.msg("|rYou can't describe oblivion.|n")
-            if not obj:
-                return
-            desc = self.args
-            desc = sub_old_ansi(desc)
-        if obj.access(self.caller, "control") or obj.access(self.caller, "edit"):
-            obj.db.desc = desc
-            caller.msg("The description was set on %s." % obj.get_display_name(caller))
-        else:
-            caller.msg("You don't have permission to edit the description of %s." % obj.key)
+            try:
+                desc = self.args
+                desc = ("\n" + sub_old_ansi(desc) + "\n")
+                caller.db.desc = desc
+                caller.msg("The description was set.")
+            except:
+                caller.msg("Error in adding description. Check +help +multidesc.")
