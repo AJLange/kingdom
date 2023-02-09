@@ -25,6 +25,7 @@ from commands.cmdsets.charinfo import CmdOOCFinger
 from commands.cmdsets.charinfo import CmdEFinger
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
+from evennia import default_cmds
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
@@ -101,8 +102,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCookie())
         self.add(CmdCookieCounter())
 
-        #self.add(multidescer.CmdMultiDesc()) 
-        #do not use this multidescer, it over-writes descing rooms and makes me cry. totally redo it.
+
+        
 
         # in the future, any command below this line will be staff only.
         self.add(CmdWarp())       
@@ -110,6 +111,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdLinkTeleport())
         self.add(CmdMakeCity())
         self.add(CmdStartChargen())
+
+
 
 
 class AccountCmdSet(default_cmds.AccountCmdSet):
@@ -134,8 +137,11 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdWho())
         self.add(CmdOOCLook())
         self.add(CmdOOC())
-        self.add(CmdCharCreate())
-        self.add(CmdCharDelete())
+        #self.add(CmdCharCreate())
+        #self.add(CmdCharDelete())
+
+        self.remove(default_cmds.CmdCharCreate())
+        self.remove(default_cmds.CmdCharDelete())
         
 
         '''
