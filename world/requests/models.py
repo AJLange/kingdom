@@ -30,14 +30,18 @@ class Request(models.Model):
         BUILD = 5
         AUTO = 6
         RESEARCH = 7
+        ACTIVITY = 8
+        HELP = 9
         TYPE_CHOICES = (
             (GENERAL, 'General'),
             (BUGFIX, 'Bugfix'),
             (CHARACTER, 'Character'),
-            (NEWS, 'News'),
             (BUILD, 'Build'),
             (AUTO, 'Auto'),
+            (NEWS, 'ICNews'),
             (RESEARCH, 'Research'),
+            (ACTIVITY, 'Activity'),
+            (HELP, 'HelpFile')
         )
 
     # The type of request
@@ -63,6 +67,7 @@ class File(SharedMemoryModel):
                                             auto_now_add=True, db_index=True)
     db_author = models.CharField('Author',max_length=200)
     db_keywords = models.ForeignKey(Keyword,blank=True, null=True, on_delete=models.CASCADE)
+    up_to_date = models.BooleanField('Up to date?', default=True)
 
     def __str__(self):
         return self.db_title
