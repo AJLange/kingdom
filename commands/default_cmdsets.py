@@ -34,7 +34,7 @@ from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
-from commands.cmdsets.utility import CmdWho, CmdICTime
+from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 #from commands.cmdsets.bboards import CmdBBCreate, CmdBBNew, CmdBBReadOrPost, CmdBBSub, CmdBBUnsub, CmdGetUnreadPosts
@@ -81,6 +81,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         self.add(CmdPortal())
         self.add(CmdICTime())
+        self.add(CmdWarning())
 
         self.add(CmdSetGroups())
         self.add(CmdShowGroups())

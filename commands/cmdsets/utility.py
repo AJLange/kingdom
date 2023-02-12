@@ -1,8 +1,6 @@
 '''
 Some random global commands
 '''
-
-
 from evennia import CmdSet
 from six import string_types
 from commands.command import BaseCommand, Command
@@ -265,6 +263,7 @@ class CmdXWho(MuxCommand):
 
 '''
 
+
 class CmdICTime(Command):
 
     """
@@ -309,3 +308,38 @@ class CmdICTime(Command):
         msg_string = msg_string + "|/|/|430==================================================================="
         
         self.msg(msg_string)
+
+
+class CmdWarning(MuxCommand):
+
+    """
+    Create a warning that something is approaching!
+
+    Usage:
+        +warning <name>=<second line of text>
+
+    This creates a warning for dramatic purposes. This can be used, for 
+    example, to indicate a boss fight is happening. The second line of text
+    is flavor text about the boss, and should be kept short.
+
+    """
+    key = "warning"
+    aliases= "+warning"
+    locks = "cmd:all()"
+    help_category = "General"
+
+    def func(self):
+        args = self.args
+        caller = self.caller
+        try:
+            boss, flavortext= args.split("=", 1)
+            warning = "  |rWARNING!\tWARNING!\tWARNING!\tWARNING!\tWARNING!"
+            
+            boss = boss.center(72)
+            flavortext = flavortext.center(72)
+            emit_text = ("\a\n" + warning + "\n\n|r" + boss + "\n\n|w" + flavortext + "\n\n" + warning +"\n")
+            self.caller.location.msg_contents(emit_text)
+            return
+        except:
+            caller.msg("Syntax error. +warning <boss>=<second line>")
+

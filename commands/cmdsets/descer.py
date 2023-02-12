@@ -190,7 +190,6 @@ class CmdMultiDesc(MuxCommand):
             return
 
         else:
-            # We have an =
             try:
                 desc = self.args
                 desc = ("\n" + sub_old_ansi(desc) + "\n")
