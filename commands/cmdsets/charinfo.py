@@ -19,8 +19,8 @@ from math import floor
 
 class CmdFinger(BaseCommand):
     """
-
-    +finger <character>
+    Usage:
+      finger <character>
 
     To get basic IC profile information about a character.
 
@@ -34,8 +34,8 @@ class CmdFinger(BaseCommand):
     and public, use +efinger. (which is also aliased to +info)
 
     """
-    key = "+finger"
-    aliases = ["finger", "+figner", "figner", "profile", "+profile"]
+    key = "finger"
+    aliases = ["+finger", "+figner", "figner", "profile", "+profile"]
     lock = "cmd:all()"
     help_category = "General"
 
@@ -76,9 +76,9 @@ class CmdFinger(BaseCommand):
 
 class CmdEFinger(BaseCommand):
     """
-
-    +efinger <character>
-    +info <character>
+    Usage:
+      efinger <character>
+      info <character>
 
     To get basic IC information about a character. Usually set to what 
     is publically known or can be looked up about a character from an IC 
@@ -90,8 +90,8 @@ class CmdEFinger(BaseCommand):
     on what can be ICly known or interesting to share.
     
     """
-    key = "+efinger"
-    aliases = ["efinger", "+efigner", "efigner", "info", "+info"]
+    key = "efinger"
+    aliases = ["+efinger", "+efigner", "efigner", "info", "+info"]
     lock = "cmd:all()"
     help_category = "General"
 
@@ -118,10 +118,11 @@ class CmdEFinger(BaseCommand):
 class CmdOOCFinger(MuxCommand):
     """
     
-    +oocfinger <character>
+    Usage:
+      +oocfinger <character>
 
-    +oocfinger/discord <Your Discord here>
-    +oocfinger/email <Your Email here>
+      +oocfinger/discord <Your Discord here>
+      +oocfinger/email <Your Email here>
     
     To get basic OOC information which relates to the player of the character. 
     You can find personal RP hooks and other preferences set here, as well 
@@ -138,8 +139,8 @@ class CmdOOCFinger(MuxCommand):
     or anything you like. Timezone should update automatically.
     
     """
-    key = "+oocfinger"
-    aliases = ["oocfinger","ofinger", "+ofigner", "ofigner", "+oocfigner"]
+    key = "oocfinger"
+    aliases = ["+oocfinger","ofinger", "+ofigner", "ofigner", "+oocfigner"]
     lock = "cmd:all()"
     help_category = "General"
 
@@ -360,12 +361,12 @@ class CmdSheet(BaseCommand):
         List my stats
 
         Usage:
-        +stats
+          stats
 
         Displays a list of your current stats.
         """
-        key = "+stats"
-        aliases = ["stats", "sheet", "+sheet"]
+        key = "stats"
+        aliases = ["+stats", "sheet", "+sheet"]
         lock = "cmd:all()"
         help_category = "General"
 
@@ -397,7 +398,8 @@ class CmdCookie(MuxCommand):
     Give a mouse a cookie.
     
     Usage:
-      +cookie <player>
+       cookie <player>
+
     This gives a little cookie to a player that you did RP with.
     The cookie is a vote or 'thank you' for roleplay.
     +vote does the same thing as cookie.
@@ -438,7 +440,8 @@ class CmdCookieCounter(MuxCommand):
     """
    
     Usage:
-        +tally
+        tally
+
     See how many cookies you have, and how many cookies
     you have to give out for the rest of the week. 
 
@@ -461,7 +464,7 @@ class CmdCookiemonsters(MuxCommand):
     Give a mouse a cookie.
     
     Usage:
-      +100check or +monsters
+      100check
 
       Shows a leaderboard of PCs with 100 cookies or more.
     """
@@ -479,13 +482,13 @@ class CmdCookieBomb(MuxCommand):
     Give a mouse a cookie.
     
     Usage:
-      +cookiebomb
+      cookiebomb
 
       This command locked to staff gives a +cookie to everyone
       in the room that is not set +observer.
     """
-    key = "+cookiebomb"
-    aliases = ["cookiebomb"]
+    key = "cookiebomb"
+    aliases = ["+cookiebomb"]
     locks = "cmd:all()"
     help_category = "Admin"
 
@@ -500,7 +503,7 @@ class CmdCookieMsg(MuxCommand):
     Set your custom cookie message.
     
     Usage:
-      +cookiemsg <message>
+      cookiemsg <message>
 
     This customizes the string that will be sent when you give
     a cookie to another player.

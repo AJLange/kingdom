@@ -99,7 +99,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdTaunt())
         self.add(CmdPersuade())
 
-
+        self.add(CmdWarp())       
+        self.add(CmdPortal())
 
         #cookie commands will be moved to account level at a later time
         self.add(CmdCookie())
@@ -109,12 +110,10 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         
 
         # in the future, any command below this line will be staff only.
-        self.add(CmdWarp())       
-        self.add(CmdPortal())
+
         self.add(CmdLinkTeleport())
         self.add(CmdMakeCity())
         self.add(CmdStartChargen())
-
 
 
 

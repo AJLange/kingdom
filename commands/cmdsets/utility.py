@@ -47,10 +47,12 @@ def prune_sessions(session_list):
 class CmdWho(MuxCommand):
     """
     list who is currently online
+
     Usage:
       who
       doing
       where
+      
     Shows who is currently online. Doing is an alias that limits info
     also for those with all permissions. Modified to allow players to see
     the locations of other players and add a "where" alias.
@@ -144,8 +146,10 @@ class CmdWho(MuxCommand):
 class CmdWall(MuxCommand):
     """
     @wall
+
     Usage:
       @wall <message>
+
     Shouts a message to all connected players.
     This command should be used to send OOC broadcasts,
     while @gemit is used for IC global messages.
@@ -170,9 +174,11 @@ class CmdWall(MuxCommand):
 class CmdForce(MuxCommand):
     """
     @force
+
     Usage:
       @force <character>=<command>
       @force/char <player>=command
+
     Forces a given character to execute a command. Without the char switch,
     this will search for character objects in your room, which may be npcs
     that have no player object. With the /char switch, this searches for
@@ -213,17 +219,18 @@ todo: fix to list all staff
 
 class CmdListStaff(MuxCommand):
     """
-    +staff
-    Usage:
-        +staff
-        +staff/all
-        +staff/list
     
-    +staff lists staff currently online.
-    +staff/all or +staff/list lists all staff and their status.
+    Usage:
+        staff
+        staff/all
+        staff/list
+    
+    staff lists staff currently online.
+    staff/all or staff/list lists all staff and their status.
     """
 
-    key = "+staff"
+    key = "staff"
+    aliases = "+staff"
 
     locks = "cmd:all()"
     help_category = "Admin"
@@ -316,7 +323,7 @@ class CmdWarning(MuxCommand):
     Create a warning that something is approaching!
 
     Usage:
-        +warning <name>=<second line of text>
+        warning <name>=<second line of text>
 
     This creates a warning for dramatic purposes. This can be used, for 
     example, to indicate a boss fight is happening. The second line of text

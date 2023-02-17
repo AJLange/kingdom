@@ -53,12 +53,12 @@ class CmdShowdown(Command):
     Starts a showdown.
 
     Usage:
-        +showdown <name>
-        +showdown/boss
-        +showdown/end
+        showdown <name>
+        showdown/boss
+        showdown/end
 
-    +showdown with a single name challenges that person to a duel.
-    +showdown/boss begins a showdown with everyone in the room who is not
+    showdown with a single name challenges that person to a duel.
+    showdown/boss begins a showdown with everyone in the room who is not
     set as observer.
 
     +showdown/end ends your current combat if you are a boss or duelist.
@@ -69,7 +69,8 @@ class CmdShowdown(Command):
 
     """
     
-    key = "+showdown"
+    key = "showdown"
+    aliases= "+showdown"
     help_category = "Dice"
 
     def func(self):
@@ -132,7 +133,7 @@ class CmdGMRoll(Command):
     GM free rolls a certain amount of dice.
 
     Usage:
-       +gmroll <number from 1-10>
+       gmroll <number from 1-10>
 
     This is for if you just need to roll D10s for whatever reason in a 
     scene you may be running.
@@ -141,8 +142,8 @@ class CmdGMRoll(Command):
 
     """
     
-    key = "+gmroll"
-    aliases = ["gmroll"]
+    key = "gmroll"
+    aliases = ["+gmroll"]
     help_category = "Dice"
 
     def func(self):
@@ -184,7 +185,7 @@ class CmdRoll(Command):
     Roll an arbitrary die.
 
     Usage:
-       +roll <number from 1-100>
+       roll <number from 1-100>
 
     This will choose a random integer, depending on the 
     size of the die you choose to roll. This is a purely 
@@ -196,8 +197,8 @@ class CmdRoll(Command):
 
     """
     
-    key = "+roll"
-    aliases = ["roll"]
+    key = "roll"
+    aliases = ["+roll"]
     help_category = "Dice"
 
     def func(self):
@@ -250,8 +251,8 @@ class CmdFlip(Command):
 
     """
     
-    key = "+flip"
-    aliases = ["flip"]
+    key = "flip"
+    aliases = ["+flip"]
     help_category = "Dice"
 
     def func(self):
@@ -314,7 +315,7 @@ class CmdRollSkill(Command):
     Roll a Stat + Skill combo.
 
     Usage:
-        +check <stat> + <skill>
+        check <stat> + <skill>
 
     This allows any combination of rolls. Can be used to check any two stats.
     Useful in one-off confrontations, if trying to do something unusual, or
@@ -325,8 +326,8 @@ class CmdRollSkill(Command):
 
     """
     
-    key = "+check"
-    aliases = ["check"]
+    key = "check"
+    aliases = ["+check"]
     help_category = "Dice"
 
 
@@ -393,7 +394,7 @@ class CmdAim(Command):
     """
 
     Usage:
-        +aim
+        aim
 
     Sacrifice a combat round for a higher chance of hitting next 
     time you +attack.
@@ -406,8 +407,8 @@ class CmdAim(Command):
 
     """
     
-    key = "+aim"
-    aliases = ["aim"]
+    key = "aim"
+    aliases = ["+aim"]
     help_category = "Dice"
 
     def func(self):
@@ -438,7 +439,7 @@ class CmdCharge(Command):
 
     """
     Usage:
-        +charge
+        charge
 
     Sacrifice a combat round for a higher crit chance next round,
     provided your next action is an +attack.
@@ -453,8 +454,8 @@ class CmdCharge(Command):
 
     """
     
-    key = "+charge"
-    aliases = ["charge"]
+    key = "charge"
+    aliases = ["+charge"]
     help_category = "Dice"
 
     def func(self):
@@ -488,12 +489,12 @@ class CmdAttack(Command):
     """
     Attacking a particular target. 
 
-    +attack <target>
+    attack <target>
 
     """
     
-    key = "+attack"
-    aliases = ["attack"]
+    key = "attack"
+    aliases = ["+attack"]
     help_category = "Dice"
 
     def func(self):
@@ -530,7 +531,7 @@ class CmdTaunt(Command):
 
     """
 
-    +taunt <target>
+    taunt <target>
 
     This type of assail makes a presence roll to do damage. Using this makes 
     it slightly harder for your target to hit other people next round, 
@@ -540,8 +541,8 @@ class CmdTaunt(Command):
 
     """
     
-    key = "+taunt"
-    aliases = ["taunt"]
+    key = "taunt"
+    aliases = ["+taunt"]
     help_category = "Dice"
 
     def func(self):
@@ -575,7 +576,7 @@ class CmdIntimidate(Command):
 
     """
 
-    +intimidate <target>
+    intimidate <target>
 
     This type of assail makes a presence roll to do damage. Using this makes 
     it slightly harder for your target to hit you next round.
@@ -587,8 +588,8 @@ class CmdIntimidate(Command):
 
     """
     
-    key = "+intimidate"
-    aliases = ["intimidate", "spook", "+spook"]
+    key = "intimidate"
+    aliases = ["+intimidate", "spook", "+spook"]
     help_category = "Dice"
 
     def func(self):
@@ -621,8 +622,8 @@ class CmdGuard(Command):
 
     """
     Usage:
-        +guard 
-        +guard <target>
+        guard 
+        guard <target>
 
     Go fully defensive this round, making it quite a bit
     harder to be attacked or damaged, but at the cost of any
@@ -639,8 +640,8 @@ class CmdGuard(Command):
 
     """
     
-    key = "+guard"
-    aliases = ["guard"]
+    key = "guard"
+    aliases = ["+guard"]
     help_category = "Dice"
 
     def func(self):
@@ -662,7 +663,7 @@ class CmdHeal(Command):
 
     """
 
-    +heal <target>
+    heal <target>
 
     Don't really know how to balance this yet, won't 
     implement in early alpha.
@@ -671,8 +672,8 @@ class CmdHeal(Command):
 
     """
     
-    key = "+heal"
-    aliases = ["heal"]
+    key = "heal"
+    aliases = ["+heal"]
     help_category = "Dice"
 
     def func(self):
@@ -694,7 +695,7 @@ class CmdPersuade(Command):
 
     """
 
-    +persuade <target>
+    persuade <target>
 
     This type of assail uses your convince skill to do damage to a target.
 
@@ -702,8 +703,8 @@ class CmdPersuade(Command):
 
     """
     
-    key = "+persuade"
-    aliases = ["persuade", "negotiate" ,"+negotiate", "moralhighground" , "+moralhighground"]
+    key = "persuade"
+    aliases = ["+persuade", "negotiate" ,"+negotiate", "moralhighground" , "+moralhighground"]
     help_category = "Dice"
 
     def func(self):
@@ -735,9 +736,9 @@ class CmdPersuade(Command):
 class CmdRollSet(MuxCommand):
     """
     Usage:
-      +rollset
-      +rollset/verbose
-      +rollset/basic
+      rollset
+      rollset/verbose
+      rollset/basic
 
     Swap between die view modes. Setting rollset to 'verbose' will show all of the 
     individual roles that lead to a die result. Setting to 'basic' will only show
@@ -747,8 +748,8 @@ class CmdRollSet(MuxCommand):
 
     """
     
-    key = "+rollset"
-    aliases = ["rollset"]
+    key = "rollset"
+    aliases = ["+rollset"]
     help_category = "Dice"
 
     def func(self):
