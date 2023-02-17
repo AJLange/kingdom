@@ -20,9 +20,9 @@ from evennia import default_cmds
 
 from commands.cmdsets.chargen import CmdStartChargen
 from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay
-from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie
-from commands.cmdsets.charinfo import CmdOOCFinger
-from commands.cmdsets.charinfo import CmdEFinger
+from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger
+
+from commands.cmdsets.mail import CmdMail, CmdMailCharacter
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
 from evennia import CmdSet
 from evennia import default_cmds
@@ -103,7 +103,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCookie())
         self.add(CmdCookieCounter())
 
-
+        self.add(CmdMailCharacter())
         
 
         # in the future, any command below this line will be staff only.
@@ -138,6 +138,7 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdWho())
         self.add(CmdOOCLook())
         self.add(CmdOOC())
+        self.add(CmdMail())
         #self.add(CmdCharCreate())
         #self.add(CmdCharDelete())
 
