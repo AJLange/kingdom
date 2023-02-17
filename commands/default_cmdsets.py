@@ -17,6 +17,7 @@ own cmdsets by inheriting from them or directly from `evennia.CmdSet`.
 
 
 from evennia import default_cmds
+from evennia import CmdSet
 
 from commands.cmdsets.chargen import CmdStartChargen
 from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay
@@ -24,8 +25,7 @@ from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, Cmd
 
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
 from commands.cmdsets.movement import CmdHome, CmdDitch, CmdSummon, CmdJoin, CmdFollow, CmdWarp, CmdPortal
-from evennia import CmdSet
-from evennia import default_cmds
+
 from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
@@ -37,6 +37,8 @@ from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
 from commands.cmdsets.utility import CmdWho, CmdICTime, CmdWarning
 from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
+from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
+from commands.default.comms import CmdChannelCreate, CmdCdestroy, CmdCBoot
 #from commands.cmdsets.bboards import CmdBBCreate, CmdBBNew, CmdBBReadOrPost, CmdBBSub, CmdBBUnsub, CmdGetUnreadPosts
 
 class CharacterCmdSet(default_cmds.CharacterCmdSet):
@@ -139,8 +141,21 @@ class AccountCmdSet(default_cmds.AccountCmdSet):
         self.add(CmdOOCLook())
         self.add(CmdOOC())
         self.add(CmdMail())
-        #self.add(CmdCharCreate())
-        #self.add(CmdCharDelete())
+
+        self.add(CmdGrapevine2Chan())
+        self.add(CmdIRC2Chan())
+        self.add(CmdIRCStatus())        
+        self.add(CmdRSS2Chan())
+
+        self.add(CmdChannelCreate())
+        self.add(CmdCBoot())
+        self.add(CmdCdestroy())
+
+
+        #self.remove(default_cmds.CmdIRC2Chan())
+        #self.remove(default_cmds.CmdIrcStatus())
+        #self.remove(default_cmds.CmdRSS2Chan())
+        #self.remove(default_cmds.CmdGrapevine2Chan())
 
         self.remove(default_cmds.CmdCharCreate())
         self.remove(default_cmds.CmdCharDelete())
