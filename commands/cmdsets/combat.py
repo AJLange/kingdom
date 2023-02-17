@@ -489,7 +489,10 @@ class CmdAttack(Command):
     """
     Attacking a particular target. 
 
-    attack <target>
+    Usage:
+      attack <target>=<weapon>
+
+    This will allow you to attack a target with a weapon you have equipped.
 
     """
     
@@ -629,12 +632,15 @@ class CmdGuard(Command):
     harder to be attacked or damaged, but at the cost of any
     meaningful action this turn.
 
-    If +guard is used on a target, this instead makes you 
+    If guard is used on a target, this instead makes you 
     more likely to hit, but less likely for that target to be hit.
     
     Choose wisely.
 
-    +guard has no effect on attempts to pursuade.
+    The guard command has no effect on attempts to pursuade.
+
+    If your character has the Defender capability, they will take
+    no damage when in full guard.
 
     Only can be used in a Sequence or Showdown.
 
@@ -793,4 +799,49 @@ class CmdRollSet(MuxCommand):
         else:
             caller.msg("Not a valid choice. Choose verbose or basic.")
             return
+
+
+
+class CmdWeaponCopy(Command):
+    """
+    Copy the weapon of your target.
+
+    Usage:
+      wcopy <target>
+
+    If you have a weapon copy ability, this copies the weapon of the target.
+    What weapon you copy depends on if you copy primarily ranged, or primarily melee weapons.
+    This will be on your sheet as either Buster-Copy or Technique-Copy.
+
+    Copied weapons will be listed on your weapon sheet automatically.
+
+    """
+    
+    key = "wcopy"
+    aliases = ["+wcopy", "buster","+buster"]
+    help_category = "Dice"
+
+    def func(self):
+        '''
+        doesn't function yet just stubbing out commands.
+        '''
+        errmsg = "An error occured."
         
+        caller= self.caller
+        
+        if not self.args:
+            caller.msg("Copy whose weapon?")
+            return
+        try:
+            caller.msg("You copy the weapon.")
+            '''
+            do a couple checks:
+                is the target a person?
+                is that person present here?
+
+                what type of buster-user am I?
+                What type of weapon do they have?
+            '''
+        except ValueError:
+            caller.msg(errmsg)
+            return

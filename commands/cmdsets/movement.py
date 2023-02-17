@@ -20,7 +20,7 @@ class CmdSummon(MuxCommand):
     summon
 
     Usage:
-        +summon <person>
+        summon <person>
 
     Summons a person to your location. 
     A summon invite can be turned down by choosing
@@ -28,8 +28,8 @@ class CmdSummon(MuxCommand):
 
     """
 
-    key = "+summon"
-    aliases = ["summon", "+port", "port"]
+    key = "summon"
+    aliases = ["+summon"]
     locks = "cmd:all()"
     help_category = "Travel"
 
@@ -79,7 +79,7 @@ class CmdJoin(MuxCommand):
     Join
 
     Usage:
-        +join <person>
+        join <person>
 
     Summons a person to your location. 
     A summon invite can be turned down with 
@@ -87,8 +87,8 @@ class CmdJoin(MuxCommand):
     same functionality.
     """
 
-    key = "+join"
-    aliases = ["join"]
+    key = "join"
+    aliases = ["+join"]
     locks = "cmd:all()"
     help_category = "Travel"
 
@@ -154,6 +154,7 @@ class CmdFollow(MuxCommand):
     """
 
     key = "follow"
+    aliases = "+follow"
     locks = "cmd:all()"
     help_category = "Travel"
 
@@ -188,6 +189,7 @@ class CmdDitch(MuxCommand):
     """
 
     key = "ditch"
+    aliases = "+ditch"
     locks = "cmd:all()"
     aliases = ["lose"]
     help_category = "Travel"
@@ -294,15 +296,15 @@ class CmdTidyUp(MuxCommand):
     Removes idle characters from the room
 
     Usage:
-        +tidy
+        tidy
 
     This removes any character who has been idle for at least
     one hour in your current room, provided that the room is
     public or a room you own.
     """
 
-    key = "+tidy"
-    aliases = ["+gohomeyouredrunk"]
+    key = "tidy"
+    aliases = ["+gohomeyouredrunk", "+tidy"]
     locks = "cmd:all()"
     help_category = "General"
 
@@ -367,6 +369,7 @@ class CmdWarp(MuxCommand):
     # Warp only allows you to teleport yourself. I chose to make a new command rather than
     # expand on @tel with different permission sets because the docstring/help file is
     # expansive for @tel, as it has many switches in its admin version.
+
     def func(self):
         """Performs the teleport"""
 
@@ -389,22 +392,21 @@ class CmdWarp(MuxCommand):
 class CmdPortal(MuxCommand):
     """
     teleport to another location
+
     Usage:
-      +portal <location>
       portal <location>
-      +portal/list
+      portal/list
 
 
-    This allows a player to teleport to the locations
-    available on the teleportation grid.
+    This allows a player to teleport to the locations available on the 
+    teleportation grid.
 
-    Use +portal/list to get a list of valid
-    locations to teleport to.
+    Use +portal/list to get a list of valid locations to teleport to.
 
     """
 
     key = "portal"
-    aliases = "+portal"
+    aliases = "+portal", "port", "+port"
     locks = "cmd:all()"
 
     
@@ -417,14 +419,23 @@ class CmdPortal(MuxCommand):
         if "list" in self.switches:
             #this search below is an example of how to categories db results by tag.
             locations = search_tag(category="portal")
+            plotrooms = search_tag(category="plotroom")
             #todo: list format in a pretty grid with categories.
-            self.caller.msg(f"Teleport locations available: {', '.join(str(ob) for ob in locations)}")
+            teleport_message = ("Teleport locations available: \n")
+
+            for site in locations:
+                site_label = str(site).split("-",1)
+                site_string = ("|lcportal " + str(site) + "|lt" + str(site_label[0]).strip() + "|le ")
+                teleport_message = teleport_message + site_string
+            #teleport_message = (f"Teleport locations available: {', '.join(str(ob) for ob in locations)}")
+            self.caller.msg(teleport_message)
             return
 
         else:
             #todo: limit this to rooms with portal tag only. Accept partial matches.
             #todo: make web-clickable.
             locations = search_tag(category="portal")
+            plotrooms = search_tag(category="plotroom")
             destination = caller.search(args, global_search=True)
             if not destination:
                 caller.msg("Destination not found.")
@@ -443,9 +454,10 @@ class CmdPortal(MuxCommand):
 
 class CmdHome(MuxCommand):
     """
-    home
+    
     Usage:
       home
+
     Teleports you to your home location.
     """
 

@@ -31,8 +31,8 @@ class CmdMakeCity(MuxCommand):
     +makecity
     A command to create a new city or factional base object.
 
-    usage:
-    +makecity <name>=<room>
+    Usage:
+      makecity <name>=<room>
 
     To create a new city (or base, etc) just use +makecity and the name of 
     what you want to create. 
@@ -84,13 +84,13 @@ class CmdMakeCity(MuxCommand):
 '''
 Todo - return of the fix rooms command that makes rooms created into IC rooms 
 
-
 '''
 
 class CmdLinkTeleport(MuxCommand):
     """
-    
-    +portalgrid <category>
+
+    Usage:
+       portalgrid <category>
 
     This command adds a room to the teleportation grid, making it a
     location that can be accessed with the +portal command 
@@ -120,7 +120,7 @@ class CmdLinkTeleport(MuxCommand):
             caller.msg("You need to provide a portal category. See help +portalgrid.")
             return
         else:
-            hub= self.args
+            hub = self.args
             room.tags.add(hub, category ="portal")
 
             caller.msg("Added room %s to teleport category %s." % (room, hub) )
@@ -131,7 +131,8 @@ class CmdLinkTeleport(MuxCommand):
 class CmdPlotroom(MuxCommand):
     """
     
-    +plotroom
+    Usage:
+       plotroom
 
     This command temporarily adds a room to the grid for +portal. 
     This command is only available to the active GM in a scene.
