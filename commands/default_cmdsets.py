@@ -30,7 +30,7 @@ from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
-from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity
+from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
@@ -71,19 +71,22 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdOOCFinger())
         self.add(CmdEFinger())
 
+        #moving around
         self.add(CmdHome())
         self.add(CmdSummon())
         self.add(CmdJoin())
         self.add(CmdFollow())
         self.add(CmdDitch())
         self.add(CmdDesc())
-        self.add(CmdMultiDesc())
         self.add(CmdEnterCity())
         self.add(CmdLeaveCity())
-
         self.add(CmdPortal())
+
+        self.add(CmdMultiDesc())
         self.add(CmdICTime())
         self.add(CmdWarning())
+
+        self.add(CmdProtector())
 
         self.add(CmdSetGroups())
         self.add(CmdShowGroups())
@@ -107,6 +110,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdCookieCounter())
 
         self.add(CmdMailCharacter())
+
         
 
         # in the future, any command below this line will be staff only.
@@ -114,6 +118,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdLinkTeleport())
         self.add(CmdMakeCity())
         self.add(CmdStartChargen())
+        self.add(CmdSetProtector())
+        self.add(CmdClearProtector())
 
 
 

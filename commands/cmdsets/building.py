@@ -15,6 +15,7 @@ from evennia import default_cmds, create_object
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from typeclasses.rooms import Room
 from evennia.commands.default.muxcommand import MuxCommand
+from django.conf import settings
 from typeclasses.cities import City
 from typeclasses.cities import PersonalRoom
 from world.groups.models import PlayerGroup
@@ -65,11 +66,11 @@ class CmdMakeCity(MuxCommand):
 
         if "=" in self.args:
             cityname, enterroom = self.args.rsplit("=", 1)
-            enterroom_valid = self.caller.search(enterroom, global_search=True)
+            enterroom_valid = caller.search(enterroom, global_search=True)
 
             #should validate if this is a room
 
-            if not enterroom_valid == ObjectDB.objects.filter(db_typeclass_path__contains="Room"):
+            if not inherits_from(enterroom_valid, settings.BASE_ROOM_TYPECLASS):
                 caller.msg("Not a valid room.")
                 return
 
@@ -123,6 +124,14 @@ class CmdLinkTeleport(MuxCommand):
 
         caller = self.caller
         room = caller.location
+
+        '''
+        do I have build permissions?
+        '''
+        if not caller.check_permstring("builders"):
+            caller.msg("Only staff can use this command.")
+            return
+
         if not self.args:
             caller.msg("You need to provide a portal category. See help +portalgrid.")
             return
@@ -142,16 +151,14 @@ class CmdPlotroom(MuxCommand):
        plotroom
 
     This command temporarily adds a room to the grid for +portal. 
-    This command is only available to the active GM in a scene.
-    It makes an announcement to the game so that
-    everyone is aware of the plot room.
 
-    If a game is already on the grid as a plotroom,
-    using +plotroom again will remove it from the 
-    grid. 
+    It makes an announcement to the game so that everyone is aware of the 
+    plot room.
 
-    This setting is temporary and will clear out 
-    whenever the game is reset.
+    If a game is already on the grid as a plotroom, using +plotroom again 
+    will remove it from the grid. 
+
+    This setting is temporary and will clear out whenever the game is reset.
 
     """
 
@@ -163,8 +170,12 @@ class CmdPlotroom(MuxCommand):
     def func(self):
         """Implements command"""
         caller = self.caller
+        room = caller.location
+        if not room.teleport:
+            room.teleport = True
+            
+        #doesn't work yet.
 
-        #check. Am I an active GM? If so, do the thing:
 
 
 class CmdLockRoom(MuxCommand):
@@ -188,7 +199,8 @@ class CmdLockRoom(MuxCommand):
 
     """
 
-    key = "construct"
+    key = "lock"
+    aliases = "+lock"
     locks = "cmd:all()"
     help_category = "Building"
     
@@ -220,7 +232,8 @@ class CmdUnLockRoom(MuxCommand):
     but behaves like a room on the inside.
     """
 
-    key = "construct"
+    key = "unlock"
+    aliases = "+unlock"
     locks = "cmd:all()"
     help_category = "Building"
     
@@ -257,16 +270,23 @@ class CmdProtector(MuxCommand):
 
     """
 
-    key = "construct"
+    key = "protector"
+    aliases = "+protector"
     locks = "cmd:all()"
     help_category = "Building"
-    
 
     def func(self):
         """Implements command"""
         caller = self.caller
+        room = caller.location
+        if not room.db.protector:
+            caller.msg("This room has no protector.")
+        else:
+            answer_string = ("This room is protected by: ")
+            for protector in room.db.protector:
+                answer_string = (answer_string + str(protector) + " ")
+            caller.msg(answer_string)
 
-        
 
 class CmdSetProtector(MuxCommand):
     """
@@ -285,7 +305,8 @@ class CmdSetProtector(MuxCommand):
     
     """
 
-    key = "construct"
+    key = "setprotector"
+    aliases = "+setprotector"
     locks = "cmd:all()"
     help_category = "Building"
     
@@ -306,18 +327,72 @@ class CmdSetProtector(MuxCommand):
             caller.msg("Add what protector?")
             return
 
+        if not inherits_from(room, settings.BASE_ROOM_TYPECLASS):
+                caller.msg("Not a valid room.")
+                return
+    
+        if not room.db.protector:
+            room.db.protector = []
+
         #accept 'staff' as a value. Staff over-rides other protectors.
         if args == "staff" or args == "Staff":
-            room.db.protector = "Staff"
+            room.db.protector.append("Staff")
+            caller.msg("Set this room to staff-protected.")
             return
 
+        #is the assigned thing a valid group? if not a group, then player?
 
-        #todo - is this location a viable room?
+        protector_here = self.caller.search(args, global_search=True)
+        if not protector_here:
+            caller.msg("No player or group found by that name.")
+            return
+        if inherits_from(protector_here, settings.BASE_CHARACTER_TYPECLASS):
+            #we have a character, so add that
+            room.db.protector.append(args)
+            caller.msg("Added %s to this location's Protectors." % args)
+            return
 
-        #todo - is the assigned thing a valid group? if not a group, then player?
+        # to do - group search doesn't work yet, this does not work. Fix it later
 
+        elif PlayerGroup.objects.filter(protector_here):
+            #it's a group, add that
+            room.db.protector.append(args)
+            caller.msg("Added the group %s to this location's Protectors." % args)
+            return
+        else:
+            caller.msg("No player or group found by that name.")
 
+class CmdClearProtector(MuxCommand):
+    """
+    Remove protectors from a room.
+    Staff only command.
 
-        room.db.protector.append = args
-        caller.msg("Added %s to this location's Protectors." % args)
-        return
+    Usage:
+        +rmprotector
+
+    This clears all protectors from the room you are in.
+    This is a full reset for now, so if you want to just remove one protector,
+    re-add the protectors you want to keep.
+    
+    """
+
+    key = "rmprotector"
+    aliases = "+rmprotector"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        room = caller.location
+
+        #am I staff? be sure.
+
+        if not caller.check_permstring("builders"):
+            caller.msg("Only staff can use this command. If you need to set a protector contact a staffer.")
+            return
+        else:
+            room.db.protector.clear()
+            caller.msg("Cleared all protectors from this location.")
+            return
