@@ -85,6 +85,13 @@ class CmdShowdown(Command):
         
         occupied = False
         caller= self.caller
+        room = caller.location
+
+        if room.db.protector == "Staff" and not caller.check_permstring("builders"):
+            caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
+            return
+        if room.db.protector:
+                caller.msg("This room has a protector! Make sure they were consulted. (+protector)")
         if self.switches or self.args:
             if "boss" in self.switches:
                 caller.msg("You start a boss fight in this location!")

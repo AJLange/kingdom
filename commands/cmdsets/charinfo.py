@@ -11,10 +11,14 @@ Other fun info options as needed
 
 
 from evennia import CmdSet
+from evennia import ObjectDB
 from commands.command import BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from math import floor
+from evennia.utils.search import object_search
+from evennia.utils.utils import inherits_from
+from django.conf import settings
 
 
 class CmdFinger(BaseCommand):
@@ -49,10 +53,17 @@ class CmdFinger(BaseCommand):
         # todo- match on alias 
         char_string = self.args.strip()
         char = self.caller.search(char_string, global_search=True)
+
+        #should validate if this is a character
         
         if not char:
             self.caller.msg("Character not found.")
             return
+        
+        if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+            self.caller.msg("Character not found.")
+            return
+
         try:
             name = char.name
             gender, type, quote, profile, game, function, specialties = char.get_finger()
@@ -104,6 +115,9 @@ class CmdEFinger(BaseCommand):
         char_string = self.args.strip()
         char = self.caller.search(char_string, global_search=True)
         if not char:
+            self.caller.msg("Character not found.")
+            return
+        if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
             self.caller.msg("Character not found.")
             return
         try:
@@ -213,6 +227,11 @@ class CmdOOCFinger(MuxCommand):
             char = self.caller.search(char_string, global_search=True)
         if not char:
             caller.msg("Character not found.")
+            return
+
+        #is it a character? 
+        if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+            self.caller.msg("Character not found.")
             return
         try:
             # build the string for ooc finger
@@ -373,10 +392,27 @@ class CmdSheet(BaseCommand):
         def func(self):
             """implements the actual functionality"""
             caller = self.caller
-            name = caller.name
-            types, size, cap, speed, weakness, resistance, elements, strength = caller.get_statobjs()
-            pow, dex, ten, cun, edu, chr, aur = caller.get_stats()
-            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= caller.get_skills()
+
+            # if I'm staff, I can look at other character's sheets
+
+            if self.args:
+                if not caller.check_permstring("builders"):
+                    caller.msg("Only staff can check other player's stats. stats to see your own stats.")
+                    return
+                else:
+                    name = self.args.strip()
+                    char = caller.search(name, global_search=True) 
+                    if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                        self.caller.msg("Character not found.")
+                        return
+
+            else:
+                name = caller.name
+                char = caller
+
+            types, size, cap, speed, weakness, resistance, elements, strength = char.get_statobjs()
+            pow, dex, ten, cun, edu, chr, aur = char.get_stats()
+            discern, aim, athletics, force, mechanics, medicine, computer, stealth, heist, convince, presence, arcana= char.get_skills()
             border = "________________________________________________________________________________"
             line1 = "Name: %s" % (name)
             line2 = "Power Types: %s" % (types)
@@ -391,6 +427,9 @@ class CmdSheet(BaseCommand):
             sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
+
+
+
 
 class CmdCookie(MuxCommand):
 

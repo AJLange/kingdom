@@ -472,6 +472,7 @@ class CmdSequenceStart(MuxCommand):
 
     def func(self):
         caller = self.caller
+        room = caller.location
 
         if not self.switches:
             caller.msg("You must add a switch, like '+sequence/start' or '+sequence/stop'.")
@@ -480,7 +481,13 @@ class CmdSequenceStart(MuxCommand):
         #this is from the event code, make it actually do the thing at a later time.
         # if the room has a protector, remind the player to check that.
 
+        if room.db.protector== "Staff" and not not caller.check_permstring("builders"):
+            caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
+            return
+
         elif "start" in self.switches:
+            if room.db.protector:
+                caller.msg("This room has a protector! Make sure they were consulted. (+protector)")
             # Make sure the current room doesn't already have an active event, and otherwise mark it
             if caller.location.db.active_event:
                 caller.msg("There is currently an active event running in this room already.")

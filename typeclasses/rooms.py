@@ -44,7 +44,7 @@ class Room(DefaultRoom):
     properties and methods available on all Objects.
     """
     def at_object_creation(self):
-        self.db.protector = None
+        self.db.protector = []
 
     def at_say(
         self,

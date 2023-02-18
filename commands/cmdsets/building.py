@@ -17,6 +17,7 @@ from typeclasses.rooms import Room
 from evennia.commands.default.muxcommand import MuxCommand
 from typeclasses.cities import City
 from typeclasses.cities import PersonalRoom
+from world.groups.models import PlayerGroup
 
 
 '''
@@ -64,16 +65,22 @@ class CmdMakeCity(MuxCommand):
 
         if "=" in self.args:
             cityname, enterroom = self.args.rsplit("=", 1)
+            enterroom_valid = self.caller.search(enterroom, global_search=True)
+
+            #should validate if this is a room
+
+            if not enterroom_valid == ObjectDB.objects.filter(db_typeclass_path__contains="Room"):
+                caller.msg("Not a valid room.")
+                return
+
             city = create_object("cities.City",key=cityname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
             '''
             link entry room to city created
             '''
             try:
+                
                 city.db.entry = enterroom
             except:
-                '''
-                to-do- this currently doesn't search for a valid room so it won't error.
-                '''
                 caller.msg("Can't find a room called %s." % enterroom)
             caller.msg("Created the city: %s" % cityname)
 
@@ -287,17 +294,30 @@ class CmdSetProtector(MuxCommand):
         """Implements command"""
         caller = self.caller
         args = self.args
+        room = caller.location
 
-        #todo: am I staff? be sure.
+        #am I staff? be sure.
+
+        if not caller.check_permstring("builders"):
+            caller.msg("Only staff can use this command. If you need to set a protector contact a staffer.")
+            return
 
         if not args:
             caller.msg("Add what protector?")
             return
 
+        #accept 'staff' as a value. Staff over-rides other protectors.
+        if args == "staff" or args == "Staff":
+            room.db.protector = "Staff"
+            return
+
 
         #todo - is this location a viable room?
-        #todo - don't assign, append to list.
+
         #todo - is the assigned thing a valid group? if not a group, then player?
-        #todo also accept 'staff' as a value
-        caller.location.db.protector = args
+
+
+
+        room.db.protector.append = args
+        caller.msg("Added %s to this location's Protectors." % args)
         return
