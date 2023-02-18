@@ -487,7 +487,7 @@ class CmdSequenceStart(MuxCommand):
 
         elif "start" in self.switches:
             if room.db.protector:
-                caller.msg("This room has a protector! Make sure they were consulted. (+protector)")
+                caller.msg("This room has a protector set, so make sure they were alerted to your scene happening here (+protector).")
             # Make sure the current room doesn't already have an active event, and otherwise mark it
             if caller.location.db.active_event:
                 caller.msg("There is currently an active event running in this room already.")

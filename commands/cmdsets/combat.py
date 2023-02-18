@@ -91,7 +91,7 @@ class CmdShowdown(Command):
             caller.msg("You can't start a showdown here - it's protected by staff. Ask staff about using this room.")
             return
         if room.db.protector:
-                caller.msg("This room has a protector! Make sure they were consulted. (+protector)")
+                caller.msg("This room has a +protector set, so make sure they were consulted about your combat if necessary.")
         if self.switches or self.args:
             if "boss" in self.switches:
                 caller.msg("You start a boss fight in this location!")
@@ -194,13 +194,12 @@ class CmdRoll(Command):
     Usage:
        roll <number from 1-100>
 
-    This will choose a random integer, depending on the 
-    size of the die you choose to roll. This is a purely 
-    random choice to be used for arbitrary decision making.
+    This will choose a random integer, depending on the size of the die you 
+    choose to roll. This is a purely random choice to be used for arbitrary 
+    decision making.
 
-    Rolling a die other than 1d10 is not an official game 
-    mechanic or part of the combat system, but can sometimes
-    be useful.
+    Rolling a die other than 1d10 is not an official game mechanic or part of
+    the combat system, but can sometimes be useful.
 
     """
     

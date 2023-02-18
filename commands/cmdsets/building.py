@@ -177,6 +177,57 @@ class CmdPlotroom(MuxCommand):
         #doesn't work yet.
 
 
+class CmdMakePrivateRoom(MuxCommand):
+    """
+    
+    To dig out a private room object.
+
+    Usage:
+       construct <name of room>
+
+    This creates an object, and a room inside that object.
+    The room object is owned by you and can be picked up and moved
+    around only by the original creator.
+
+    """
+
+    key = "construct"
+    aliases = "+construct"
+    help_category = "Building"
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        '''
+        do I have build permissions? if so, remove build quota.
+        '''
+        if not caller.check_permstring("builders"):
+            caller.db.roomquota = caller.db.roomquota -1
+
+        if caller.db.roomquota < 1:
+            caller.msg("Sorry, you are out of private room quota. +demolish an existing room to proceed.")
+            return
+
+        if not self.args:
+            caller.msg("Usage: construct <Name of room>")
+            return
+
+            #should validate if this is a room
+        roomname = self.args
+        enterroom = "create a room"
+        p_room = create_object("cities.PersonalRoom",key=roomname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+        '''
+        link entry room to city created
+        '''
+        try:
+            p_room.db.entry = enterroom
+        except:
+            caller.msg("Can't connect the room %s." % enterroom)
+            return
+        caller.msg("Created the Private Room: %s" % p_room)
+
+        return
+
 
 class CmdLockRoom(MuxCommand):
     """
@@ -185,17 +236,16 @@ class CmdLockRoom(MuxCommand):
     Usage:
         +lock 
 
-    When you are standing in a room you own, you can use
-    +lock to prevent other people from entering the room.
-    This is for if you need privacy for whatever reason.
+    When you are standing in a room you own, you can use +lock to prevent 
+    other people from entering the room. This is for if you need privacy 
+    for whatever reason.
 
-    +lock does not prevent players from leaving your private
-    room. You cannot +lock someone in. It prevents entrance 
-    only. +lock will not lock the room owner out of their own
-    room. Just everyone else.
+    +lock does not prevent players from leaving your private room. You 
+    cannot +lock someone in. It prevents entrance only. +lock will not lock
+    the room owner out of their own room. Just everyone else.
 
-    +lock only works on private rooms you own, but does not
-    extend to rooms that you protect. (See help +protector)
+    +lock only works on private rooms you own.
+    It does not extend to rooms that you protect. (See help +protector)
 
     """
 
@@ -250,6 +300,128 @@ class CmdUnLockRoom(MuxCommand):
                 # I can now move freely into this room.
             else:
                 caller.msg("This room is already unlocked.")
+
+
+class CmdMyRooms(MuxCommand):
+    """
+    
+    To find all rooms owned and protected by me.
+
+    Usage:
+       myrooms
+
+    This gives you a list of all rooms owned by you (private rooms)
+    and all rooms protected by you.
+
+    It does not list rooms protected by your group.
+
+    See also
+    help construct
+    help demolish
+
+    """
+
+    key = "myrooms"
+    aliases = "+myrooms"
+    help_category = "Building"
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        '''
+        todo - the rest of the command
+        '''
+
+        return
+
+
+class CmdDestroyPrivateRoom(MuxCommand):
+    """
+    
+    To dig out a private room object.
+
+    Usage:
+       demolish <name of room>
+
+    This will destroy a private room object that is controlled by you.
+    This command cannot be reversed. Be sure you've taken any descs 
+    you want to save before destroying your object.
+
+    """
+
+    key = "demolish"
+    aliases = "+demolish"
+    help_category = "Building"
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        '''
+        do I have build permissions?
+        '''
+        if not caller.check_permstring("builders"):
+            caller.msg("Only staff can use this command. For players, see help construct.")
+            return
+
+        if not self.args:
+            caller.msg("Usage: +makecity <Name>=<Landing Room>")
+            return
+
+        if "=" in self.args:
+            cityname, enterroom = self.args.rsplit("=", 1)
+            enterroom_valid = caller.search(enterroom, global_search=True)
+
+            #should validate if this is a room
+
+            if not inherits_from(enterroom_valid, settings.BASE_ROOM_TYPECLASS):
+                caller.msg("Not a valid room.")
+                return
+
+            city = create_object("cities.City",key=cityname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+            '''
+            link entry room to city created
+            '''
+            try:
+                
+                city.db.entry = enterroom
+            except:
+                caller.msg("Can't find a room called %s." % enterroom)
+            caller.msg("Created the city: %s" % cityname)
+
+        else: 
+            caller.msg("Usage: +makecity <Name>=<Landing Room>")
+            return
+
+
+class CmdCheckQuota(MuxCommand):
+    """
+    See my quota of personal rooms and items
+
+    Usage:
+        +quota
+
+    This returns your remaining quota for creation of personal 
+    rooms, items, and stages.
+
+    """
+
+    key = "quota"
+    aliases = "+quota"
+    locks = "cmd:all()"
+    help_category = "Building"
+
+    def func(self):
+        caller = self.caller
+        if caller.check_permstring("builders"):
+            caller.msg("Builders have unlimited quota.")
+            return
+        else:
+            room, craft, stage = caller.get_quotas()
+        
+            text = ("Your quota: \nPrivate rooms: %s/10 \nPersonal Objects: %s/10 \nStages: %s/10" % (room, craft, stage)) 
+            caller.msg(text)
+            return
+
 
 
 class CmdProtector(MuxCommand):

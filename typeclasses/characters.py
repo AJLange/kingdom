@@ -152,6 +152,9 @@ class Character(DefaultCharacter):
     def get_statobjs(self):
         return self.db.type, self.db.size, self.db.capabilities, self.db.speed, self.db.weakness, self.db.resistance, self.db.elements, self.db.strength
 
+    def get_quotas(self):
+        return self.db.roomquota, self.db.craftquota, self.db.stagequota
+    
     def get_numbered_name(self, count, looker, **kwargs):
         """
         simply overloading this method to squash pluralization of character objects

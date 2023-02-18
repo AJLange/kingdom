@@ -539,10 +539,15 @@ class CmdEnterCity(MuxCommand):
             caller.location.msg_contents(emit_string, from_obj=caller)
             self.caller.move_to(entry)
 
-        elif isinstance(destination, PersonalRoom):
-            #todo - check to see if this room is unlocked before trying to enter.
+        elif isinstance(destination, PersonalRoom):            
+            #check to see if i own this room
+            #check to see if this room is unlocked before trying to enter.
             entry = (destination.db.entry)
             entry = Room.objects.get(db_key__startswith=entry)
+            if not caller.check_permstring("edit:id(%i)" % caller.id):
+                if destination.db.locked:
+                    caller.msg("That room is locked.")
+                    return
             caller.msg("You enter.")
             emit_string = "%s is entering %s." % (caller.name, destination)
             caller.location.msg_contents(emit_string, from_obj=caller)
