@@ -401,6 +401,7 @@ class CmdSheet(BaseCommand):
                     return
                 else:
                     name = self.args.strip()
+                    name = name.title()
                     char = caller.search(name, global_search=True) 
                     if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
                         self.caller.msg("Character not found.")
@@ -427,8 +428,6 @@ class CmdSheet(BaseCommand):
             sheetmsg = (border + "\n\n" + line1 + "\n" + line2 + "\n" + line3 + "\n" + line4  + "\n" + line5 + "\n" + line6 + "\n" + line7 + "\n" + line8 + "\n\n" + border + "\n")
             caller.msg(sheetmsg)
             return
-
-
 
 
 class CmdCookie(MuxCommand):
@@ -461,10 +460,13 @@ class CmdCookie(MuxCommand):
         char_string = self.args.strip()
         char = self.caller.search(char_string, global_search=True)
 
-        #todo - make sure this is a valid player, but they don't have to be in the same room as me!
+        #make sure this is a valid player!
         if not char:
             self.caller.msg("Character not found.")
             return
+        if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+            self.caller.msg("Character not found.")
+            return    
         try:
             self.caller.msg(f"You give {char.name} a cookie!")
             char.db.cookiecount += 1
