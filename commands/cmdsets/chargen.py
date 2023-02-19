@@ -100,6 +100,7 @@ class CmdStartChargen(MuxCommand):
     
     key = "+chargen"
     help_category = "Chargen"
+    locks = "perm(Builder)"
 
     def func(self):
         caller = self.caller
@@ -174,7 +175,6 @@ class CmdWorkChar(Command):
     """
     key = "+workchar"
     aliases = ["workchar"]
-    locks = "call:not perm(nonpcs)"
     help_category = "Chargen"
     
     def func(self):

@@ -30,7 +30,7 @@ from commands import command
 from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, CmdCharDelete
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
-from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota
+from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
@@ -79,7 +79,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdDitch())
         self.add(CmdDesc())
         self.add(CmdEnterCity())
-        self.add(CmdLeaveCity())
+        #self.add(CmdLeaveCity())
         self.add(CmdPortal())
 
         self.add(CmdMultiDesc())
@@ -114,7 +114,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         #building and crafting
         self.add(CmdCheckQuota())
-        
+        self.add(CmdMakePrivateRoom())
+        self.add(CmdDestroyPrivateRoom())
 
         # in the future, any command below this line will be staff only.
 

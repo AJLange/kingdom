@@ -23,6 +23,7 @@ from evennia.utils.utils import (
 )
 
 
+
 '''
 eventually make use of this for special roomtypes
 https://www.evennia.com/docs/0.9.5/Zones.html
@@ -194,9 +195,6 @@ class PrivateRoom(Room):
         # private rooms have an owner, the owner is also the protector.
         # try getting the contents since the first person in should be owner.
         # this wont work long term prevents breaking for now.
-        owner = self.contents_get[0]
-        self.db.owner = owner
-        self.db.protector = owner
         self.db.locked = False
 
 

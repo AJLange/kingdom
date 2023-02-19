@@ -9,11 +9,9 @@ from evennia.objects.models import ObjectDB
 from evennia.commands.default.building import CmdTeleport
 from evennia.utils.evmenu import get_input
 from evennia.commands.default.muxcommand import MuxCommand
-from typeclasses.rooms import Room
+from typeclasses.rooms import Room, PrivateRoom
 from typeclasses.cities import City, PersonalRoom
 from evennia.utils.search import search_tag, search_object
-
-
 
 class CmdSummon(MuxCommand):
     """
@@ -543,7 +541,7 @@ class CmdEnterCity(MuxCommand):
             #check to see if i own this room
             #check to see if this room is unlocked before trying to enter.
             entry = (destination.db.entry)
-            entry = Room.objects.get(db_key__startswith=entry)
+            entry = PrivateRoom.objects.get(db_key__startswith=entry)
             if not caller.check_permstring("edit:id(%i)" % caller.id):
                 if destination.db.locked:
                     caller.msg("That room is locked.")
@@ -555,18 +553,15 @@ class CmdEnterCity(MuxCommand):
         else:
             caller.msg("That isn't an enterable location.")
 
-
 class CmdLeaveCity(MuxCommand):
     """
-    leaving the city.
+    Leaving a city object.
  
     Usage:
       leave
 
-    When inside a room that has a parent, you can exit 
-    the room with this.
-
-    Don't think this works yet as written.
+    When inside a room that is also an object, such as a private room,
+    leave using this.
 
     """
 

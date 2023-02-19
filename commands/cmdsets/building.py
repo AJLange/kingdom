@@ -13,11 +13,14 @@ import re
 from evennia import ObjectDB, AccountDB
 from evennia import default_cmds, create_object
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
+from evennia.commands.default.building import CmdDig
 from typeclasses.rooms import Room
+from evennia import Command, CmdSet
 from evennia.commands.default.muxcommand import MuxCommand
 from django.conf import settings
 from typeclasses.cities import City
 from typeclasses.cities import PersonalRoom
+from typeclasses.rooms import PrivateRoom
 from world.groups.models import PlayerGroup
 
 
@@ -49,6 +52,7 @@ class CmdMakeCity(MuxCommand):
     key = "makecity"
     aliases = "+makecity"
     help_category = "Building"
+    locks = "perm(Builder))"
 
     def func(self):
         """Implements command"""
@@ -116,7 +120,7 @@ class CmdLinkTeleport(MuxCommand):
 
     key = "portalgrid"
     aliases = "+portalgrid"
-    locks = "cmd:all()"
+    locks = "perm(Builder))"
     help_category = "Building"
 
     def func(self):
@@ -194,6 +198,13 @@ class CmdMakePrivateRoom(MuxCommand):
     key = "construct"
     aliases = "+construct"
     help_category = "Building"
+    locks = "cmd:all()"
+
+    new_room_lockstring = (
+        "control:id({id}) or perm(Admin); "
+        "delete:id({id}) or perm(Admin); "
+        "edit:id({id}) or perm(Admin)"
+    )
 
     def func(self):
         """Implements command"""
@@ -214,20 +225,50 @@ class CmdMakePrivateRoom(MuxCommand):
 
             #should validate if this is a room
         roomname = self.args
-        enterroom = "create a room"
+        
         p_room = create_object("cities.PersonalRoom",key=roomname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
         '''
         link entry room to city created
         '''
+        # Create the new room
+
+        new_room = create.create_object(PrivateRoom, roomname, report_to=caller)
+        lockstring = self.new_room_lockstring.format(id=caller.id)
+        new_room.locks.add(lockstring)
+        new_room.db.protector = []
+        new_room.db.protector.append(caller)
+        new_room.db.owner = caller
+        
+        # create an exit from this room
+
+
         try:
-            p_room.db.entry = enterroom
+            p_room.db.entry = new_room
         except:
-            caller.msg("Can't connect the room %s." % enterroom)
+            caller.msg("Can't connect the room %s." % new_room)
             return
         caller.msg("Created the Private Room: %s" % p_room)
+        
 
         return
 
+class CmdDescCraft(MuxCommand):
+    """
+    Desc an object that I control.
+
+    Usage:
+        odesc
+
+    Use odesc, or objectdesc, to desc an object you own. This could also
+    be the outside of a private room.
+
+    """
+
+    key = "odesc"
+    aliases = "+odesc"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
 
 class CmdLockRoom(MuxCommand):
     """
@@ -268,7 +309,6 @@ class CmdLockRoom(MuxCommand):
             else:
                 caller.msg("This room is already locked.")
 
-        ''' to add: I can always enter my own private room even if it's locked'''
 
 
 class CmdUnLockRoom(MuxCommand):
@@ -324,6 +364,7 @@ class CmdMyRooms(MuxCommand):
     key = "myrooms"
     aliases = "+myrooms"
     help_category = "Building"
+    locks = "cmd:all()"
 
     def func(self):
         """Implements command"""
@@ -351,46 +392,44 @@ class CmdDestroyPrivateRoom(MuxCommand):
 
     key = "demolish"
     aliases = "+demolish"
+    locks = "cmd:all()"
     help_category = "Building"
 
     def func(self):
-        """Implements command"""
         caller = self.caller
-        '''
-        do I have build permissions?
-        '''
-        if not caller.check_permstring("builders"):
-            caller.msg("Only staff can use this command. For players, see help construct.")
+        room = self.args
+
+        if not room:
+            caller.msg("Demolish what?")
             return
 
-        if not self.args:
-            caller.msg("Usage: +makecity <Name>=<Landing Room>")
+        valid_room = ObjectDB.objects.object_search(room, typeclass=PersonalRoom)
+        room_object = ObjectDB.objects.object_search(room, typeclass=PrivateRoom)
+
+        if not valid_room:
+            caller.msg("No such personal room was found.")
             return
+        else:
+            
+            had_exits = hasattr(valid_room, "exits") and valid_room.exits
+            had_objs = hasattr(valid_room, "contents") and any(
+                    obj
+                    for obj in valid_room.contents
+                    if not (hasattr(obj, "exits") and obj not in valid_room.exits)
+                )
 
-        if "=" in self.args:
-            cityname, enterroom = self.args.rsplit("=", 1)
-            enterroom_valid = caller.search(enterroom, global_search=True)
-
-            #should validate if this is a room
-
-            if not inherits_from(enterroom_valid, settings.BASE_ROOM_TYPECLASS):
-                caller.msg("Not a valid room.")
-                return
-
-            city = create_object("cities.City",key=cityname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+            string = "\n%s was destroyed." % room_object
+            if had_exits:
+                string += " Exits to and from %s were destroyed as well." % room_object
+            if had_objs:
+                string += " Objects inside %s were moved to their homes." % room_object
+            room_object.delete()
+            valid_room.delete()
             '''
-            link entry room to city created
+            room is gone, so restore build quota.
             '''
-            try:
-                
-                city.db.entry = enterroom
-            except:
-                caller.msg("Can't find a room called %s." % enterroom)
-            caller.msg("Created the city: %s" % cityname)
-
-        else: 
-            caller.msg("Usage: +makecity <Name>=<Landing Room>")
-            return
+            if not caller.check_permstring("builders"):
+                caller.db.roomquota = caller.db.roomquota +1
 
 
 class CmdCheckQuota(MuxCommand):
@@ -421,8 +460,6 @@ class CmdCheckQuota(MuxCommand):
             text = ("Your quota: \nPrivate rooms: %s/10 \nPersonal Objects: %s/10 \nStages: %s/10" % (room, craft, stage)) 
             caller.msg(text)
             return
-
-
 
 class CmdProtector(MuxCommand):
     """
@@ -479,7 +516,7 @@ class CmdSetProtector(MuxCommand):
 
     key = "setprotector"
     aliases = "+setprotector"
-    locks = "cmd:all()"
+    locks = "perm(Builder))"
     help_category = "Building"
     
 
@@ -550,7 +587,7 @@ class CmdClearProtector(MuxCommand):
 
     key = "rmprotector"
     aliases = "+rmprotector"
-    locks = "cmd:all()"
+    locks = "perm(Builder))"
     help_category = "Building"
     
 
