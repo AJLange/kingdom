@@ -252,41 +252,6 @@ class CmdKeyring(MuxCommand):
         key_list = caller.held_keys.all()
         caller.msg("Keys: %s" % ", ".join(str(ob) for ob in key_list))
 
-class CmdLockObject(MuxCommand):
-    """
-    Locks or unlocks an exit or container
-
-    Usage:
-        lock <object>
-        unlock <object>
-
-    Locks or unlocks an object for which you have a key.
-    """
-
-    key = "+lock"
-    aliases = ["lock", "unlock", "+unlock"]
-    locks = "cmd:all()"
-    help_category = "General"
-
-    def func(self):
-        """Executes lock/unlock command"""
-        caller = self.caller
-        verb = self.cmdstring.lstrip("+")
-        obj = caller.search(self.args)
-        if not obj:
-            return
-        if hasattr(obj, "lock_exit"):
-            if verb == "lock":
-                obj.lock_exit(caller)
-            else:
-                obj.unlock_exit(caller)
-            return
-        try:
-            lock_method = getattr(obj, verb)
-            lock_method(caller)
-        except AttributeError:
-            self.msg("You cannot %s %s." % (verb, obj))
-            return
 
 
 class CmdTidyUp(MuxCommand):
@@ -542,8 +507,8 @@ class CmdEnterCity(MuxCommand):
             #check to see if this room is unlocked before trying to enter.
             entry = (destination.db.entry)
             entry = PrivateRoom.objects.get(db_key__startswith=entry)
-            if not caller.check_permstring("edit:id(%i)" % caller.id):
-                if destination.db.locked:
+            if not entry.db.owner == caller:
+                if entry.db.locked:
                     caller.msg("That room is locked.")
                     return
             caller.msg("You enter.")

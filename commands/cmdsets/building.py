@@ -306,6 +306,7 @@ class CmdLockRoom(MuxCommand):
         if here.db.owner == caller:
             if here.db.locked == False:
                 here.db.locked = True
+                caller.msg("Locked this room.")
                 # find the exit and make sure it doesn't work
             else:
                 caller.msg("This room is already locked.")
@@ -338,6 +339,7 @@ class CmdUnLockRoom(MuxCommand):
         if here.db.owner == caller:
             if here.db.locked == True:
                 here.db.locked = False
+                caller.msg("Unlocked this room.")
                 # I can now move freely into this room.
             else:
                 caller.msg("This room is already unlocked.")
