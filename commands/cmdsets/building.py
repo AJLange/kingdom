@@ -10,10 +10,10 @@ These commands are locked to staff and builders only.
 from evennia.server.sessionhandler import SESSIONS
 import time
 import re
-from evennia import ObjectDB, AccountDB
+from evennia import ObjectDB
 from evennia import default_cmds, create_object
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
-from evennia.commands.default.building import CmdDig
+
 from typeclasses.rooms import Room
 from evennia import Command, CmdSet
 from evennia.commands.default.muxcommand import MuxCommand
@@ -22,6 +22,7 @@ from typeclasses.cities import City
 from typeclasses.cities import PersonalRoom
 from typeclasses.rooms import PrivateRoom
 from world.groups.models import PlayerGroup
+
 
 
 '''
@@ -395,36 +396,51 @@ class CmdDestroyPrivateRoom(MuxCommand):
     locks = "cmd:all()"
     help_category = "Building"
 
+    #todo - confirm, do you really want to do this?
+
     def func(self):
         caller = self.caller
         room = self.args
+        delete = True
 
         if not room:
             caller.msg("Demolish what?")
+            delete = False
             return
 
-        valid_room = ObjectDB.objects.object_search(room, typeclass=PersonalRoom)
-        room_object = ObjectDB.objects.object_search(room, typeclass=PrivateRoom)
+        valid_room = ObjectDB.objects.object_search(room, typeclass=PrivateRoom)
+        room_object = ObjectDB.objects.object_search(room, typeclass=PersonalRoom)
+        #test
 
+        if not room_object:
+            caller.msg("No such personal room was found.")
+            return
         if not valid_room:
             caller.msg("No such personal room was found.")
             return
+        if len(valid_room) > 1 or len(room_object) > 1:
+            caller.msg("Multiple matches, only deleting one.")
         else:
-            
-            had_exits = hasattr(valid_room, "exits") and valid_room.exits
-            had_objs = hasattr(valid_room, "contents") and any(
+            had_exits = hasattr(valid_room[0], "exits") and valid_room[0].exits
+            had_objs = hasattr(valid_room[0], "contents") and any(
                     obj
-                    for obj in valid_room.contents
-                    if not (hasattr(obj, "exits") and obj not in valid_room.exits)
+                    for obj in valid_room[0].contents
+                    if not (hasattr(obj, "exits") and obj not in valid_room[0].exits)
                 )
 
-            string = "\n%s was destroyed." % room_object
+            string = "\n%s was destroyed." % room_object[0]
             if had_exits:
-                string += " Exits to and from %s were destroyed as well." % room_object
+                string += " Exits to and from %s were destroyed as well." % room_object[0]
             if had_objs:
-                string += " Objects inside %s were moved to their homes." % room_object
-            room_object.delete()
-            valid_room.delete()
+                string += " Objects inside %s were moved to their homes." % room_object[0]
+            
+            try:
+                valid_room[0].delete()
+                room_object[0].delete()
+                caller.msg(string)
+            except:
+                caller.msg("Can't delete those objects.")
+                return
             '''
             room is gone, so restore build quota.
             '''
