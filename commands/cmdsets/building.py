@@ -13,7 +13,7 @@ import re
 from evennia import ObjectDB
 from evennia import default_cmds, create_object
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
-
+from server.utils import sub_old_ansi
 from typeclasses.rooms import Room
 from evennia import Command, CmdSet
 from evennia.commands.default.muxcommand import MuxCommand
@@ -240,15 +240,33 @@ class CmdMakePrivateRoom(MuxCommand):
         new_room.db.protector.append(caller)
         new_room.db.owner = caller
         
-        # create an exit from this room
-
-
         try:
             p_room.db.entry = new_room
         except:
             caller.msg("Can't connect the room %s." % new_room)
             return
+
+        # create an exit from this room
+
+        exit_obj = create.create_object(
+                typeclass=settings.BASE_EXIT_TYPECLASS,
+                key="Exit <X>",
+                location=new_room,
+                aliases="x",
+                locks=lockstring,
+                report_to=caller,
+            )
+        if exit_obj:
+            # storing a destination is what makes it an exit!
+            exit_obj.destination = caller.location
+            
+            string = "Created new Exit from %s to %s." % (
+                    new_room.name,
+                    caller.location.name,
+                            )
+
         caller.msg("Created the Private Room: %s" % p_room)
+        caller.msg(string)
         
 
         return
@@ -258,10 +276,10 @@ class CmdDescCraft(MuxCommand):
     Desc an object that I control.
 
     Usage:
-        odesc
+        odesc <object>=<desc>
 
     Use odesc, or objectdesc, to desc an object you own. This could also
-    be the outside of a private room.
+    be the outside of a private room. To desc a room inside, see idesc.
 
     """
 
@@ -270,6 +288,46 @@ class CmdDescCraft(MuxCommand):
     locks = "cmd:all()"
     help_category = "Building"
     
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+
+class CmdDescInterior(MuxCommand):
+    """
+    Desc one of my private rooms.
+
+    Usage:
+        idesc <desc>
+
+    When using idesc, I'm descing the room I'm standing in, so no other
+    arguments are required. If this room does not belong to you, you cannot
+    redesc it.
+
+    """
+
+    key = "idesc"
+    aliases = "+idesc"
+    locks = "cmd:all()"
+    help_category = "Building"
+    
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        here = caller.location
+        id = caller.id
+        # this isn't a foolproof lock check, but works OK
+        if not here.db.owner == caller:
+            caller.msg("You don't have permission to edit this desc.")
+            return
+        else:
+            if not self.args:
+                caller.msg("Update the desc to what?")
+                return
+            else:
+                description = sub_old_ansi(self.args)
+                here.db.desc = ("\n" + description + "\n")
+                caller.msg("You update the desc of: %s" % here)
+
 
 class CmdLockRoom(MuxCommand):
     """
@@ -310,7 +368,8 @@ class CmdLockRoom(MuxCommand):
                 # find the exit and make sure it doesn't work
             else:
                 caller.msg("This room is already locked.")
-
+        else:
+            caller.msg("Can't lock someone else's room!")
 
 
 class CmdUnLockRoom(MuxCommand):
@@ -343,6 +402,8 @@ class CmdUnLockRoom(MuxCommand):
                 # I can now move freely into this room.
             else:
                 caller.msg("This room is already unlocked.")
+        else:
+            caller.msg("Can't lock someone else's room!")
 
 
 class CmdMyRooms(MuxCommand):
@@ -374,8 +435,13 @@ class CmdMyRooms(MuxCommand):
         caller = self.caller
         '''
         todo - the rest of the command
-        '''
+        first, search database for private rooms owned by me
+        then search for the locations of the objects that match that
 
+        then search database for non private rooms protected by me
+        then generate a string to show all.
+        
+        '''
         return
 
 

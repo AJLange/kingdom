@@ -31,7 +31,7 @@ from commands.default.account import CmdOOC, CmdOOCLook, CmdWho, CmdCharCreate, 
 from commands.cmdsets.combat import CmdRoll, CmdGMRoll, CmdFlip, CmdRollSet, CmdRollSkill, CmdTaunt, CmdPersuade, CmdIntimidate
 from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
-from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom
+from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior, CmdDescCraft
 
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
@@ -120,6 +120,8 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdDestroyPrivateRoom())
         self.add(CmdLockRoom())
         self.add(CmdUnLockRoom())
+        self.add(CmdDescInterior())
+        self.add(CmdDescCraft())
 
         # any command below this line is only available to staff.
 
