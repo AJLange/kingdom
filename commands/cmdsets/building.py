@@ -486,6 +486,12 @@ class CmdDestroyPrivateRoom(MuxCommand):
         if not valid_room:
             caller.msg("No such personal room was found.")
             return
+
+        if not caller.check_permstring("builders"): 
+            if valid_room[0].db.owner != caller:
+                caller.msg("You can't demolish someone else's room.")
+                return
+
         if len(valid_room) > 1 or len(room_object) > 1:
             caller.msg("Multiple matches, only deleting one.")
         else:

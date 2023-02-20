@@ -23,6 +23,8 @@ class City(Object):
 
         self.db.desc = "Default City Description."
         self.db.entry = "City Landing"
+        self.locks.add("get:false()")
+        self.db.get_err_msg = "You can't take that."
 
 
         
@@ -49,6 +51,7 @@ class FactionBase(City):
     
     def at_object_creation(self):
         self.db.desc = "Default Base Description."
+        
 
 
 class Warship(FactionBase):
@@ -77,6 +80,8 @@ class PersonalRoom(Object):
 
     def at_object_creation(self):
         self.db.desc = "This is a personal room."
+        self.locks.add("get:false()")
+        self.db.get_err_msg = "You can't take a room."
 
 
 class Stage(Object):
