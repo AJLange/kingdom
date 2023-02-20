@@ -6,7 +6,6 @@ Pose Order Tracker commands should also live here.
 
 
 """
-
 from math import floor
 #from typing import AwaitableGenerator
 from evennia.server.sessionhandler import SESSIONS
@@ -14,12 +13,11 @@ import time
 import re
 from evennia import ObjectDB, AccountDB
 from evennia import default_cmds
-from evennia.default_cmds import MuxCommand
+from evennia.commands.default.muxcommand import MuxCommand
 from evennia.utils import utils, create, evtable, make_iter, inherits_from, datetime_format
 from evennia.comms.models import Msg
 from world.scenes.models import Scene, LogEntry
 from typeclasses.rooms import Room
-from world.supplemental import *
 
 from datetime import datetime
 
@@ -144,16 +142,20 @@ def tailored_msg(caller, msg):
 
 class CmdPot(MuxCommand):
     """
-    View the pose tracker (pot). The pose tracker displays the name,
-    time connected, time idle, and time since last posed of every
-    character in the room, ordered starting with whomever posed
-    longest ago. Thus, during an ongoing scene, the person whose
-    turn it is to pose will appear at the top of the list.
+
+    View the pose tracker (pot). 
+    
+    Usage:
+      +pot
+    
+    The pose tracker displays the name, time connected, time idle, and 
+    time since last posed of every character in the room, ordered starting 
+    with whomever posed longest ago. Thus, during an ongoing scene, the 
+    person whose turn it is to pose will appear at the top of the list.
     Those who have not posed are listed below all those who have.
     To signify that you are leaving an ongoing scene, type +observe
     to reset your pose timer and move to the bottom (see "help observe").
-    Usage:
-      +pot
+
     """
 
     key = "+pot"
@@ -194,9 +196,14 @@ class CmdPot(MuxCommand):
             delta_conn = time.time() - session.conn_time
             delta_pose_time = time.time() - puppet.get_pose_time()
 
-            if delta_pose_time > 3600:
+            '''
+            SCS timed out sessions longer than an hour.
+            M3 can sometimes be slower, so I'll give you 2.
+            '''
+            if delta_pose_time > 7200:
                 old_session_list.append(session)
                 continue
+            
 
             if puppet.location == self.caller.character.location:
                 # logic for setting up pose table
@@ -228,20 +235,24 @@ class CmdPot(MuxCommand):
 
 class CmdObserve(MuxCommand):
     """
-        Enter observer mode. This signifies that you are observing,
-        and not participating, in a scene. In +pot, you will be
-        displayed at the bottom of the list with an "(O)" before
-        your name. If you have previously posed, your pose timer
-        will also be reset.
+        Enter observer mode. 
+        
+        Usage:
+          +observe
+
+        This signifies that you are observing, and not participating, 
+        in a scene. In +pot, you will be displayed at the bottom of 
+        the list with an "(O)" before your name. If you have previously 
+        posed, your pose timer will also be reset.
+
         If your character is leaving an ongoing scene, +observe
         will help to  prevent anyone accidentally waiting on a pose
         from you.
-        Usage:
-          +observe
+        
     """
 
-    key = "+observe"
-    aliases = ["observe"]
+    key = "observe"
+    aliases = ["+observe"]
     locks = "cmd:all()"
 
     def func(self):

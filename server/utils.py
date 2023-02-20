@@ -290,6 +290,31 @@ def fix_broken_attributes(broken_object):
             print("Error for attr %s: %s" % (attr.key, err))
             continue
 
+def color_check(val):
+    # this quick utility checks to see if someone has selected a correct color code
+    # is it an integer?
+    try:
+        val = int(val)
+        if val > 0 and val < 555:
+            return "xterm"
+        else:
+            return "invalid"
+    except ValueError:
+        # it's a string
+        if len(val) > 2:
+            return "invalid"
+        else:
+            if val[0] == "=":
+                return "xterm"
+            if len(val) > 1:
+                return "invalid"
+            else:
+                val = val.lower()
+                if val == "r" or val == "g" or val == "y" or val == "b" or val == "m" or val == "c" or val == "w":
+                    return "ansi"
+                else:
+                    return "invalid"
+
 
 def list_to_string(inlist, endsep="and", addquote=False):
     """

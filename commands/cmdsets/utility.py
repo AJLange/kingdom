@@ -5,7 +5,7 @@ from evennia import CmdSet
 from six import string_types
 from commands.command import BaseCommand, Command
 from evennia.commands.default.muxcommand import MuxCommand
-from server.utils import sub_old_ansi
+from server.utils import sub_old_ansi, color_check
 from evennia.accounts.models import AccountDB
 from commands.cmdsets import places
 from evennia.server.sessionhandler import SESSIONS
@@ -41,8 +41,8 @@ def prune_sessions(session_list):
 
     return pruned_sessions
 
-#who from SCS. for now, this also is aliased to 'where', but that will change later.
 
+#who from SCS. for now, this also is aliased to 'where', but that will change later.
 
 class CmdWho(MuxCommand):
     """
@@ -349,4 +349,99 @@ class CmdWarning(MuxCommand):
             return
         except:
             caller.msg("Syntax error. +warning <boss>=<second line>")
+
+
+class CmdHighlight(MuxCommand):
+    """
+    Highlight a word that shows up in poses.
+
+    Usage:
+      highlight
+      highlight/add <word>=<color>
+      highlight/del <word>
+
+    The first command displays all words and their corresponding color code
+    that you have set. To add words, use the +hightlight/add command with a  
+    color code (either single letter or 3-digit xterm code). To remove a name,
+    use +highlight/del <word> with the word typed exactly as it appears in 
+    +highlight. For your color code, please just enter the number or letter,
+    with no additional punctuation, eg:
+
+    highlight/add Mega Man=245
+
+    This command will highlight all occurrences of the given words in any 
+    pose that you see within a scene. 
+
+    To see a full list of colors, use either
+    color ansi
+    color xterm256
+
+    """
+
+    key = "highlight"
+    switch_options = ("add", "del")
+    aliases = ["+highlight"]
+
+    help_category = "General"
+
+
+    def func(self):
+        caller = self.caller
+        args = self.args
+        switches = self.switches
+        high_list = caller.db.highlightlist
+
+        errmsg = "Syntax error, see help highlight"
+        if not args and not switches:
+            if not high_list:
+                caller.msg("No highlighted words found.")
+                return
+            else:
+                msg_string = ("Highlighted words:\n")
+                for word, color in high_list:
+                    msg_string = msg_string +  "Word: |" + color + word + "|n Color: |" + color  + color + "|n\n"
+                caller.msg(msg_string)
+                return
+
+        if "add" in switches:
+            if not args:
+                caller.msg(errmsg)
+                return
+            if not high_list:
+                caller.db.highlightlist = []
+
+            high_str = args.split("=")
+            if len(high_str) == 1:
+                caller.msg("Syntax error, did you forget =?")
+                return
+
+            if color_check(high_str[1]) == "invalid":
+                caller.msg("Please use a valid color code.")
+                return
+            else:
+                high_list.append(high_str)
+                caller.msg(f"Added word |{high_str[1]}{high_str[0]}|n.")
+                return
+
+
+        if "del" in switches:
+            if not args:
+                caller.msg(errmsg)
+                return
+            else:
+                matched = False
+                check = 0
+                for word, color in high_list:
+                    if word == args:
+                        matched = True                        
+                        caller.msg(f"Deleted word pairing {high_list[check]}|n.")
+                        del high_list[check:check+1]
+                        check = check +1
+                        return
+                if not matched:
+                    caller.msg(f"{args} was not found.")
+                    return
+
+
+
 

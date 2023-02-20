@@ -12,6 +12,7 @@ from evennia.utils import utils, evtable
 from evennia.commands.default.general import CmdSay
 from evennia.commands.default.account import CmdOOC
 from commands.cmdsets import places
+#from commands.cmdsets import scenes
 from evennia.comms.models import TempMsg
 from evennia.server.sessionhandler import SESSIONS
 
@@ -224,7 +225,7 @@ class CmdEmit(MuxCommand):
         # right now this does not do anything with nospoof. add later in 
         # POT functionality.
 
-        if normal_emit:      
+        if normal_emit:
             try:
                 message = self.args
                 message = sub_old_ansi(message)
@@ -415,9 +416,6 @@ class CmdMegaSay(CmdSay):
         self.caller.location.msg_action(
             self.caller, pre_name_emit_string, options=options
         )
-
-
-
 
 
 class CmdPage(BaseCommand):
@@ -965,7 +963,8 @@ class CmdAside(MuxCommand):
     Pose Order Tracker (see help files for +pot), meaning your turn in 'line'
     is still preserved. Use this for corrections to typos, or small comments
     that slide between poses that your character would make. 
-    Please do not use +aside for large substantial poses that take your 'turn.'
+
+    Please do not use +aside for large substantial poses that take your turn.
     Nothing should be done in an aside that would imply a roll of the
     dice or full action.
 
@@ -973,11 +972,9 @@ class CmdAside(MuxCommand):
     """
 
     key = "aside"
-    switch_options = ("last", "list")
     aliases = ["+aside"]
 
     help_category = "Comms"
-    account_caller = True
 
     def func(self):
         """note to self, actually code this."""
