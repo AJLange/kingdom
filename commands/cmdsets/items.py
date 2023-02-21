@@ -1,6 +1,9 @@
 from evennia.commands.default.muxcommand import MuxCommand
+from evennia import default_cmds, create_object
+from evennia.utils import utils, create
 
 from typeclasses.objects import MObject
+from typeclasses.gear import Item
 
 
 class CmdCraft(MuxCommand):
@@ -25,23 +28,46 @@ class CmdCraft(MuxCommand):
     help_category = "Building"
     
 
+    
     def func(self):
         """Implements command"""
         caller = self.caller
-        args = self.args
-
-        if not args:
-            caller.msg("What do you want to craft?")
-            return
-
         '''
         check if I'm an admin. If I'm not admin, check and see if I have quota.
         '''
+        if not caller.check_permstring("builders"):
+            caller.db.craftquota = caller.db.craftquota -1
+        
+        #subtract from my available quota and make an object with no special properties.
 
-        ''' subtract from my available quota and make an object with no special
-        properties.
+        if caller.db.craftquota < 1:
+            caller.msg("Sorry, you are out of craft quota. +junk a craft to proceed.")
+            return
+
+        if not self.args:
+            caller.msg("Usage: craft <Name of item>")
+            return
+
+        iname = self.args
+        
+        p_item = create_object("gear.Item",key=iname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
         '''
+        link entry room to city created
+        '''
+        # Create the new room
 
+        new_obj = create.create_object(Item, iname, report_to=caller)
+        lockstring = self.new_obj_lockstring.format(id=caller.id)
+        new_obj.locks.add(lockstring)
+        new_obj.db.protector = []
+        new_obj.db.protector.append(caller)
+        new_obj.db.owner = caller
+        
+        try:
+            p_item.db.entry = new_obj
+        except:
+            caller.msg("Can't create %s." % new_obj)
+            return
 
 class CmdCraftDesc(MuxCommand):
     """
