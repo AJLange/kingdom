@@ -44,7 +44,7 @@ class CmdMakeStage(MuxCommand):
         makestage Dinosaur Tank
         makestage Dinosaur Tank = <stage desc>
 
-    A stage is an object that can be entered.
+    A stage is an object that can be 'joined.'
     It does not behave like a room; it simply shows a relative location 
     of players to ease in the creation of setpieces that may have 
     multiple sub-locations.
@@ -80,7 +80,6 @@ class CmdMakeStage(MuxCommand):
             caller.msg("Syntax: stage <name of stage>")
             return
 
-        ''' to do: the rest of the command '''
 
         if not caller.check_permstring("builders"):
             caller.db.stagequota = caller.db.stagequota -1
@@ -95,21 +94,22 @@ class CmdMakeStage(MuxCommand):
             caller.msg("Usage: makestage <Name of item>")
             return
 
-        iname = self.args
-        
-        new_obj = create_object("cities.Stage",key=iname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+        stagename, desc = args.split("=")
+        new_obj = create_object("cities.Stage",key=stagename,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
 
         lockstring = self.new_obj_lockstring.format(id=caller.id)
         new_obj.locks.add(lockstring)
         new_obj.db.owner = caller
+
+        if desc:
+            desc = sub_old_ansi(desc)
+            new_obj.db.desc = desc
         
         try:
             caller.msg("You created the stage %s." % str(new_obj))
         except:
             caller.msg("Can't create %s." % str(new_obj))
             return
-
-
 
 class CmdSetStage(MuxCommand):
     """
@@ -141,23 +141,33 @@ class CmdSetStage(MuxCommand):
             caller.msg("Syntax: stage <number>=<Desc>")
             return
 
-        ''' to do: the rest of the command '''
+        obj_desc = args.split("=")
+        if len(obj_desc) < 1:
+            caller.msg("Syntax error: use setstage <obj>=<desc>")
+            return
+        else:
+            description = sub_old_ansi(obj_desc[1])
+            obj = ObjectDB.objects.object_search(obj_desc[0], typeclass=Stage)
+            if not obj:
+                caller.msg("No object by that name was found.")
+                return
+            if not obj[0].db.owner == caller:
+                caller.msg("That object is not yours.")
+                return
+            obj[0].db.desc = ("\n" + description + "\n")
+            caller.msg("You update the desc of: %s" % str(obj[0]))
+
 
 class CmdClearStage(MuxCommand):
     """
     Clears away all the stages in the room which were made
     by you.
 
-    clearstage
-    
+    Usage:
+      clearstage
 
-    A stage is an object that can be entered.
-    It does not behave like a room; it simply shows a relative location 
-    of players to ease in the creation of setpieces that may have 
-    multiple sub-locations.
-
-    All poses done inside a stage append the name of the stage to the 
-    front of the pose, for ease of readability.
+    This is to be used when you are done with a scene that used
+    stages and want to clean up after yourself.
 
     """
 
@@ -172,9 +182,11 @@ class CmdClearStage(MuxCommand):
         caller = self.caller
         args = self.args
 
-        if not args:
-            caller.msg("Syntax: stage <name of stage>")
-            return
+        #for all items in location
+        #if the item is a stage
+        #and that stage is owned by the caller
+        #delete the item
+        #if the player is not a staffer, return a stagequota
 
 
 class CmdJoin(MuxCommand):
