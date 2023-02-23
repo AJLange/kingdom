@@ -74,6 +74,7 @@ class CmdMultiDesc(MuxCommand):
        +multidesc/view <name>
        +multidesc/del <name>
        +multidesc/list
+       +multidesc/all 
     
     Use the multidescer to describe yourself. 
 
@@ -86,10 +87,15 @@ class CmdMultiDesc(MuxCommand):
     +multidesc/view shows the desc before you wear it.
     +multidesc/del to delete the desc by that name.
 
+    +multidesc/all will list all your descs, and all the 
+    text of those descs. This is mostly useful if you are
+    about to drop a character and want to make sure your 
+    descs are preserved before the character is wiped clean.
+
     +mdesc is an alias for +multidesc and does the same thing.
 
-    This is just for descing yourself. To check objects and rooms you own,
-    use +build and +craft.
+    This is just for descing yourself. To desc objects and rooms you own,
+    use +odesc.
 
     To match a desc in your list to an armor form, see +armor.
 
@@ -97,7 +103,7 @@ class CmdMultiDesc(MuxCommand):
 
     key = "multidesc"
     aliases = ["+multidesc", "mdesc", "+mdesc"]
-    switch_options = ("list","store","set","view", "del", "add","delete")
+    switch_options = ("list","store","set","view", "del", "add","delete", "all")
     help_category = "Building"
 
     def func(self):
@@ -168,6 +174,13 @@ class CmdMultiDesc(MuxCommand):
                 caller.msg("|wCurrent desc:|n\n%s" % caller.db.desc)
             return
 
+        if "all" in self.switches:
+            caller.msg("All descs:")
+            desc_list = caller.db.multidesc
+            for mkey, desc in desc_list:
+                caller.msg("|wDecsription %s:|n\n%s\n" % (mkey, desc))
+            return
+
         if "del" in self.switches or "delete" in self.switches:
             if not args:
                 caller.msg("Usage: +multidesc/delete <name>")
@@ -191,9 +204,13 @@ class CmdMultiDesc(MuxCommand):
 
         else:
             try:
-                desc = self.args
-                desc = ("\n" + sub_old_ansi(desc) + "\n")
-                caller.db.desc = str(desc)
-                caller.msg("The description was set.")
+                if not args:
+                    caller.msg("No desc provided. Nothing changed.")
+                    return
+                else:
+                    desc = args
+                    desc = ("\n" + sub_old_ansi(desc) + "\n")
+                    caller.db.desc = str(desc)
+                    caller.msg("The description was set.")
             except:
                 caller.msg("Error in adding description. Check +help +multidesc.")

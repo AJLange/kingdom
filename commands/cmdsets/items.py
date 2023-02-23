@@ -203,6 +203,7 @@ class CmdSetQuota(MuxCommand):
     locks = "cmd:all()"
     help_category = "Building"
     locks = "perm(Builder))"
+    switch_options = ("craft","stage","room")
     
 
     def func(self):
