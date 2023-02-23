@@ -10,9 +10,13 @@ should hit the main room.
 from evennia.commands.default.muxcommand import MuxCommand
 from evennia.utils.utils import list_to_string
 from typeclasses.cities import Stage
+from evennia import default_cmds, create_object
+from evennia.utils import utils, create
+from server.utils import sub_old_ansi
+from evennia import ObjectDB
 
 
-'''
+
 def get_movement_message(verb, stage):
     """Returns the movement message for joining/leaving a stage"""
     if not stage or not stage.key:
@@ -22,7 +26,7 @@ def get_movement_message(verb, stage):
     if prefix.lower() not in ("the", "a", "an"):
         article = "the "
     return "You %s %s%s." % (verb, article, stage.key)
-'''
+
 
 # ------------------------------------------------------------
 # Commands defined for stages
@@ -32,27 +36,41 @@ def get_movement_message(verb, stage):
 class CmdMakeStage(MuxCommand):
     """
     Create a stage.
+
     Usage:
         makestage <name of stage>
+        makestage <name> = <desc>
         eg
         makestage Dinosaur Tank
+        makestage Dinosaur Tank = <stage desc>
 
     A stage is an object that can be entered.
     It does not behave like a room; it simply shows a relative location 
     of players to ease in the creation of setpieces that may have 
     multiple sub-locations.
 
+    Optionally, you can desc the stage when creating it, or use the 
+    setstage command to desc after the fact.
+
     All poses done inside a stage append the name of the stage to the 
     front of the pose, for ease of readability.
+
+    Stages are typically temporary, so use +clearstage to remove them
+    when you are done using them.
 
     """
 
     key = "makestage"
     alias = "+makestage"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Scenes"
     
-
+    new_obj_lockstring = (
+        "control:id({id}) or perm(Admin); "
+        "delete:id({id}) or perm(Admin); "
+        "edit:id({id}) or perm(Admin)"
+        )
+    
     def func(self):
         """Implements command"""
         caller = self.caller
@@ -64,28 +82,54 @@ class CmdMakeStage(MuxCommand):
 
         ''' to do: the rest of the command '''
 
+        if not caller.check_permstring("builders"):
+            caller.db.stagequota = caller.db.stagequota -1
+        
+        #subtract from my available quota and make an object with no special properties.
+
+        if caller.db.stagequota < 1:
+            caller.msg("Sorry, you can't make any more stages.")
+            return
+
+        if not self.args:
+            caller.msg("Usage: makestage <Name of item>")
+            return
+
+        iname = self.args
+        
+        new_obj = create_object("cities.Stage",key=iname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
+
+        lockstring = self.new_obj_lockstring.format(id=caller.id)
+        new_obj.locks.add(lockstring)
+        new_obj.db.owner = caller
+        
+        try:
+            caller.msg("You created the stage %s." % str(new_obj))
+        except:
+            caller.msg("Can't create %s." % str(new_obj))
+            return
+
 
 
 class CmdSetStage(MuxCommand):
     """
     Describe a stage.
 
-    setstage <number>=<Description> <name of stage>
-    eg
-    setstage 1=It's the Dinosaur Tank!
+    Usage:
+      setstage <name>=Description
+      eg
+      setstage Dinosaur Tank=It's the Dinosaur Tank!
 
-    Players might find it optionally useful to describe stages
-    but this is not implemented yet because I'm not sure how
-    much use it will actually see.
-
-    TBD.
+    Describe a stage. This description will be visible when
+    looking at the stage, or when entering it. Describing 
+    a stage is optional.
 
     """
 
     key = "setstage"
     alias = "+setstage"
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Scenes"
     
 
     def func(self):
@@ -108,20 +152,19 @@ class CmdClearStage(MuxCommand):
     
 
     A stage is an object that can be entered.
-    It does not behave like a room; it simply shows
-    a relative location of players to ease in the creation
-    of setpieces that may have multiple sub-locations.
+    It does not behave like a room; it simply shows a relative location 
+    of players to ease in the creation of setpieces that may have 
+    multiple sub-locations.
 
-    All poses done inside a stage append the name of the 
-    stage to the front of the pose, for ease of
-    readability.
+    All poses done inside a stage append the name of the stage to the 
+    front of the pose, for ease of readability.
 
     """
 
     key = "clearstage"
     aliases = ["+clearstage", "clearstages","+clearstages"]
     locks = "cmd:all()"
-    help_category = "Building"
+    help_category = "Scenes"
     
 
     def func(self):
@@ -132,8 +175,6 @@ class CmdClearStage(MuxCommand):
         if not args:
             caller.msg("Syntax: stage <name of stage>")
             return
-
-
 
 
 class CmdJoin(MuxCommand):
@@ -154,7 +195,7 @@ class CmdJoin(MuxCommand):
 
     key = "join"
     locks = "cmd:all()"
-    help_category = "Posing"
+    help_category = "Scenes"
 
     def func(self):
         """Implements command"""
@@ -212,7 +253,7 @@ class CmdListStages(MuxCommand):
     key = "stages"
     alias = "+stages"
     locks = "cmd:all()"
-    help_category = "Social"
+    help_category = "Scenes"
 
     def func(self):
         """Implements command"""
@@ -249,7 +290,7 @@ class CmdDepart(MuxCommand):
 
     key = "depart"
     locks = "cmd:all()"
-    help_category = "Social"
+    help_category = "Scenes"
 
     def func(self):
         """Implements command"""
@@ -284,7 +325,7 @@ class CmdStageMute(MuxCommand):
     key = "stagemute"
     alias= "+stagemute"
     locks = "cmd:all()"
-    help_category = "Social"
+    help_category = "Scenes"
     # characters used for poses/emits
     char_symbols = (";", ":", "|")
 

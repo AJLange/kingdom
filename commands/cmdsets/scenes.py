@@ -558,8 +558,8 @@ class CmdAutolog(MuxCommand):
 
     """
 
-    key = "+sequence"
-    aliases = ["sequence"]
+    key = "+log"
+    aliases = ["log"]
     locks = "cmd:all()"
 
     def func(self):
