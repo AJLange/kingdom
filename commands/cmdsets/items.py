@@ -1,9 +1,11 @@
 from evennia.commands.default.muxcommand import MuxCommand
 from evennia import default_cmds, create_object
 from evennia.utils import utils, create
-
+from server.utils import sub_old_ansi
 from typeclasses.objects import MObject
 from typeclasses.gear import Item
+from typeclasses.cities import PersonalRoom
+from evennia import ObjectDB
 
 
 class CmdCraft(MuxCommand):
@@ -24,10 +26,15 @@ class CmdCraft(MuxCommand):
     """
 
     key = "craft"
+    aliases = "+craft"
     locks = "cmd:all()"
     help_category = "Building"
     
-
+    new_obj_lockstring = (
+        "control:id({id}) or perm(Admin); "
+        "delete:id({id}) or perm(Admin); "
+        "edit:id({id}) or perm(Admin)"
+        )
     
     def func(self):
         """Implements command"""
@@ -50,26 +57,20 @@ class CmdCraft(MuxCommand):
 
         iname = self.args
         
-        p_item = create_object("gear.Item",key=iname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
-        '''
-        link entry room to city created
-        '''
-        # Create the new room
+        
+        new_obj = create_object("gear.Item",key=iname,location=caller.location,locks="edit:id(%i) and perm(Builders);call:false()" % caller.id)
 
-        new_obj = create.create_object(Item, iname, report_to=caller)
         lockstring = self.new_obj_lockstring.format(id=caller.id)
         new_obj.locks.add(lockstring)
-        new_obj.db.protector = []
-        new_obj.db.protector.append(caller)
         new_obj.db.owner = caller
         
         try:
-            p_item.db.entry = new_obj
+            caller.msg("You created the item %s." % str(new_obj))
         except:
-            caller.msg("Can't create %s." % new_obj)
+            caller.msg("Can't create %s." % str(new_obj))
             return
 
-class CmdCraftDesc(MuxCommand):
+class CmdDescCraft(MuxCommand):
     """
     Write the desc for a small object that you have created.
 
@@ -77,16 +78,17 @@ class CmdCraftDesc(MuxCommand):
         craftdesc <name of object>=<desc>
         eg
         craftdesc Soccer Ball=A round ball for kicking!
+        odesc My Room=Odesc also works for this!
 
-    Craftdesc will search for all items that you own regardless
-    of where you have left or dropped them.
-    
     To make a craft, use +craft.
     To delete a craft, use +junk.
+
+    This can also be used to desc the outside of private rooms.
     
     """
 
-    key = "craft"
+    key = "craftdesc"
+    aliases = ["+craftdesc", "odesc","+odesc"]
     locks = "cmd:all()"
     help_category = "Building"
     
@@ -95,14 +97,27 @@ class CmdCraftDesc(MuxCommand):
         """Implements command"""
         caller = self.caller
         args = self.args
-
-        if not args:
+        # this isn't a foolproof lock check, but works OK
+        if not self.args:
             caller.msg("What do you want to desc?")
             return
-
-        '''
-        to-do, the command
-        '''
+        obj_desc = args.split("=")
+        if len(obj_desc) < 1:
+            caller.msg("Syntax error: use craftdesc <obj>=<desc>")
+            return
+        else:
+            description = sub_old_ansi(obj_desc[1])
+            obj = ObjectDB.objects.object_search(obj_desc[0], typeclass=Item)
+            if not obj:
+                obj = ObjectDB.objects.object_search(obj_desc[0], typeclass=PersonalRoom)
+                if not obj:
+                    caller.msg("No object by that name was found.")
+                return
+            if not obj[0].db.owner == caller:
+                caller.msg("That object is not yours.")
+                return
+            obj[0].db.desc = ("\n" + description + "\n")
+            caller.msg("You update the desc of: %s" % str(obj[0]))
 
 
 class CmdJunkCraft(MuxCommand):
@@ -124,10 +139,12 @@ class CmdJunkCraft(MuxCommand):
     
     """
 
-    key = "craft"
+    key = "junk"
+    alias = "+junk"
     locks = "cmd:all()"
     help_category = "Building"
     
+    #todo: 'are you sure'
 
     def func(self):
         """Implements command"""
@@ -135,12 +152,105 @@ class CmdJunkCraft(MuxCommand):
         args = self.args
 
         if not args:
-            caller.msg("What do you want to desc?")
+            caller.msg("What do you want to junk?")
             return
 
+        valid_item = ObjectDB.objects.object_search(args, typeclass=Item)
+
+        if not valid_item:
+            caller.msg("No such personal craft was found.")
+            return
+
+        if not caller.check_permstring("builders"): 
+            if valid_item[0].db.owner != caller:
+                caller.msg("You can't junk that.")
+                return
+
+        try:
+            valid_item[0].delete()
+            caller.msg("Deleted %s" % str(valid_item[0]))
+        except:
+            caller.msg("Can't delete those objects.")
+            return
         '''
-        to-do, the command
+        object is gone, so restore build quota.
         '''
+        if not caller.check_permstring("builders"):
+            caller.db.craftquota = caller.db.craftquota +1
+
+
+class CmdSetQuota(MuxCommand):
+    """
+    This staff command can alter a person's craft and build quota.
+
+    Usage:
+        setquota/<type> <person>=<number>
+        eg
+        setquota/craft Rock=12
+        
+    Setquota takes the switches
+    /craft
+    /room
+    /stage
+
+    For the different types of quotas, and may take others in the future.
+    The number should be an integer.
+    
+    """
+
+    key = "setquota"
+    alias = "+setquota"
+    locks = "cmd:all()"
+    help_category = "Building"
+    locks = "perm(Builder))"
+    
+
+    def func(self):
+        """Implements command"""
+        caller = self.caller
+        args = self.args
+        switches = self.switches
+        errmsg = "Syntax error. See help setquota."
+
+        if not caller.check_permstring("builders"):
+            caller.msg("Admin only command.")
+            return
+
+        if not switches:
+            caller.msg(errmsg)
+            return
+        else:
+            char, number = args.split("=")
+            if not number:
+                caller.msg("Set what number?")
+                return
+        char_string = char.strip()
+        char = self.caller.search(char_string, global_search=True)
+        toggle = 0
+        if "craft" in switches:
+            toggle = "craftquota"
+        if "room" in switches:
+            toggle == "roomquota"
+        if "stage" in switches:
+            toggle == "stagequota"
+
+        if not toggle:
+            caller.msg(errmsg)
+            return
+        
+        try:
+            quota = int(number)
+            if toggle == "craftquota":
+                char.db.craftquota = quota
+            if toggle == "roomquota":
+                char.db.roomquota = quota
+            if toggle == "stagequota":
+                char.db.stagequota = quota
+            caller.msg("You set the %s of %s to %i." %(toggle,char_string,quota))
+            return
+        except:
+            caller.msg("This an error message. Something went wrong. Try again.")
+            return
 
 
 
@@ -152,8 +262,5 @@ notes here on player quotas:
 
 per player character.
 Pets can only be created by staff for now (may change later)
-
-Also add the ability for staff to easily increase someone's quota or 
-alter that quota if necessary.
 
 '''

@@ -271,26 +271,6 @@ class CmdMakePrivateRoom(MuxCommand):
 
         return
 
-class CmdDescCraft(MuxCommand):
-    """
-    Desc an object that I control.
-
-    Usage:
-        odesc <object>=<desc>
-
-    Use odesc, or objectdesc, to desc an object you own. This could also
-    be the outside of a private room. To desc a room inside, see idesc.
-
-    """
-
-    key = "odesc"
-    aliases = "+odesc"
-    locks = "cmd:all()"
-    help_category = "Building"
-    
-    def func(self):
-        """Implements command"""
-        caller = self.caller
 
 class CmdDescInterior(MuxCommand):
     """
