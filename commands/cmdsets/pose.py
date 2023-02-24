@@ -2,12 +2,11 @@
 Pose-related and pose formatting commands will go in this file.
 
 """
-
 from evennia import CmdSet
 from six import string_types
 from commands.command import BaseCommand
 from evennia.commands.default.muxcommand import MuxCommand, MuxAccountCommand
-from server.utils import sub_old_ansi
+from server.utils import sub_old_ansi, highlight_words
 from evennia.utils import utils, evtable
 from evennia.commands.default.general import CmdSay
 from evennia.commands.default.account import CmdOOC
@@ -34,6 +33,7 @@ class CmdThink(BaseCommand):
         try:
             message = self.args
             message = sub_old_ansi(message)
+            message = highlight_words(message, self.caller)
             self.caller.msg(f"You think:{str(message)}")
         except ValueError:
             self.caller.msg(errmsg)
@@ -411,6 +411,7 @@ class CmdMegaSay(CmdSay):
         # Feedback for the object doing the talking.
         langstring = ""
         
+        speech = sub_old_ansi(speech)
         # Build the string to emit to neighbors.
         pre_name_emit_string = ' says%s, "%s"' % (langstring, speech)
         self.caller.location.msg_action(

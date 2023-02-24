@@ -367,10 +367,10 @@ class CmdHighlight(MuxCommand):
     +highlight. For your color code, please just enter the number or letter,
     with no additional punctuation, eg:
 
-    highlight/add Mega Man=245
+    highlight/add Mega=245
 
-    This command will highlight all occurrences of the given words in any 
-    pose that you see within a scene. 
+    This command will highlight all occurrences of the given word in any 
+    pose that you see within a scene. You can hightlight up to 10 words.
 
     To see a full list of colors, use either
     color ansi
@@ -390,6 +390,8 @@ class CmdHighlight(MuxCommand):
         args = self.args
         switches = self.switches
         high_list = caller.db.highlightlist
+        
+        #todo - add quota
 
         errmsg = "Syntax error, see help highlight"
         if not args and not switches:

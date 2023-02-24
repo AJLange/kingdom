@@ -106,6 +106,15 @@ def sub_old_ansi(text):
     text = text.replace("%cn", "|n")
     return text
 
+def highlight_words(text, caller):
+    if not text:
+        return ""
+    lightlist = caller.db.highlightlist
+    if not lightlist:
+        return text
+    for phrase, color in lightlist:
+        text = text.replace(phrase, ("|"+ color + phrase + "|n"))
+        return text
 
 def strip_ansi(text):
     """Stripping out old ansi from a string"""
