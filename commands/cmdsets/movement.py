@@ -28,7 +28,7 @@ class CmdSummon(MuxCommand):
 
     key = "summon"
     aliases = ["+summon"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Travel"
 
 
@@ -87,7 +87,7 @@ class CmdJoin(MuxCommand):
 
     key = "join"
     aliases = ["+join"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Travel"
 
     def agreedeny(caller, result):
@@ -153,7 +153,7 @@ class CmdFollow(MuxCommand):
 
     key = "follow"
     aliases = "+follow"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Travel"
 
     def func(self):
@@ -188,7 +188,7 @@ class CmdDitch(MuxCommand):
 
     key = "ditch"
     aliases = "+ditch"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     aliases = ["lose"]
     help_category = "Travel"
 
@@ -238,7 +238,7 @@ class CmdKeyring(MuxCommand):
     """
 
     key = "+keyring"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "General"
 
     def func(self):
@@ -268,7 +268,7 @@ class CmdTidyUp(MuxCommand):
 
     key = "tidy"
     aliases = ["+gohomeyouredrunk", "+tidy"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "General"
 
     def func(self):
@@ -325,7 +325,7 @@ class CmdWarp(MuxCommand):
 
     key = "warp"
     aliases = "+warp"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
 
     # This is a copy-paste of @tel (or teleport) with reduced functions. @tel is an admin
     # command that takes objects as args, allowing you to teleport objects to places.
@@ -370,7 +370,7 @@ class CmdPortal(MuxCommand):
 
     key = "portal"
     aliases = "+portal", "port", "+port"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
 
     
     def func(self):
@@ -425,7 +425,7 @@ class CmdHome(MuxCommand):
     """
 
     key = "home"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Travel"
 
     def func(self):
@@ -456,7 +456,7 @@ class CmdLinkhere(MuxCommand):
     #todo: some permissions about what can and can't be set as home, for privacy purposes.
 
     key = "linkhere"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Travel"
 
     def func(self):
@@ -483,7 +483,7 @@ class CmdEnterCity(MuxCommand):
     """
 
     key = "enter"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
 
     def func(self):
         caller = self.caller
@@ -531,7 +531,7 @@ class CmdLeaveCity(MuxCommand):
     """
 
     key = "leave"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
 
     def func(self):
         city = self.obj

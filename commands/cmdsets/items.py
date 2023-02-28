@@ -27,7 +27,7 @@ class CmdCraft(MuxCommand):
 
     key = "craft"
     aliases = "+craft"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Building"
     
     new_obj_lockstring = (
@@ -89,7 +89,7 @@ class CmdDescCraft(MuxCommand):
 
     key = "craftdesc"
     aliases = ["+craftdesc", "odesc","+odesc"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Building"
     
 
@@ -141,7 +141,7 @@ class CmdJunkCraft(MuxCommand):
 
     key = "junk"
     alias = "+junk"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Building"
     
     #todo: 'are you sure'

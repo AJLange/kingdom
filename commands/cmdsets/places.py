@@ -62,7 +62,7 @@ class CmdMakeStage(MuxCommand):
 
     key = "makestage"
     alias = "+makestage"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
     
     new_obj_lockstring = (
@@ -128,7 +128,7 @@ class CmdSetStage(MuxCommand):
 
     key = "setstage"
     alias = "+setstage"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
     
 
@@ -173,7 +173,7 @@ class CmdClearStage(MuxCommand):
 
     key = "clearstage"
     aliases = ["+clearstage", "clearstages","+clearstages"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
     
 
@@ -206,7 +206,7 @@ class CmdJoin(MuxCommand):
     """
 
     key = "join"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
 
     def func(self):
@@ -264,7 +264,7 @@ class CmdListStages(MuxCommand):
 
     key = "stages"
     alias = "+stages"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
 
     def func(self):
@@ -301,7 +301,7 @@ class CmdDepart(MuxCommand):
     """
 
     key = "depart"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
 
     def func(self):
@@ -336,7 +336,7 @@ class CmdStageMute(MuxCommand):
 
     key = "stagemute"
     alias= "+stagemute"
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Scenes"
     # characters used for poses/emits
     char_symbols = (";", ":", "|")

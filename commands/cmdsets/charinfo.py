@@ -386,7 +386,7 @@ class CmdSheet(BaseCommand):
         """
         key = "stats"
         aliases = ["+stats", "sheet", "+sheet"]
-        lock = "cmd:all()"
+        locks = "perm(Player))"
         help_category = "General"
 
         def func(self):
@@ -447,7 +447,7 @@ class CmdCookie(MuxCommand):
 
     key = "cookie"
     aliases = ["+cookie", "vote", "+vote"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Rewards"
 
     def func(self):
@@ -490,7 +490,7 @@ class CmdCookieCounter(MuxCommand):
 
     key = "tally"
     aliases = ["+tally", "checkcookies", "+checkcookies"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Rewards"
 
     def func(self):
@@ -511,7 +511,7 @@ class CmdCookiemonsters(MuxCommand):
     """
     key = "100check"
     aliases = ["+100check", "monsters", "+monsters"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Rewards"
 
     def func(self):
@@ -558,7 +558,7 @@ class CmdCookieMsg(MuxCommand):
 
     key = "cookiemsg"
     aliases = ["+cookiemsg"]
-    locks = "cmd:all()"
+    locks = "perm(Player))"
     help_category = "Rewards"
 
     def func(self):

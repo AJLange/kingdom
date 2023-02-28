@@ -72,6 +72,7 @@ class CmdShowdown(Command):
     key = "showdown"
     aliases= "+showdown"
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         '''
@@ -152,6 +153,7 @@ class CmdGMRoll(Command):
     key = "gmroll"
     aliases = ["+gmroll"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         caller = self.caller
@@ -206,6 +208,7 @@ class CmdRoll(Command):
     key = "roll"
     aliases = ["+roll"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         errmsg = "An error occured."
@@ -260,6 +263,7 @@ class CmdFlip(Command):
     key = "flip"
     aliases = ["+flip"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         caller = self.caller
@@ -335,6 +339,7 @@ class CmdRollSkill(Command):
     key = "check"
     aliases = ["+check"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
 
     def func(self):
@@ -416,6 +421,7 @@ class CmdAim(Command):
     key = "aim"
     aliases = ["+aim"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         
@@ -463,6 +469,7 @@ class CmdCharge(Command):
     key = "charge"
     aliases = ["+charge"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         '''
@@ -505,6 +512,7 @@ class CmdAttack(Command):
     key = "attack"
     aliases = ["+attack"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         '''
@@ -553,6 +561,7 @@ class CmdTaunt(Command):
     key = "taunt"
     aliases = ["+taunt"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
 
@@ -600,6 +609,7 @@ class CmdIntimidate(Command):
     key = "intimidate"
     aliases = ["+intimidate", "spook", "+spook"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
 
@@ -655,6 +665,7 @@ class CmdGuard(Command):
     key = "guard"
     aliases = ["+guard"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
 
@@ -687,6 +698,7 @@ class CmdHeal(Command):
     key = "heal"
     aliases = ["+heal"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
 
@@ -718,6 +730,7 @@ class CmdPersuade(Command):
     key = "persuade"
     aliases = ["+persuade", "negotiate" ,"+negotiate", "moralhighground" , "+moralhighground"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
 
@@ -763,6 +776,7 @@ class CmdRollSet(MuxCommand):
     key = "rollset"
     aliases = ["+rollset"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         '''
@@ -826,6 +840,7 @@ class CmdWeaponCopy(Command):
     key = "wcopy"
     aliases = ["+wcopy", "buster","+buster"]
     help_category = "Dice"
+    locks = "perm(Player))"
 
     def func(self):
         '''

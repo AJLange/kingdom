@@ -105,6 +105,7 @@ class CmdMultiDesc(MuxCommand):
     aliases = ["+multidesc", "mdesc", "+mdesc"]
     switch_options = ("list","store","set","view", "del", "add","delete", "all")
     help_category = "Building"
+    locks = "perm(Player))"
 
     def func(self):
         """Define command"""
