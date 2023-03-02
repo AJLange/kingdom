@@ -55,10 +55,12 @@ class Character(DefaultCharacter):
         self.db.roomquota = 10
         self.db.craftquota = 10
 
+        self.db.files = []
+
         # transposing combat variables as they may change in the future
         self.set_initial_combat()
         
-        # self.set_armors()
+        # self.db.armor = []
 
         # Default display setup
 

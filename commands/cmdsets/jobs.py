@@ -228,3 +228,33 @@ class CmdCheckFiles(MuxCommand):
     def display_ticket(self, ticket):
         """Display the ticket to the caller"""
         self.msg(ticket.display())
+
+
+class CmdCreateFile(MuxCommand):
+    """
+    Command for staff to create files. 
+
+    Usage:
+       +writefile <title>=<text>
+       +writefile/keyword <#>=<keyword>
+       +writefile/topic <#>=<topic>
+
+    This command is to compose files. +writefile creates the basic file
+    and can take all the text of the file.
+
+    +writefile/keyword adds the supplied keyword to the file.
+    +writefile/topic files the file under the specified topic.
+
+    To send a file to a player, use +file/send <#>=<player> once the file 
+    is complete.
+
+    """
+
+    key = "writefile"
+    aliases = ["+writefile"]
+    help_category = "Requests"
+    locks = "perm(Builder))"
+
+    def display_ticket(self, ticket):
+        """Display the ticket to the caller"""
+        self.msg(ticket.display())

@@ -51,6 +51,13 @@ class Photo(SharedMemoryModel):
         return "Photo <%s:%s>" % (self.title, public_id)
 '''
 
+
+class Capabilities(SharedMemoryModel):
+
+    db_name = models.CharField('Name',max_length=100)
+    db_date_created = models.DateTimeField('date created', editable=False,
+                                            auto_now_add=True, db_index=True)
+
 '''
 Mode Swap messages:
 
@@ -130,9 +137,9 @@ class ArmorMode(SharedMemoryModel):
     db_presence = models.IntegerField('Presence', default=1)
     db_arcana = models.IntegerField('Arcana', default=1)
 
-    # capabilities as string match for now. structure this data later.
+    # capabilities as secondary data field for extensibility
     
-    db_capabilities = models.TextField('Capabilities',blank=True,null=True)
+    db_capabilities = models.ManyToManyField(Capabilities,'Capabilities',blank=True,null=True)
 
 class Roster(SharedMemoryModel):
     """
@@ -303,16 +310,6 @@ class PlayerCharacter(SharedMemoryModel):
                 print("profile_picture has no pk, clearing it.")
                 self.profile_picture = None
         return super(PlayerCharacter, self).save(*args, **kwargs)
-
-    '''
-    this except for properties I actually want
-
-    @property
-    def action_point_regen(self):
-        """How many action points we get back in a week."""
-        return 150 + self.action_point_regen_modifier
-    '''
-
 
 class PlayerAccount(SharedMemoryModel):
     """
