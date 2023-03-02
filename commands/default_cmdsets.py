@@ -33,6 +33,7 @@ from commands.cmdsets.roster import CmdShowGroups, CmdSetGroups
 from commands.cmdsets.building import CmdLinkTeleport, CmdMakeCity, CmdProtector, CmdSetProtector, CmdClearProtector, CmdCheckQuota, CmdMakePrivateRoom, CmdDestroyPrivateRoom
 from commands.cmdsets.building import CmdLockRoom, CmdUnLockRoom, CmdDescInterior
 from commands.cmdsets.items import CmdCraft, CmdDescCraft, CmdSetQuota, CmdJunkCraft
+from commands.cmdsets.jobs import CmdRequest, CmdCheckJobs
 from evennia.contrib.dice import CmdDice
 from evennia.contrib import multidescer
 from commands.cmdsets.descer import CmdDesc, CmdMultiDesc
@@ -116,6 +117,10 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdMailCharacter())
         self.add(CmdHighlight())
         #self.add(CmdPot())
+
+
+        #request and file system
+        self.add(CmdRequest())
 
         #building and crafting
         self.add(CmdCheckQuota())

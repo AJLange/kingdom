@@ -48,6 +48,7 @@ class Request(models.Model):
     type = models.IntegerField(
         choices=RequestCategory.TYPE_CHOICES
     )
+    db_is_open = models.BooleanField('Open',default=True)
     db_response = models.ForeignKey(RequestResponse, blank=True, null=True, on_delete=models.CASCADE)
 
     def __str__(self):
