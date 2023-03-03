@@ -15,12 +15,10 @@ from typeclasses.rooms import ChargenRoom
 from evennia import create_object
 from evennia.objects.models import ObjectDB
 from typeclasses.accounts import Account
+from world.combat.models import Weapon
 
 
 '''
-
-Reminder: be sure to lock changing most attributes to admin only.
-
 What characters must have:
 
 Fixed set by staff:
@@ -83,7 +81,7 @@ class CmdStartChargen(MuxCommand):
     +setstat/<namestat> <1-10> (for all 7 stats)
     +setskill/<nameskill> <1-5> (for all 12 skills)
     +setprofile/<attribute> <value> (for all 7 text attributes)
-    +settypes <type>, <type> (for all elemental types)
+    +setweapon <name> (for all weapons, including /primary and /secondary)
     +setpower <name> (for the character's 'racetype' aka power set sources)
     +finishchargen
 
@@ -119,6 +117,78 @@ class CmdStartChargen(MuxCommand):
         
 
 
+class CmdCreateWeapon(MuxCommand):
+    """
+    Create a new weapon.
+
+    Usage:
+        +addweapon <name>=<class> <type>
+        +addweapon <name>=<class> <type> <type> <type>
+        +addweapon <name>=<class> <type>, <effect>
+        eg.
+        +addweapon Gemini Laser=Ranged Laser
+        +addweapon Magnet Missle=Ranged Gravity Blunt
+        +addweapon Top Spin=Blitz Karate, Priority
+
+
+    This adds a new weapon to the database of weapons.
+    A simple version creates a weapon with a single type.
+    A weapon can have up to three types. Seperate by spaces.
+
+    A weapon can also have up to two effects, but this will
+    not be common. Space effects out with commas, then spaces.
+
+    Weapons currently accept the following classes:
+    Ranged, Wave, Thrown, Melee, Blitz, Sneak
+    Grapple, Spell, Will, Gadget, Chip, Random
+
+    Types:
+    Slashing, Piercing, Electric, Explosive, Fire, Gravity
+    Air, Ice, Toxic, Blunt, Quake, Karate, Sonic, Time, Wood
+    Water, Plasma, Laser, Light, Darkness, Psycho, Chi, Disenchant
+    
+    Effects:
+    Megablast, Exceed, Stable, Priority, Blind, Degrade, Entangle
+    """
+
+    key = "addweapon"
+    aliases = ["+addweapon"]
+    locks = "perm(Builder)"
+    help_category = "Chargen"
+
+    def func(self):        
+        caller = self.caller
+        args = self.args
+        errmsg = "Add what weapon? See help addweapon."
+        if not args:
+            caller.msg(errmsg)
+            return
+
+        weapon_name = self.lhs
+        weapon_stats = self.rhs
+        if not weapon_stats:
+            caller.msg(errmsg)
+            return
+
+        #does the weapon have effects?
+        divide_fx = weapon_stats.split(", ")
+        # todo, error check for extra spaces
+        effects_list = 0
+        if len(divide_fx) > 1:
+            effects = divide_fx.pop(1)
+            effects_list = effects.split(" ")
+        
+        #do the rest
+        types_list = divide_fx[0].split(" ")
+        weapon_class = types_list[0]
+        types_list.pop(0)
+        if effects_list:
+            caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+        else:
+            caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+
+        
+
 class CmdCreatePC(Command):
     """
     Create a new PC
@@ -128,9 +198,9 @@ class CmdCreatePC(Command):
 
     Creates a new, named PC. 
     """
-    key = "+createpc"
-    aliases = ["createPC"]
-    locks = "call:not perm(nonpcs)"
+    key = "createpc"
+    aliases = ["+createPC"]
+    locks = "perm(Builder)"
     help_category = "Chargen"
     
     def func(self):
@@ -176,6 +246,7 @@ class CmdWorkChar(Command):
     key = "+workchar"
     aliases = ["workchar"]
     help_category = "Chargen"
+    locks = "perm(Builder)"
     
     def func(self):
         "creates the object and names it"
@@ -201,42 +272,6 @@ class CmdWorkChar(Command):
                                                 exclude=caller)
         return 
 
-
-class CmdCSetPassword(MuxCommand):
-    '''
-    Set a password.
-
-    Usage:
-        +setpassword <password>
-
-    This command has two uses. During first-time setup it's necessary
-    to use this command to set up an account with password so the 
-    character can be logged in.
-
-    After the character has been logged in once, this only resets the 
-    password of whatever character you are actively working on.
-    '''
-
-    key = "+setpassword"
-    help_category = "Chargen"
-
-    def func(self):
-        "This performs the actual command"
-        caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "Something went wrong."
-        
-        '''
-        what needs to happen: check and see if an account is associated
-        with the current working character
-        if there is, just reset the password
-        if there is not, create an account with the supplied password
-        '''
-
-        return 
-
-
-
 class CmdSetPlayer(MuxCommand):
     '''
     Give a character to a player.
@@ -251,6 +286,7 @@ class CmdSetPlayer(MuxCommand):
 
     key = "+player"
     help_category = "Chargen"
+    locks = "perm(Builder)"
 
     def func(self):
         "This performs the actual command"
@@ -304,8 +340,10 @@ class CmdUnPlayer(MuxCommand):
     To add a character to an account, use +player.
     '''
 
-    key = "+unplayer"
+    key = "unplayer"
     help_category = "Chargen"
+    locks = "perm(Builder)"
+    aliases = ["+unplayer"]
 
 
     def func(self):
@@ -368,8 +406,10 @@ class CmdSetStat(MuxCommand):
 
     """
     
-    key = "+setstat"
+    key = "setstat"
     help_category = "Chargen"
+    locks = "perm(Builder)"
+    alias = "+setstat"
 
     def func(self):
         "This performs the actual command"
@@ -437,6 +477,7 @@ class CmdSetSkills(MuxCommand):
     
     key = "+setskill"
     help_category = "Chargen"
+    locks = "perm(Builder)"
 
     def func(self):
         "This performs the actual command"
@@ -505,6 +546,7 @@ class CmdSetProfileAttr(MuxCommand):
     
     key = "+setprofile"
     help_category = "Chargen"
+    locks = "perm(Builder)"
 
     '''
     This works, but it's pretty sloppy and could really use a refactor.
@@ -605,6 +647,7 @@ class CmdSetAttribute(MuxCommand):
     
     key = "+setattribute"
     help_category = "Chargen"
+    locks = "perm(Builder)"
     
 
     def func(self):
@@ -682,24 +725,36 @@ class CmdSetSpecialty(Command):
 
 # to do above, make it a proper list you can add to
 
-class CmdSetTypes(Command):
+class CmdSetWeapons(MuxCommand):
     """
-    Setting or adding attack types to characters.
+    Adding weapons to characters.
 
     Usage:
-      +settypes <type>
-      +settypes <type>, <type>
+      +setweapon <name>
+      +setweapon/primary <name>
+      +setweapon/secondary <name>
+
+    This sets the weapon specified on the working character,
+    on the working armor mode. Use /primary or /secondary
+    to set the primary and secondary weapons, which show up
+    on the character sheet and have priority for weapon copy
+    attacks.
+
+    Weapons need to be added to the weapon database first with
+    +addweapon.
 
     """
     
-    key = "+settype"
+    key = "setweapon"
     help_category = "Chargen"
+    locks = "perm(Builder)"
+    aliases = ["+setweapon"]
 
     def func(self):
         "This performs the actual command"
         caller = self.caller
         character = caller.db.workingchar 
-        errmsg = "What text?"
+        errmsg = "What weapon?"
         if not self.args:
             caller.msg(errmsg)
             character.db.attacktype = text
@@ -711,41 +766,6 @@ class CmdSetTypes(Command):
             caller.msg(errmsg)
             return
         
-
-class CmdSetWeapons(MuxCommand):
-    """
-    Setting or adding attack types to characters.
-
-    Usage:
-      +setweapon <type>
-      +setweapon/primary <type>
-      +setweapon/secondary <type>
-
-    not figured out how I intend to do this, but
-    stubbing it out.
-
-    Ability to set primary and secondary weapon also lives here.
-
-    """
-    
-    key = "+setweapon"
-    help_category = "Chargen"
-
-    def func(self):
-        "This performs the actual command"
-        caller = self.caller
-        character = caller.db.workingchar 
-        errmsg = "What text?"
-        if not self.args:
-            self.caller.msg(errmsg)
-            return
-        try:
-            text = self.args
-        except ValueError:
-            caller.msg(errmsg)
-            return
-        character.db.quote = text
-        caller.msg("Added this weapon: %s" % text)
 
 class CmdSetArmors(Command):
     """
@@ -882,12 +902,11 @@ class ChargenCmdset(CmdSet):
         self.add(CmdWorkChar())
         #self.add(CmdSetSpecialty())
         self.add(CmdSetSkills())
-        self.add(CmdSetTypes())
+        self.add(CmdCreateWeapon())
         self.add(CmdSetWeapons())
         self.add(CmdSetArmors())
         self.add(CmdSetProfileAttr())
         self.add(CmdSetPowers())
         self.add(CmdFinishChargen())
-        self.add(CmdCSetPassword())
         self.add(CmdSetPlayer())
         self.add(CmdUnPlayer())
