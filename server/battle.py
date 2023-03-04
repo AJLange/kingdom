@@ -6,11 +6,33 @@ Just stubbing these things out.
 
 from datetime import datetime
 from world.combat.models import Weapon, WeaponClass, WeaponFlag
+from random import randint
+from evennia.utils.utils import inherits_from
+from django.conf import settings
 
 '''
 these need to parse lists in the situation where
 a list is given
 '''
+
+def check_valid_target(self, char):
+    """
+    code this check to make sure a target of any assail is:
+    in the room with me
+    a valid character
+    that is not KOed
+    and is in a showdown with me already
+    or unoccupied - remind them to start the showdown.
+
+    """
+    caller = self.caller
+    
+    if not char:
+        return False
+    if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+        return False
+
+    return True
 
 def char_weakness(char):
     weakness = char.db.weakness
@@ -33,6 +55,33 @@ def process_elements(val):
     process to convert string to structured data to see what element was used
     '''
     return val
+
+def roll_attack(attack):
+    if attack.db_class == 1:
+        return "dex", "aim"
+    if attack.db_class == 2:
+        return "pow", "force"
+    if attack.db_class == 3:
+        return "pow", "aim"
+    if attack.db_class == 4:
+        return "dex", "athletics"
+    if attack.db_class == 5:
+        return "dex", "force"
+    if attack.db_class == 6:
+        return "dex", "stealth"
+    if attack.db_class == 7:
+        return "pow", "athletics"
+    if attack.db_class == 8:
+        return "aura", "arana"
+    if attack.db_class == 9:
+        return "aur", "presence"
+    if attack.db_class == 10:
+        return "cun", "mechanics"
+    if attack.db_class == 11:
+        return "cun", "computer"
+    if attack.db_class == 12:
+        return "random", "random"
+
 
 def process_effects(target, attacker):
     pass

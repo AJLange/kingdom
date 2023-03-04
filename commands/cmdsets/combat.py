@@ -11,6 +11,9 @@ from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from random import randint
 from evennia import Command, InterruptCommand
+from server.battle import roll_attack, check_valid_target, copy_attack
+from evennia.utils.utils import inherits_from
+from django.conf import settings
 
 '''
 constants set here for testing purposes
@@ -381,11 +384,7 @@ class CmdRollSkill(Command):
             caller.msg(errmsg)
             return
 
-
-
-
 '''
-
 +Aim - sacrifice a round for a higher chance of hitting next round.
 +Charge - sacrifice around for a higher crit chance next round. If a charge crit hits 
 a weakness it does triple damage.
@@ -397,7 +396,6 @@ hit other people next round
 +intimidate - presence roll to do damage. Makes it slightly harder for 
 target to hit you next round
 +Persuade/+negotiate/+moralhighground - make a convince roll to do damage
-
 '''
 
 class CmdAim(Command):
@@ -498,14 +496,18 @@ class CmdCharge(Command):
 todo: the assail commands below are stubs, need to take an argument (target)
 '''
 
-class CmdAttack(Command):
+class CmdAttack(MuxCommand):
     """
     Attacking a particular target. 
 
     Usage:
       attack <target>=<weapon>
+      attack <target>
 
     This will allow you to attack a target with a weapon you have equipped.
+
+    If you don't specify a weapon, this will use the same weapon you used
+    last time you attacked, provided that weapon is still available.
 
     """
     
@@ -515,36 +517,81 @@ class CmdAttack(Command):
     locks = "perm(Player))"
 
     def func(self):
-        '''
-        doesn't function yet just stubbing out commands.
-        '''
-        errmsg = "An error occured."
-        
+
+        errmsg = "Sorry, an error occured."
         caller= self.caller
         
         if not self.args:
             caller.msg("Attack who?")
             return
+        weapon = self.rhs
+        target = self.lhs
+        bonus_dice = 0
+        result = 0
         try:
-            caller.msg("You attack.")
-            '''
-            do a couple checks:
-                is the target a person?
-                is that person present here?
+            #any target?
+            msg = "Target not found."
+            if not target:
+                caller.msg(msg)
+                return
+            char = caller.search(char, global_search=False)
 
-                is attacker charging?
-                is attacker aiming?
-                is the target being guarded?
-                does the target have active deflect or reflect?
+            #is it a character/valid target?
+            target_ok = check_valid_target(char)
+            if not target_ok:
+                caller.msg(msg)
+                return
+
+            if not weapon:
+                if caller.db.active_weapon:
+                    weapon = caller.db.active_weapon
+                #there should be a value there, but if there isn't,
+                #eg, I've changed armors to a mode that doesn't have that weapon anymore
+                else:
+                    caller.msg("Specify a valid weapon to use.")
+                    return
+            
+            #to check: is the target in full defense?
+            #if so, if target is defender, no damage can be done
+            #otherwise, lower the potential to-hit
+
+            #to check: is the target being defended by anyone else?
+            #if so, high chance of redirecting this attack.
+            #higher if you have bodyguard
+
+            which_stat, which_skill = roll_attack(weapon)
+            if which_stat == "random":
+                rand1 = randint(1,10)
+                rand2 = randint(1,10)
+                result = do_roll(rand1,rand2)
+            else:
+                result = do_roll(which_stat,which_skill)
+            # add aimdice to the to-hit
+            if self.db.aimdice:
+                bonus_dice = self.db.aimdice
+                bonus = do_roll(bonus_dice,0)
+                result = result + bonus
+            str_result = str(result)
+
+            caller.msg("You attack %s with %s." % str(char), weapon)
+            outputmsg = (f"{caller.name} rolls to attack: {str_result}" )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
+
+            #still to do: types, damage
+
+            '''
+            You attack <person> with <weapon>
+            Rolling <stat> plus <skill>: # # # # # #
+            The attack hit <person>'s weakness! Critical hit!
             '''
             
-            if self.db.aimdice:
-                caller.msg("Don't forget to add aimdice to the attack roll.")
         except ValueError:
             caller.msg(errmsg)
             return
 
-class CmdTaunt(Command):
+
+
+class CmdTaunt(MuxCommand):
 
     """
 
@@ -590,7 +637,7 @@ class CmdTaunt(Command):
             return
 
 
-class CmdIntimidate(Command):
+class CmdIntimidate(MuxCommand):
 
     """
 
@@ -637,7 +684,7 @@ class CmdIntimidate(Command):
             caller.msg(errmsg)
             return
 
-class CmdGuard(Command):
+class CmdGuard(MuxCommand):
 
     """
     Usage:
@@ -822,7 +869,7 @@ class CmdRollSet(MuxCommand):
 
 
 
-class CmdWeaponCopy(Command):
+class CmdWeaponCopy(MuxCommand):
     """
     Copy the weapon of your target.
 
@@ -844,25 +891,31 @@ class CmdWeaponCopy(Command):
 
     def func(self):
         '''
-        doesn't function yet just stubbing out commands.
+        To-do: this command should not show up if you can't do it.
+        check permission locks on how to achieve this.
         '''
         errmsg = "An error occured."
         
         caller= self.caller
-        
-        if not self.args:
+        args = self.args
+        caller.msg("Initiating weapon copy.")
+        if not args:
             caller.msg("Copy whose weapon?")
             return
         try:
-            caller.msg("You copy the weapon.")
-            '''
-            do a couple checks:
-                is the target a person?
-                is that person present here?
+            
+            char = caller.search(char, global_search=False)
+            if not char:
+                caller.msg("No target.")
+                return
+            if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
+                caller.msg("No target.")
+                return
 
-                what type of buster-user am I?
-                What type of weapon do they have?
-            '''
+            #process attack copy code
+            new_weapon = copy_attack(char,caller)
+
+
         except ValueError:
             caller.msg(errmsg)
             return
