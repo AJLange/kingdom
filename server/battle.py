@@ -138,6 +138,7 @@ def copy_melee_weapon(target):
         # never found a suitable weapon, so copy primary as melee
         # todo - be sure effects doesn't process null
         # be sure the effect 'stable' never copies
+        # to test, would it make sense to copy 'thrown' as a backup?
         new_weapon = add_weapon_to_db(copy_this.db_name,4,copy_this.db_types,copy_this.db_effects)
         return new_weapon
 
