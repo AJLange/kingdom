@@ -11,7 +11,7 @@ from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from random import randint
 from evennia import Command, InterruptCommand
-from server.battle import roll_attack, check_valid_target, roll_to_string, check_capabilities, copy_attack, do_roll
+from server.battle import roll_attack, check_valid_target, explode_tens, roll_to_string, check_successes, check_capabilities, copy_attack, do_roll
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 
@@ -124,7 +124,8 @@ class CmdGMRoll(Command):
        gmroll <number from 1-10>
 
     This is for if you just need to roll D10s for whatever reason in a 
-    scene you may be running.
+    scene you may be running. Unlike most standard rolls, this roll does not
+    have exploding 10s.
 
     To roll a die with an arbitrary amount of sides, see +roll.
 
@@ -151,22 +152,19 @@ class CmdGMRoll(Command):
             raise InterruptCommand
 
         result = list(range(numdice))
-        outputmsg = (f"{caller.name} rolls:")
+        outputmsg = (f"{caller.name} does a GM roll: ")
         errmsg = "An error occured."
         for i in range(0, numdice):
             random = randint(1,10)
             result[i] = random
-            outputmsg = outputmsg + " " + str(result[i])
-
+        successes = check_successes(result)
+        outputmsg +=  roll_to_string(result)
+        outputmsg += "\n" + str(successes) + " successes."
         try:
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
             caller.msg(errmsg)
             return
-
-        '''
-        to-do: parse this to an amount of successes
-        '''
 
 
 class CmdRoll(Command):
@@ -353,8 +351,11 @@ class CmdRollSkill(Command):
                 caller.msg("Skill + stat combination invalid. Try again.")
                 return
             else:
+                result = explode_tens(result)
+                successes = check_successes(result)
                 str_result = roll_to_string(result)
-                outputmsg = (f"{caller.name} rolls {stat} and {skill}: {str_result}" )
+                outputmsg = (f"{caller.name} rolls {stat} and {skill}: {str_result} \n" )
+                outputmsg += (f"{successes} successes.")
                 caller.location.msg_contents(outputmsg, from_obj=caller)
             
         except ValueError:

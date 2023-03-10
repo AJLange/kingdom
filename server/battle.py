@@ -29,10 +29,7 @@ def do_roll(stat, skill):
     These are pooled rolls so return a list.
 
     '''
-    '''
-    to-do: exploding 10s
-    K&T as written: 10s explode for PCs but not for GMs/NPCs.
-    '''
+
     # pooling stat and skill, but saving old way just in case
     roll_val = stat + skill
     roll = list(range(roll_val))
@@ -52,17 +49,23 @@ def do_roll(stat, skill):
     '''
     return roll
 
+def explode_tens(roll):
+    for value in roll:
+        if value == 10:
+            roll.append(randint(1,10))
+    return roll
+
 def roll_to_string(roll):
     die_string = ""
     for value in roll:
         if value == 10:
-            die_string = die_string + "|g" + str(value) + " "
+            die_string = die_string + "|g" + str(value) + "|n "
             continue
         if value >=7:
-            die_string = die_string + "|G" + str(value) + " "
+            die_string = die_string + "|G" + str(value) + "|n "
             continue
         else:
-            die_string = die_string + "|R" + str(value)+ " "
+            die_string = die_string + "|R" + str(value)+ "|n "
     return die_string
 
 def check_valid_target(self, char):
@@ -85,6 +88,7 @@ def check_valid_target(self, char):
     return True
 
 #check success of a normal roll.
+
 def check_successes(roll):
     successes = 0
     for value in roll:
@@ -93,21 +97,35 @@ def check_successes(roll):
     return successes
 
 #check success of opposed rolls, including dramatic/crits
+#this uses K&T values for now
 def check_opposed_rolls(roll1, roll2):
     successes, failures = 0
+    crit = False
+    drama = False
     for value in roll1:
         if value >= 7:
             successes = successes +1
     for value in roll2:
         if value >= 7:
             failures = failures +1
+    if successes >= 5:
+        crit = True
+    if failures >= 5:
+        drama = True
+
+    #process results on a scale of positive or negative
+
     if successes == failures:
         #this is a tie
-        return "tie"
+        return 0
+    if successes > failures and crit:
+        return 2
     if successes > failures:
-        return "succcess"
+        return 1
+    if failures > successes and drama:
+        return -2
     if failures > successes:
-        return "setback"
+        return -1
 
 
 def char_weakness(char):
