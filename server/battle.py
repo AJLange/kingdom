@@ -10,10 +10,60 @@ from random import randint
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 
+
+'''
+Combat constants which may be altered
+
+'''
+
+CRIT_CHANCE = .05
+
 '''
 these need to parse lists in the situation where
 a list is given
 '''
+
+def do_roll(stat, skill):
+    '''
+    roll a particular stat-skill combo. Used in combat commands.
+    These are pooled rolls so return a list.
+
+    '''
+    '''
+    to-do: exploding 10s
+    K&T as written: 10s explode for PCs but not for GMs/NPCs.
+    '''
+    # pooling stat and skill, but saving old way just in case
+    roll_val = stat + skill
+    roll = list(range(roll_val))
+    for i in range(0,roll_val):
+        random = randint(1,10)
+        roll[i] = random
+    '''
+    stat_roll = list(range(stat))
+    skill_roll = list(range(skill))
+    for i in range(0, stat):
+        random = randint(1,10)
+        stat_roll[i] = random
+    for j in range(0,skill):
+        random = randint(1,10)
+        skill_roll[j] = random
+    return stat_roll, skill_roll
+    '''
+    return roll
+
+def roll_to_string(roll):
+    die_string = ""
+    for value in roll:
+        if value == 10:
+            die_string = die_string + "|g" + str(value) + " "
+            continue
+        if value >=7:
+            die_string = die_string + "|G" + str(value) + " "
+            continue
+        else:
+            die_string = die_string + "|R" + str(value)+ " "
+    return die_string
 
 def check_valid_target(self, char):
     """
@@ -33,6 +83,32 @@ def check_valid_target(self, char):
         return False
 
     return True
+
+#check success of a normal roll.
+def check_successes(roll):
+    successes = 0
+    for value in roll:
+        if value >= 7:
+            successes = successes +1
+    return successes
+
+#check success of opposed rolls, including dramatic/crits
+def check_opposed_rolls(roll1, roll2):
+    successes, failures = 0
+    for value in roll1:
+        if value >= 7:
+            successes = successes +1
+    for value in roll2:
+        if value >= 7:
+            failures = failures +1
+    if successes == failures:
+        #this is a tie
+        return "tie"
+    if successes > failures:
+        return "succcess"
+    if failures > successes:
+        return "setback"
+
 
 def char_weakness(char):
     weakness = char.db.weakness
@@ -72,7 +148,7 @@ def roll_attack(attack):
     if attack.db_class == 7:
         return "pow", "athletics"
     if attack.db_class == 8:
-        return "aura", "arana"
+        return "aur", "arana"
     if attack.db_class == 9:
         return "aur", "presence"
     if attack.db_class == 10:
@@ -86,11 +162,22 @@ def roll_attack(attack):
 def process_effects(target, attacker):
     pass
 
+def calc_damage(target,attacker):
+    damage = randint(1,10)
+    target_defense = target.db.ten
+    attacker_dmg_bonus = attacker.db.pow
+    damage = damage - target_defense + attacker_dmg_bonus
+    return damage
+
+'''
+Take in everything to account necessary to see how much damage
+an attack does etc.
+'''
 
 def process_attack(target, attacker):
-    pass
-
-
+    charge_val = attacker.db.chargedice
+    if charge_val:
+        damage = damage * 2
 
 def copy_attack(target, copier):
     cap_list = copier.check_capabilities()

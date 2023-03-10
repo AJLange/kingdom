@@ -11,7 +11,7 @@ from evennia.commands.default.muxcommand import MuxCommand
 from server.utils import sub_old_ansi
 from random import randint
 from evennia import Command, InterruptCommand
-from server.battle import roll_attack, check_valid_target, copy_attack
+from server.battle import roll_attack, check_valid_target, roll_to_string, check_capabilities, copy_attack, do_roll
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 
@@ -19,32 +19,9 @@ from django.conf import settings
 constants set here for testing purposes
 '''
 
-DUEL_HP = 9
-STANDARD_HP = 6
+DUEL_HP = 90
+STANDARD_HP = 60
 
-
-def do_roll(stat, skill):
-
-    '''
-    roll a particular stat-skill combo. Used in combat commands.
-    These are pooled rolls so return a list.
-
-    '''
-
-    '''
-    to-do: exploding 10s
-    K&T as written: 10s explode for PCs but not for GMs/NPCs.
-    dice are also success if 7 or higher - use colors.
-    '''
-    stat_roll = list(range(stat))
-    skill_roll = list(range(skill))
-    for i in range(0, stat):
-        random = randint(1,10)
-        stat_roll[i] = random
-    for j in range(0,skill):
-        random = randint(1,10)
-        skill_roll[j] = random
-    return stat_roll, skill_roll
 
 """
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
@@ -372,11 +349,11 @@ class CmdRollSkill(Command):
             # build the string
 
             result = do_roll(stat_check,skill_check)
-            if len(result[0]) == 0 or len(result[1]) == 0:
+            if len(result) == 0:
                 caller.msg("Skill + stat combination invalid. Try again.")
                 return
             else:
-                str_result = str(result)
+                str_result = roll_to_string(result)
                 outputmsg = (f"{caller.name} rolls {stat} and {skill}: {str_result}" )
                 caller.location.msg_contents(outputmsg, from_obj=caller)
             
@@ -435,6 +412,7 @@ class CmdAim(Command):
         '''
 
         try:
+            caller.db.defending = 0
             caller.location.msg_contents(f"{caller.name} forfeits their turn to Aim.", from_obj=caller)
             caller.db.aimdice = 1
         except ValueError:
@@ -485,6 +463,7 @@ class CmdCharge(Command):
         '''
         
         try:
+            caller.db.defending = 0
             caller.location.msg_contents(f"{caller.name} is charging their shot!", from_obj=caller)
             caller.db.chargedice = 1
         except ValueError:
@@ -551,10 +530,27 @@ class CmdAttack(MuxCommand):
                     caller.msg("Specify a valid weapon to use.")
                     return
             
+            #if I attack I'm not defending
+            caller.db.defending = 0
+            target_defense = target.db.ten
+            target_cap = check_capabilities(target)
+            attacker_cap = check_capabilities(caller)
+            full_defender = False
             #to check: is the target in full defense?
             #if so, if target is defender, no damage can be done
             #otherwise, lower the potential to-hit
+            if target.db.defending:
+                for cap in target_cap:
+                    if cap == "Defender":
+                        full_defender = True
 
+                if full_defender:
+                    outputmsg = (f"{caller.name} tries to attack, but {target.name} is in full defense!" )
+                    return
+                else:
+                    #right now defending gives 2x tenacity skill, may change
+                    target_defense = int(target_defense * 2)
+            
             #to check: is the target being defended by anyone else?
             #if so, high chance of redirecting this attack.
             #higher if you have bodyguard
@@ -572,9 +568,12 @@ class CmdAttack(MuxCommand):
                 bonus = do_roll(bonus_dice,0)
                 result = result + bonus
             str_result = str(result)
-
+            dodge_roll = do_roll(target_defense,target.db.athletics)
+            str_dodge = str(dodge_roll)
+            
             caller.msg("You attack %s with %s." % str(char), weapon)
-            outputmsg = (f"{caller.name} rolls to attack: {str_result}" )
+            outputmsg = (f"{caller.name} rolls to attack: {str_result} \n" )
+            outputmsg += (f"{target.name} defends with: {str_dodge}." )
             caller.location.msg_contents(outputmsg, from_obj=caller)
 
             #still to do: types, damage
@@ -612,7 +611,7 @@ class CmdTaunt(MuxCommand):
 
     def func(self):
 
-        errmsg = "An error occured."        
+        errmsg = "An error occured."
         caller= self.caller
 
         if not self.args:
@@ -627,9 +626,11 @@ class CmdTaunt(MuxCommand):
         stat = caller.get_a_stat("chr")
         skill = caller.get_a_skill("presence")
 
+        
         try:
+            caller.db.defending = 0
             result = do_roll(stat, skill)
-            str_result = str(result)
+            str_result = roll_to_string(result)
             outputmsg = (f"{caller.name} rolls to taunt: {str_result}" )
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
@@ -676,8 +677,9 @@ class CmdIntimidate(MuxCommand):
         skill = caller.get_a_skill("presence")
 
         try:
+            caller.db.defending = 0
             result = do_roll(stat, skill)
-            str_result = str(result)
+            str_result = roll_to_string(result)
             outputmsg = (f"{caller.name} rolls to intimidate: {str_result}" )
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
@@ -716,12 +718,13 @@ class CmdGuard(MuxCommand):
 
     def func(self):
 
-        errmsg = "An error occured."        
+        errmsg = "An error occured."
         caller= self.caller
-        
-        # does not function yet
+
         if not self.args:
-            caller.msg("Guard who?")
+            outputmsg = (f"{caller.name} goes into full defense." )
+            caller.location.msg_contents(outputmsg, from_obj=caller)
+            caller.db.defending = 1
             return
         try:
             self.caller.msg("You Roll.")
@@ -796,8 +799,9 @@ class CmdPersuade(Command):
         skill = caller.get_a_skill("convince")
 
         try:
+            caller.db.defending = 0
             result = do_roll(stat, skill)
-            str_result = str(result)
+            str_result = roll_to_string(result)
             outputmsg = (f"{caller.name} rolls to persuade: {str_result}" )
             caller.location.msg_contents(outputmsg, from_obj=caller)
         except ValueError:
