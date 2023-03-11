@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from evennia.utils.idmapper.models import SharedMemoryModel
+from world.combat.models import Weapon, BusterList
 
 # Create your models here.
 
@@ -94,6 +95,11 @@ class ArmorMode(SharedMemoryModel):
     # capabilities as secondary data field for extensibility
     
     db_capabilities = models.ManyToManyField(Capability, blank=True)
+    db_weapons = models.ManyToManyField(Weapon, blank=True)
+    db_busterlist = models.ManyToManyField(BusterList, blank=True)
+
+    db_primary = models.ForeignKey(Weapon, on_delete=models.CASCADE, blank=True, related_name='primary_weapon')
+    db_secondary = models.ForeignKey(Weapon, on_delete=models.CASCADE, blank=True, related_name='secondary_weapon')
 
 
     def __str__(self):

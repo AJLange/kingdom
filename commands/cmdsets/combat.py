@@ -3,7 +3,6 @@ Combat Related Commands
 
 """
 
-
 from calendar import c
 from evennia import CmdSet
 from commands.command import Command
@@ -14,6 +13,8 @@ from evennia import Command, InterruptCommand
 from server.battle import roll_attack, check_valid_target, explode_tens, roll_to_string, check_successes, check_capabilities, copy_attack, do_roll
 from evennia.utils.utils import inherits_from
 from django.conf import settings
+from world.combat.models import Weapon
+from world.armor.models import ArmorMode, Capability
 
 '''
 constants set here for testing purposes
@@ -24,8 +25,34 @@ STANDARD_HP = 60
 
 """
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
-
 """
+
+
+class ModeSwap(MuxCommand):
+    """
+    Swap armor modes.
+
+    Usage:
+        armor <name>
+
+    Swapping to an armor mode.
+    This will change your stats and the weapons that you have equipped.
+
+
+    """
+    key = "armor"
+    aliases= "+armor"
+    help_category = "Dice"
+    locks = "perm(Player))"
+
+    def func(self):
+        
+        #stubbed only
+        errmsg = "Error, check help armor."
+        caller= self.caller
+
+        if not self.args:
+            caller.msg("Swap to which armor?")
 
 class CmdShowdown(Command):
     """
@@ -87,7 +114,6 @@ class CmdShowdown(Command):
                 ''' 
                 remove everyone's aimdice and bonus dice
                 '''
-            
 
         if not self.args:
             caller.msg(errmsg)

@@ -137,10 +137,12 @@ def check_weapons(char):
     weapon = char.db.weapons
     return weapon
 
-def process_elements(val):
+def process_elements(type_string):
     '''
     process to convert string to structured data to see what element was used
     '''
+    val = 0
+    
     return val
 
 '''

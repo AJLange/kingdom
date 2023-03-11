@@ -192,6 +192,9 @@ class Weapon(SharedMemoryModel):
     )
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
+    
+    def __str__(self):
+        return self.db_name
 
 
 class BusterList(SharedMemoryModel):
@@ -238,6 +241,9 @@ class BusterList(SharedMemoryModel):
     #todo: autopopulate this. fine for now.
     db_time_out = models.DateTimeField('time out',blank=True, null=True)
 
+    def __str__(self):
+        return self.db_name
+
 
 class GenericAttack(SharedMemoryModel):
 
@@ -253,3 +259,6 @@ class GenericAttack(SharedMemoryModel):
     db_class = models.IntegerField(
         choices=WeaponClass.TYPE_CHOICES
     )
+
+    def __str__(self):
+        return self.db_name
