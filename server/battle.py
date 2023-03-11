@@ -10,19 +10,6 @@ from random import randint
 from evennia.utils.utils import inherits_from
 from django.conf import settings
 
-
-'''
-Combat constants which may be altered
-
-'''
-
-CRIT_CHANCE = .05
-
-'''
-these need to parse lists in the situation where
-a list is given
-'''
-
 def do_roll(stat, skill):
     '''
     roll a particular stat-skill combo. Used in combat commands.
@@ -128,6 +115,12 @@ def check_opposed_rolls(roll1, roll2):
         return -1
 
 
+'''
+these need to parse lists in the situation where
+a list is given
+'''
+
+
 def char_weakness(char):
     weakness = char.db.weakness
     return weakness
@@ -149,6 +142,10 @@ def process_elements(val):
     process to convert string to structured data to see what element was used
     '''
     return val
+
+'''
+attack rolls
+'''
 
 def roll_attack(attack):
     if attack.db_class == 1:

@@ -22,7 +22,6 @@ constants set here for testing purposes
 DUEL_HP = 90
 STANDARD_HP = 60
 
-
 """
 Combat is a type of scene called a Showdown which can be initiated via a showdown command
 
@@ -535,11 +534,14 @@ class CmdAttack(MuxCommand):
             caller.db.defending = 0
             target_defense = target.db.ten
             target_cap = check_capabilities(target)
-            attacker_cap = check_capabilities(caller)
-            full_defender = False
+
+            # don't need for now
+            # attacker_cap = check_capabilities(caller)
+
             #to check: is the target in full defense?
             #if so, if target is defender, no damage can be done
             #otherwise, lower the potential to-hit
+            full_defender = False
             if target.db.defending:
                 for cap in target_cap:
                     if cap == "Defender":
@@ -619,12 +621,12 @@ class CmdTaunt(MuxCommand):
             caller.msg("Taunt who?")
             return
         '''
-        todo: get cunning, charisma, aura, tenacity, use highest value
         better make sure any target is:
             a player
             present in the room
         '''
-        stat = caller.get_a_stat("chr")
+        #calc highest of charisma, aura, tenacity, cunning
+        stat = max(caller.db.chr, caller.db.aur, caller.db.ten, caller.db.cun)
         skill = caller.get_a_skill("presence")
 
         
@@ -669,12 +671,13 @@ class CmdIntimidate(MuxCommand):
             caller.msg("Intimidate who?")
             return
         '''
-        todo: get power, charisma, aura, and use the highest value
-                better make sure any target is:
+            better make sure any target is:
             a player
             present in the room
         '''
-        stat = caller.get_a_stat("chr")
+        #calc highest of charisma, aura, power
+        stat = max(caller.db.chr, caller.db.aur, caller.db.pow)
+
         skill = caller.get_a_skill("presence")
 
         try:
@@ -793,10 +796,11 @@ class CmdPersuade(Command):
             return
 
         '''
-        todo: charisma, cunning, education, get the highest value
-        apply any bonus dice for pose or circumstance
+        todo: apply any bonus dice for pose or circumstance
         '''
-        stat = caller.get_a_stat("chr")
+
+        #calc highest of charisma, cunning, education
+        stat = max(caller.db.chr, caller.db.cun, caller.db.edu)
         skill = caller.get_a_skill("convince")
 
         try:
