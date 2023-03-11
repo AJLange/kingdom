@@ -58,21 +58,21 @@ def roll_to_string(roll):
 def check_valid_target(self, char):
     """
     code this check to make sure a target of any assail is:
-    in the room with me
-    a valid character
+    in the room with me X
+    a valid character X
     that is not KOed
     and is in a showdown with me already
     or unoccupied - remind them to start the showdown.
 
     """
-    caller = self.caller
+    caller= self.caller
     
     if not char:
         return False
     if not inherits_from(char, settings.BASE_CHARACTER_TYPECLASS):
         return False
-
-    return True
+    else:
+        return True
 
 #check success of a normal roll.
 

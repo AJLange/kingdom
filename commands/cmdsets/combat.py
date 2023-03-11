@@ -513,10 +513,9 @@ class CmdAttack(MuxCommand):
             if not target:
                 caller.msg(msg)
                 return
-            char = caller.search(char, global_search=False)
 
             #is it a character/valid target?
-            target_ok = check_valid_target(char)
+            target_ok = check_valid_target(target)
             if not target_ok:
                 caller.msg(msg)
                 return
@@ -530,6 +529,9 @@ class CmdAttack(MuxCommand):
                     caller.msg("Specify a valid weapon to use.")
                     return
             
+            char = self.caller.search(target, global_search=False)
+    
+
             #if I attack I'm not defending
             caller.db.defending = 0
             target_defense = target.db.ten
@@ -620,15 +622,19 @@ class CmdTaunt(MuxCommand):
         if not self.args:
             caller.msg("Taunt who?")
             return
-        '''
-        better make sure any target is:
-            a player
-            present in the room
-        '''
+        
+        #check target is valid
+        target = self.args.strip()
+        char = self.caller.search(target, global_search=False)
+        valid_target = check_valid_target(self, char)
+        
+        if not valid_target:
+            caller.msg("Not a valid target.")
+            return
+
         #calc highest of charisma, aura, tenacity, cunning
         stat = max(caller.db.chr, caller.db.aur, caller.db.ten, caller.db.cun)
         skill = caller.get_a_skill("presence")
-
         
         try:
             caller.db.defending = 0
@@ -670,11 +676,16 @@ class CmdIntimidate(MuxCommand):
         if not self.args:
             caller.msg("Intimidate who?")
             return
-        '''
-            better make sure any target is:
-            a player
-            present in the room
-        '''
+        
+        #check target is valid
+        target = self.args.strip()
+        char = self.caller.search(target, global_search=False)
+        valid_target = check_valid_target(self, char)
+        
+        if not valid_target:
+            caller.msg("Not a valid target.")
+            return
+
         #calc highest of charisma, aura, power
         stat = max(caller.db.chr, caller.db.aur, caller.db.pow)
 
@@ -756,8 +767,25 @@ class CmdHeal(Command):
 
     def func(self):
 
+        errmsg = "An error occured."
+        caller= self.caller
+
+        
         errmsg = "An error occured."        
         caller= self.caller
+        
+        if not self.args:
+            caller.msg("Heal who?")
+            return
+
+        #check target is valid
+        target = self.args.strip()
+        char = self.caller.search(target, global_search=False)
+        valid_target = check_valid_target(self, char)
+        
+        if not valid_target:
+            caller.msg("Not a valid target.")
+            return
         
         if not self.args:
             caller.msg("Roll how many dice?")
@@ -792,9 +820,18 @@ class CmdPersuade(Command):
         caller= self.caller
         
         if not self.args:
-            caller.msg("Persuade who?")
+            caller.msg("Heal who?")
             return
 
+        #check target is valid
+        target = self.args.strip()
+        char = self.caller.search(target, global_search=False)
+        valid_target = check_valid_target(self, char)
+
+        if not valid_target:
+            caller.msg("Not a valid target.")
+            return
+        
         '''
         todo: apply any bonus dice for pose or circumstance
         '''
