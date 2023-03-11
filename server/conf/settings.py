@@ -93,7 +93,8 @@ INSTALLED_APPS +=  ["world.roster",
                     "world.groups", 
                     "world.requests",
                     "world.combat",
-                    "world.boards"]
+                    "world.boards",
+                    "world.armor"]
 
 
 ######################################################################

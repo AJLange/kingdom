@@ -470,11 +470,6 @@ class CmdCharge(Command):
             caller.msg(errmsg)
             return
 
-'''
-            
-todo: the assail commands below are stubs, need to take an argument (target)
-'''
-
 class CmdAttack(MuxCommand):
     """
     Attacking a particular target. 
@@ -592,7 +587,6 @@ class CmdAttack(MuxCommand):
         except ValueError:
             caller.msg(errmsg)
             return
-
 
 
 class CmdTaunt(MuxCommand):
@@ -800,8 +794,8 @@ class CmdHeal(Command):
 class CmdPersuade(Command):
 
     """
-
-    persuade <target>
+    Usage:
+      persuade <target>
 
     This type of assail uses your convince skill to do damage to a target.
 
