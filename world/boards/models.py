@@ -1,10 +1,12 @@
 from django.db import models
+from world.groups.models import PlayerGroup
 
 # Create your models here.
 
 class BulletinBoard(models.Model):
 
     db_name = models.CharField('Board Name',max_length=120)
+    db_groups = models.ManyToManyField(PlayerGroup, blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 
@@ -14,7 +16,7 @@ class BulletinBoard(models.Model):
 
 class BoardPost(models.Model):
 
-    db_title = models.CharField('Board Name',max_length=120)
+    db_title = models.CharField('Post Title',max_length=120)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
 

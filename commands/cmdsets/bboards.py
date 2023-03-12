@@ -6,13 +6,15 @@ make sure to homogenize self.caller to always be the player object
 for easy handling.
 """
 from evennia.utils import create
-# from server.utils import prettytable
+from evennia.utils.create import create_object
+from typeclasses import prettytable
 from evennia.utils.evtable import EvTable
-# from server.utils.arx_utils import inform_staff
-# from commands.base import ArxCommand, ArxPlayerCommand
 from evennia import default_cmds
-from typeclasses.bulletin_board.bboard import BBoard
-from world.supplemental import *
+from server.utils import sub_old_ansi
+from world.boards.models import BulletinBoard, BoardPost
+from commands.command import Command
+from evennia.commands.default.muxcommand import MuxCommand
+
 
 # limit symbol import for API
 __all__ = (
@@ -27,13 +29,12 @@ __all__ = (
 )
 BOARD_TYPECLASS = "typeclasses.bulletin_board.bboard.BBoard"
 
-
 def get_boards(caller):
     """
     returns list of bulletin boards
     """
-    bb_list = list(BBoard.objects.all())
-    bb_list = [ob for ob in bb_list if ob.access(caller, "read")]
+    bb_list = list(BulletinBoard.objects.all())
+    #bb_list = [ob for ob in bb_list if ob.access(caller, "read")]
     return bb_list
 
 
@@ -45,7 +46,7 @@ def list_bboards(caller, old=False):
     bb_list = get_boards(caller)
     if not bb_list:
         return
-    my_subs = [bb for bb in bb_list if bb.has_subscriber(caller)]
+    #my_subs = [bb for bb in bb_list if bb.has_subscriber(caller)]
     # just display the subscribed bboards with no extra info
     if old:
         caller.msg("Displaying only archived posts.")
@@ -54,16 +55,17 @@ def list_bboards(caller, old=False):
         )
     for bboard in bb_list:
         bb_number = bb_list.index(bboard)
-        bb_name = bboard.key
+        bb_name = bboard.db_name
         # caller.msg("In list_bboards call: type is {0}".format(type(caller).__name__))
-        unread_num = bboard.num_of_unread_posts(caller.account, old)
-        subbed = bboard in my_subs
-        posts = bboard.archived_posts if old else bboard.posts
-        if unread_num:
-            unread_str = " (%s new)" % unread_num
-        else:
-            unread_str = ""
-        bbtable.add_row(bb_number, bb_name, "%s%s" % (len(posts), unread_str), subbed)
+        #unread_num = bboard.num_of_unread_posts(caller.account, old)
+        #subbed = bboard in my_subs
+        #posts = bboard.archived_posts if old else bboard.posts
+        #if unread_num:
+            #unread_str = " (%s new)" % unread_num
+        #else:
+            #unread_str = ""
+        #bbtable.add_row(bb_number, bb_name, "%s%s" % (len(posts), unread_str))
+        bbtable.add_row(bb_number, bb_name)
     caller.msg("\n" + "=" * 60 + "\n%s" % bbtable)
 
 
@@ -84,12 +86,12 @@ def access_bboard(caller, args, request="read"):
     else:
         board_ids = [ob.id for ob in bboards]
         try:
-            board = BBoard.objects.get(db_key__icontains=args, id__in=board_ids)
-        except BBoard.DoesNotExist:
+            board = BulletinBoard.objects.get(db_key__icontains=args, id__in=board_ids)
+        except BulletinBoard.DoesNotExist:
             caller.msg("Could not find a unique board by name %s." % args)
             return
-        except BBoard.MultipleObjectsReturned:
-            boards = BBoard.objects.filter(db_key__icontains=args, id__in=board_ids)
+        except BulletinBoard.MultipleObjectsReturned:
+            boards = BulletinBoard.objects.filter(db_key__icontains=args, id__in=board_ids)
             caller.msg(
                 "Too many boards returned, please pick one: %s"
                 % ", ".join(str(ob) for ob in boards)
@@ -162,7 +164,7 @@ def get_unread_posts(caller):
     else:
         caller.msg("There are no unread posts on your subscribed @bb boards.")
 
-class CmdGetUnreadPosts(default_cmds.MuxCommand):
+class CmdGetUnreadPosts(MuxCommand):
     """
     +bbunread - get unread posts
     """
@@ -176,20 +178,21 @@ class CmdGetUnreadPosts(default_cmds.MuxCommand):
         caller = self.caller
         get_unread_posts(caller)
 
-class CmdBBNew(default_cmds.MuxCommand):
+class CmdBBNew(MuxCommand):
     """
-    +bbnew - read an unread post from boards you are subscribed to
+    +bbnext - read an unread post from boards you are subscribed to
+
     Usage:
-        +bbnew  - retrieve a single post
-        +bbnew <number of posts>[=<board num>] - retrieve posts
-        +bbnew all[=<board num>] - retrieve all posts
-        +bbnew/markread <number of posts or all>[=<board num>]
+        +bbnext  - retrieve a single post
+        +bbnext  <number of posts>[=<board num>] - retrieve posts
+        +bbnext  all[=<board num>] - retrieve all posts
+        +bbnext /markread <number of posts or all>[=<board num>]
     +bbnew will retrieve unread messages. If an argument is passed,
     it will retrieve up to the number of messages specified.
     """
 
-    key = "+bbnew"
-    aliases = ["@bbnew", "bbnew"]
+    key = "bbnext"
+    aliases = ["+bbnext ", "@bbnext"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
@@ -254,7 +257,43 @@ class CmdBBNew(default_cmds.MuxCommand):
         else:
             caller.msg("Already caught up on all bb messages.")
 
-class CmdBBReadOrPost(default_cmds.MuxCommand):
+
+class CmdBBRead(MuxCommand):
+
+    """
+    @bb - read or post to boards you are subscribed to
+
+    Usage:
+        +bbread
+        +bbread <Board Number>
+        +bbread <Board Number>/<Message Number>
+
+        The first command in the list returns a list of all the boards you are
+        currently subscribed to.
+        The second command returns a list of all the posts made to the given  
+        board.
+        The third command returns a specific post on the given board.         
+    """
+
+    key = "bbread"
+    aliases = ["+bbread", "@bbread", "bread", "+bread"]
+    help_category = "Comms"
+    locks = "cmd:not pperm(bboard_banned)"
+
+    def func(self):
+        caller = self.caller
+        args = self.args
+        bread = False
+        if self.cmdstring == "bread" or self.cmdstring == "+bread":
+            bread = True
+        if bread:
+            caller.msg("I assumed you meant bbread, but just in case, here's bread: https://www.youtube.com/watch?v=bHK0uFb6Vzw \n")
+
+        if not args:
+            list_bboards(caller)
+            return
+
+class CmdBBReadOrPost(MuxCommand):
     """
     @bb - read or post to boards you are subscribed to
     Usage:
@@ -270,6 +309,7 @@ class CmdBBReadOrPost(default_cmds.MuxCommand):
        @bb/post <board # or name>/<title>=<message> - make a post
        @bb/catchup - alias for +bbnew/markread command
        @bb/new - alias for the +bbnew command
+
     Bulletin Boards are intended to be OOC discussion groups divided
     by topic for news announcements, requests for participants in
     stories, and more.
@@ -492,7 +532,7 @@ class CmdBBReadOrPost(default_cmds.MuxCommand):
 #        board.bb_orgstance(self.caller, org, self.rhs, postnum)
 
 
-class CmdBBSub(default_cmds.MuxCommand):
+class CmdBBSub(MuxCommand):
     """
     @bbsub - subscribe to a bulletin board
     Usage:
@@ -576,17 +616,19 @@ class CmdBBUnsub(default_cmds.MuxCommand):
         caller.msg("Unsubscribed from %s" % bboard.key)
 
 
-class CmdBBCreate(default_cmds.MuxCommand):
+class CmdBBCreate(MuxCommand):
     """
-    @bbcreate
-    bboardcreate
+ 
     Usage:
-     @bbcreate <boardname> = description
-    Creates a new bboard owned by you.
+       bbcreate <boardname>
+
+    Creates a new bboard.
+    Use the command bbperms to add groups to board permissions.
+
     """
 
-    key = "@bbcreate"
-    aliases = ["+bbcreate", "bboardcreate"]
+    key = "bbcreate"
+    aliases = ["+bbcreate", "@bbcreate"]
     locks = "cmd:perm(bbcreate) or perm(Wizards)"
     help_category = "Comms"
 
@@ -596,33 +638,55 @@ class CmdBBCreate(default_cmds.MuxCommand):
         caller = self.caller
 
         if not self.args:
-            self.msg("Usage @bbcreate <boardname> = description")
+            self.msg("Usage bbcreate <boardname>")
             return
 
-        description = None
-
-        if self.rhs:
-            description = self.rhs
         lhs = self.lhs
         bboardname = lhs
         # Create and set the bboard up
         lockstring = "edit:all();write:all();read:all();control:id(%s)" % caller.id
 
-        typeclass = BOARD_TYPECLASS
-        new_board = create.create_object(
-            typeclass,
-            bboardname,
-            location=caller,
-            home="#4",
-            permissions=None,
-            locks=lockstring,
-            aliases=None,
-            destination=None,
-            report_to=None,
-            nohome=False,
-        )
-        if description:
-            new_board.desc = description
-        self.msg("Created bboard %s." % new_board.key)
-        new_board.subscribe_bboard(caller)
-        new_board.save()
+        new_board = BulletinBoard.objects.create(db_name =bboardname)
+
+        self.msg("Created bboard %s." % new_board.db_name)
+        #new_board.subscribe_bboard(caller)
+        #new_board.save()
+
+
+class CmdBBPerms(MuxCommand):
+    """
+ 
+    Usage:
+       bbperms <boardname>=<group>
+
+    Add a group to the permissions for a bboard.
+    This accepts player groups and permission groups (aka, staff).
+
+    Does not work yet!
+
+    """
+
+    key = "bbcreate"
+    aliases = ["+bbcreate", "@bbcreate"]
+    locks = "cmd:perm(bbcreate) or perm(Wizards)"
+    help_category = "Comms"
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
+
+        if not self.args:
+            self.msg("Usage bbcreate <boardname>")
+            return
+
+        lhs = self.lhs
+        bboardname = lhs
+        # Create and set the bboard up
+        lockstring = "edit:all();write:all();read:all();control:id(%s)" % caller.id
+
+        new_board = BulletinBoard.objects.create(db_name =bboardname, db_groups=None)
+
+        self.msg("Created bboard %s." % new_board.db_name)
+        #new_board.subscribe_bboard(caller)
+        #new_board.save()

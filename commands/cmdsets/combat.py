@@ -289,7 +289,6 @@ class CmdFlip(Command):
 
 
 '''
-
 holding this space, might not use this command
 
 class CmdStatRoll(Command):
