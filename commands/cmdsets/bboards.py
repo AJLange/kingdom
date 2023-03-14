@@ -46,7 +46,9 @@ def list_bboards(caller, old=False):
     bb_list = get_boards(caller)
     if not bb_list:
         return
-    #my_subs = [bb for bb in bb_list if bb.has_subscriber(caller)]
+    # doesn't work but doesn't break, to fix
+    # set this on the account level, which involves change of model
+    my_subs = [bb for bb in bb_list if bb.has_subscriber == caller]
     # just display the subscribed bboards with no extra info
     if old:
         caller.msg("Displaying only archived posts.")
@@ -58,14 +60,17 @@ def list_bboards(caller, old=False):
         bb_name = bboard.db_name
         # caller.msg("In list_bboards call: type is {0}".format(type(caller).__name__))
         #unread_num = bboard.num_of_unread_posts(caller.account, old)
-        #subbed = bboard in my_subs
+
+        # placeholder:
+        unread_num = 0
+        subbed = bboard in my_subs
         #posts = bboard.archived_posts if old else bboard.posts
         #if unread_num:
             #unread_str = " (%s new)" % unread_num
         #else:
             #unread_str = ""
         #bbtable.add_row(bb_number, bb_name, "%s%s" % (len(posts), unread_str))
-        bbtable.add_row(bb_number, bb_name)
+        bbtable.add_row(bb_number, bb_name, unread_num, subbed)
     caller.msg("\n" + "=" * 60 + "\n%s" % bbtable)
 
 
@@ -149,7 +154,7 @@ def get_unread_posts(caller):
     bb_list = get_boards(caller)
     if not bb_list:
         return
-    my_subs = [bb for bb in bb_list if bb.has_subscriber(caller)]
+    my_subs = [bb for bb in bb_list if bb.has_subscriber == caller]
     msg = "New @bb posts in: "
     unread = []
     for bb in my_subs:

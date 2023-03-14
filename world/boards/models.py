@@ -9,6 +9,7 @@ class BulletinBoard(models.Model):
     db_groups = models.ManyToManyField(PlayerGroup, blank=True)
     db_date_created = models.DateTimeField('date created', editable=False,
                                             auto_now_add=True, db_index=True)
+    has_subscriber = models.ManyToManyField("objects.ObjectDB", blank=True)
 
     def __str__(self):
         return self.db_name
