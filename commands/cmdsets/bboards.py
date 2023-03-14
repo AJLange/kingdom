@@ -46,9 +46,12 @@ def list_bboards(caller, old=False):
     bb_list = get_boards(caller)
     if not bb_list:
         return
-    # doesn't work but doesn't break, to fix
     # set this on the account level, which involves change of model
-    my_subs = [bb for bb in bb_list if bb.has_subscriber == caller]
+    my_subs = []
+    for bb in bb_list:
+        if caller in bb.has_subscriber.all():
+            my_subs.append(bb)
+
     # just display the subscribed bboards with no extra info
     if old:
         caller.msg("Displaying only archived posts.")
@@ -154,7 +157,10 @@ def get_unread_posts(caller):
     bb_list = get_boards(caller)
     if not bb_list:
         return
-    my_subs = [bb for bb in bb_list if bb.has_subscriber == caller]
+    my_subs = []
+    for bb in bb_list:
+        if caller in bb.has_subscriber.all():
+            my_subs.append(bb)
     msg = "New @bb posts in: "
     unread = []
     for bb in my_subs:
@@ -211,7 +217,9 @@ class CmdBBNew(MuxCommand):
         if not bb_list:
             return
         if not self.rhs:
-            my_subs = [bb for bb in bb_list if bb.has_subscriber(caller)]
+            for bb in bb_list:
+                if caller in bb.has_subscriber.all():
+                    my_subs.append(bb)
         else:
             sub = access_bboard(caller, self.rhs)
             if sub:
