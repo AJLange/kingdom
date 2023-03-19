@@ -285,7 +285,7 @@ class CmdBBRead(MuxCommand):
         currently subscribed to.
         The second command returns a list of all the posts made to the given  
         board.
-        The third command returns a specific post on the given board.         
+        The third command returns a specific post on the given board.
     """
 
     key = "bbread"

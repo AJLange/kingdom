@@ -475,6 +475,37 @@ class CmdCookie(MuxCommand):
             return
 
 
+class CmdDecompileMe(MuxCommand):
+
+    """
+   
+    Usage:
+        decompile
+
+    This command will provide you with all the personal information you have
+    filled out about a character:
+    * efinger information
+    * personal info files if they exist
+    * soundtrack
+    * relationships if they exist
+
+    This does not include all of your character's descs: see help mdesc to
+    get all of your descs.
+    This command is spammy! It's designed to be used if you are about to
+    drop a character and want to be sure you keep all your writing.
+    You should also be sure to keep any @mail you want to keep.
+
+    """
+
+    key = "decompile"
+    aliases = ["+decompile"]
+    locks = "perm(Player))"
+    help_category = "General"
+
+    def func(self):
+        caller = self.caller
+        caller.msg("Later this command will actually work!")
+
 
 class CmdCookieCounter(MuxCommand):
 
