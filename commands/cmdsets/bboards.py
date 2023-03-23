@@ -274,18 +274,21 @@ class CmdBBNew(MuxCommand):
 class CmdBBRead(MuxCommand):
 
     """
-    @bb - read or post to boards you are subscribed to
+    bbread to read posts on the bboards you are subscribed to.
 
     Usage:
         +bbread
         +bbread <Board Number>
         +bbread <Board Number>/<Message Number>
 
-        The first command in the list returns a list of all the boards you are
-        currently subscribed to.
-        The second command returns a list of all the posts made to the given  
-        board.
-        The third command returns a specific post on the given board.
+    The first command in the list returns a list of all the boards you are
+    currently subscribed to.
+    The second command returns a list of all the posts made to the given  
+    board.
+    The third command returns a specific post on the given board.
+
+    See also bbpost, bbedit, bbdel commands.
+
     """
 
     key = "bbread"
@@ -509,53 +512,49 @@ class CmdBBReadOrPost(MuxCommand):
             board.bb_post(caller, message, subject)
 
 
-# class CmdOrgStance(default_cmds.MuxCommand):
-#    """
-#    @bborgstance - post an org's response to a Proclamation
-#    Usage:
-#        @bborgstance <post #>/<org>=<brief declaration>
-#    Declare your org's bold, nuanced political stance in response to a posted
-#    proclamation - in a svelte 280 characters or less.
-#    """
+class CmdBBEdit(MuxCommand):
+    """
+    bbedit to edit a segment of a post that you have already posted.
 
-#    key = "@bborgstance"
-#    aliases = ["bborgstance", "+bborgstance"]
-#    help_category = "Comms"
-#    locks = "cmd:not pperm(bboard_banned)"
+    Usage:
+       +bbedit <Board Number>/<Message Number>=<Old Text>/<New Text>
 
-#    def func(self):
-#        lhs = self.lhs
-#        arglist = lhs.split("/")
-#        if len(arglist) < 2 or not self.rhs:
-#            self.msg("Usage: @bborgstance <post #>/<org>=<brief declaration>")
-#            return
-#        try:
-#            postnum = int(arglist[0])
-#        except ValueError:
-#            self.msg("Invalid post number.")
-#            return
-#        from django.core.exceptions import ObjectDoesNotExist
+    This command will search out for something within a post you made, and
+    replace it with the new text. 
 
-#        try:
-#            org = self.caller.current_orgs.get(name__iexact=arglist[1])
-#        except ObjectDoesNotExist:
-#            self.msg("You are not a member of that Org.")
-#            return
-#        board = BBoard.objects.get(db_key__iexact="proclamations")
-#        board.bb_orgstance(self.caller, org, self.rhs, postnum)
+    Example:
+      I'm a hungry boy who eats chips potato.
 
+      +bbedit 2/13=eats chips potato/eats potato chips
+
+      I'm a hungry boy who eats potato chips.
+
+    """
+
+    key = "bbedit"
+    aliases = ["+bbedit"]
+    help_category = "Comms"
+    locks = "cmd:not pperm(bboard_banned)"
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
+        args = self.lhs
 
 class CmdBBSub(MuxCommand):
     """
-    @bbsub - subscribe to a bulletin board
+    bbsub - subscribe to a bulletin board
+
     Usage:
-       @bbsub <board #>
-       @bbsub/add <board #>=<player>
+       bbsub <board #>
+       bbsub/add <board #>=<player>
+
     Subscribes to a board of the given number.
     """
 
-    key = "@bbsub"
-    aliases = ["bbsub", "+bbsub"]
+    key = "bbsub"
+    aliases = ["@bbsub", "+bbsub"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
@@ -566,7 +565,7 @@ class CmdBBSub(MuxCommand):
         args = self.lhs
 
         if not args:
-            self.msg("Usage: @bbsub <board #>.")
+            self.msg("Usage: bbsub <board #>.")
             return
 
         bboard = access_bboard(caller, args)
@@ -596,14 +595,15 @@ class CmdBBSub(MuxCommand):
 class CmdBBUnsub(default_cmds.MuxCommand):
     """
     bbunsub - unsubscribe from a bulletin board
+
     Usage:
-       @bbunsub <board #>
-    Removes a bulletin board from your list of
-    subscriptions.
+       bbunsub <board #>
+
+    Removes a bulletin board from your list of subscriptions.
     """
 
-    key = "@bbunsub"
-    aliases = ["bbunsub, +bbunsub"]
+    key = "bbunsub"
+    aliases = ["@bbunsub, +bbunsub"]
     help_category = "Comms"
     locks = "cmd:not perm(bboard_banned)"
 
@@ -611,13 +611,9 @@ class CmdBBUnsub(default_cmds.MuxCommand):
         """Implementing the command."""
 
         caller = self.caller
-
-        if not self.args:
-            self.msg("Usage: @bbunsub <board #>")
-            return
         args = self.args
         if not args:
-            self.msg("Usage: @bbsub <board #>.")
+            self.msg("Usage: bbunsub <board #>.")
             return
         bboard = access_bboard(caller, args)
         if not bboard:
