@@ -21,8 +21,7 @@ class CmdSummon(MuxCommand):
         summon <person>
 
     Summons a person to your location. 
-    A summon invite can be turned down by choosing
-    the option to deny.
+    A summon invite can be turned down by choosing the option to deny.
 
     """
 
@@ -79,10 +78,10 @@ class CmdJoin(MuxCommand):
     Usage:
         join <person>
 
-    Summons a person to your location. 
-    A summon invite can be turned down with 
-    +summon deny. +port and +summon have the 
-    same functionality.
+    Asks another player to summon you to their location. 
+    The player has to confirm your +join, then you will be teleported
+    directly to their location.
+
     """
 
     key = "join"
@@ -364,6 +363,10 @@ class CmdPortal(MuxCommand):
     This allows a player to teleport to the locations available on the 
     teleportation grid.
 
+    Not all locations are on the teleportation grid. Teleport locations
+    tend to be teleport hubs, hangouts, or scenes where an active 
+    event is taking place.
+    
     Use +portal/list to get a list of valid locations to teleport to.
 
     """
