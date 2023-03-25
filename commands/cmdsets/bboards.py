@@ -395,7 +395,7 @@ class CmdBBPost(MuxCommand):
         if len(arglist) < 2:
             subject = "No Subject"
         else:
-            subject = arglist[1]
+            subject = arglist[1].lstrip()
             if subject == "":
                 subject = "No Subject"
             board = access_bboard(caller, arglist[0], "write")
