@@ -396,6 +396,8 @@ class CmdBBPost(MuxCommand):
             subject = "No Subject"
         else:
             subject = arglist[1]
+            if subject == "":
+                subject = "No Subject"
             board = access_bboard(caller, arglist[0], "write")
             if not board:
                 return
@@ -403,7 +405,10 @@ class CmdBBPost(MuxCommand):
             message = sub_old_ansi(message)
             # board.bb_post(caller, message, subject)
             bbpost = BoardPost.objects.create(db_title=subject, db_board=board, posted_by=caller,body_text=message)
-            caller.msg(f"Created post {subject} to board {board}.")
+            if not bbpost:
+                caller.msg("Sorry, something went wrong. Usage: +bbpost <Board Number>/<Subject>=<Message>")
+            else:
+                caller.msg(f"Created post {subject} to board {board}.")
         return
 
 class CmdBBReadOrPost(MuxCommand):

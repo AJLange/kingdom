@@ -42,7 +42,7 @@ from commands.cmdsets.movement import CmdEnterCity, CmdLeaveCity
 from commands.default.unloggedin import CmdUnconnectedCreate
 from commands.default.comms import CmdGrapevine2Chan, CmdIRC2Chan, CmdIRCStatus, CmdRSS2Chan
 from commands.default.comms import CmdChannelCreate, CmdCdestroy, CmdCBoot
-from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead
+from commands.cmdsets.bboards import CmdBBCreate, CmdBBRead, CmdBBPost
 
 #from commands.cmdsets.bboards import CmdBBCreate, CmdBBNew, CmdBBReadOrPost, CmdBBSub, CmdBBUnsub, CmdGetUnreadPosts
 
@@ -125,6 +125,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
 
         #boards
         self.add(CmdBBRead())
+        self.add(CmdBBPost())
 
         #building and crafting
         self.add(CmdCheckQuota())
