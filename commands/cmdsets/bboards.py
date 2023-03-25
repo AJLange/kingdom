@@ -411,45 +411,6 @@ class CmdBBPost(MuxCommand):
                 caller.msg(f"Created post {subject} to board {board}.")
         return
 
-class CmdBBReadOrPost(MuxCommand):
-    """
-    @bb - read or post to boards you are subscribed to
-    Usage:
-       @bb - List all boards you are subscribed to
-       @bb <board # or name> - List posts on board
-       @bb <board # or name>/<post #> - read post on board
-       @bb <board # or name>/u - read all unread posts for board
-       @bb/read <board # or name>/<post #> - read post on board
-       @bb/del  <board # or name>/<post #> - delete post on board
-       @bb/archive <board # or name>/<post #>
-       @bb/sticky <board # or name>/<post #>
-       @bb/edit <board # or name>/<post #>=<message> - edit
-       @bb/post <board # or name>/<title>=<message> - make a post
-       @bb/catchup - alias for +bbnew/markread command
-       @bb/new - alias for the +bbnew command
-
-    Bulletin Boards are intended to be OOC discussion groups divided
-    by topic for news announcements, requests for participants in
-    stories, and more.
-    To subscribe to a board, use '@bbsub'. To read the newest post on
-    a board, use @bbnew.
-    To mark all posts as read, use '+bbnew/markread all'. The /old
-    switch may be chained to view archived posts.
-    """
-
-    key = "@bb"
-    aliases = ["+bb", "+bbread", "bb", "bbread", "@bbread"]
-    help_category = "Comms"
-    locks = "cmd:not pperm(bboard_banned)"
-
-    def func(self):
-        """Implement the command"""
-        caller = self.caller
-        args = self.args
-        switches = self.switches
-        old = "old" in switches
-
-
 class CmdBBEdit(MuxCommand):
     """
     bbedit to edit a segment of a post that you have already posted.
@@ -479,7 +440,7 @@ class CmdBBEdit(MuxCommand):
         lhs = self.lhs
         arglist = lhs.split("/")
         if len(arglist) < 2 or not self.rhs:
-            self.msg("Usage: @bb/edit <board #>/<post #>")
+            self.msg("Usage: bbedit <Board Number>/<Message Number>=<Old Text>/<New Text>")
             return
         try:
             post_num = int(arglist[1])
@@ -501,17 +462,21 @@ class CmdBBEdit(MuxCommand):
             if board.edit_post(self.caller, post, sub_old_ansi(self.rhs)):
                 self.msg("Post edited.")
 
-
 class CmdBBDel(MuxCommand):
 
     """
-    bbunsub - unsubscribe from a bulletin board
+    bbdel - delete my post.
 
     Usage:
-       bbunsub <board #>
+       bbdel <board>/<post>
 
-    Removes a bulletin board from your list of subscriptions.
+    Removes a post that you have made from a bboard.
+
     """
+    key = "bbdel"
+    aliases = ["+bbdel", "bbremove", "+bbremove", "bbdelete", "+bbdelete"]
+    help_category = "Comms"
+    locks = "cmd:not pperm(bboard_banned)"
 
     def func(self):
         """Implement the command"""
@@ -556,9 +521,7 @@ class CmdBBDel(MuxCommand):
                     return
             if getattr(board, method)(post):
                 caller.msg("Post %sd" % verb)
-               # inform_staff(
-               #     "%s has %sd post %s on board %s." % (caller, verb, post_num, board)
-               #  )
+
             else:
                 caller.msg("Post %s failed for unknown reason." % verb)
             return
