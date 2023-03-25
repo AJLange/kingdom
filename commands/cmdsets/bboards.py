@@ -16,19 +16,6 @@ from commands.command import Command
 from evennia.commands.default.muxcommand import MuxCommand
 
 
-# limit symbol import for API
-__all__ = (
-    "CmdBBReadOrPost",
-    "CmdBBSub",
-    "CmdBBUnsub",
-    "CmdBBCreate",
-    "CmdBBNew",
-    "CmdGetUnreadPosts",
-    "get_boards",
-    "get_unread_posts",
-)
-BOARD_TYPECLASS = "typeclasses.bulletin_board.bboard.BBoard"
-
 def get_boards(caller):
     """
     returns list of bulletin boards
@@ -91,6 +78,7 @@ def access_bboard(caller, args, request="read"):
             caller.msg("Invalid board number.")
             return
         board = bboards[bb_num]
+
     else:
         board_ids = [ob.id for ob in bboards]
         try:
@@ -105,14 +93,24 @@ def access_bboard(caller, args, request="read"):
                 % ", ".join(str(ob) for ob in boards)
             )
             return
+    '''
+    removing the check on accesses for now. Later on put back (so staff can have private board)
+
     if not board.access(caller, request):
         caller.msg("You do not have the required privileges to do that.")
         return
+    '''
     # passed all checks, so return board
     return board
 
+def get_all_posts(board):
+    try:
+        posts = BoardPost.objects.get(db_board = board).db_board
+    except LookupError:
+        return 
+    return posts
 
-def list_messages(caller, board, board_num, old=False):
+def list_messages(caller, board, board_num):
     """
     Helper function for printing all the posts on board
     to caller.
@@ -121,24 +119,29 @@ def list_messages(caller, board, board_num, old=False):
         caller.msg("No bulletin board found.")
         return
     caller.msg("" + "=" * 60 + "\n")
-    title = "**** %s ****" % board.key.capitalize()
-    title = "{:^80}".format(title)
+    title = "**** %s ****" % board.db_name.capitalize()
+    title = "{:^60}".format(title)
     caller.msg(title)
-    posts = board.get_all_posts(old=old)
+    posts = get_all_posts(board)
+    if not posts:
+        caller.msg = "No posts found yet on this board."
+        return
     msgnum = 0
     msgtable = EvTable(
         "bb/msg", "Subject", "PostDate", "Posted By"
     )
-    from world.msgs.models import Post
 
-    read_posts = Post.objects.all_read_by(caller.account)
+    # to do - posts track if they are read-by characters.
+    # not working for now.
+    
+    read_posts = get_unread_posts(caller)
     for post in posts:
         unread = post not in read_posts
         msgnum += 1
         if str(board_num).isdigit():
             bbmsgnum = str(board_num) + "/" + str(msgnum)
         else:
-            bbmsgnum = board.name.capitalize() + "/" + str(msgnum)
+            bbmsgnum = board.db_name.capitalize() + "/" + str(msgnum)
         # if unread message, make the message white-bold
         if unread:
             bbmsgnum = "" + "{0}".format(bbmsgnum)
@@ -173,15 +176,15 @@ def get_unread_posts(caller):
         msg += ", ".join(bb.key.capitalize() for bb in unread)
         caller.msg(msg)
     else:
-        caller.msg("There are no unread posts on your subscribed @bb boards.")
+        caller.msg("There are no unread posts on your subscribed bboards.")
 
 class CmdGetUnreadPosts(MuxCommand):
     """
     +bbunread - get unread posts
     """
 
-    key = "+bbunread"
-    aliases = ["@bbunread"]
+    key = "bbunread"
+    aliases = ["@bbunread", "+bbunread"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
@@ -190,20 +193,24 @@ class CmdGetUnreadPosts(MuxCommand):
         get_unread_posts(caller)
 
 class CmdBBNew(MuxCommand):
+
     """
-    +bbnext - read an unread post from boards you are subscribed to
+    bbnext to read an unread post from boards you are subscribed to
 
     Usage:
-        +bbnext  - retrieve a single post
-        +bbnext  <number of posts>[=<board num>] - retrieve posts
-        +bbnext  all[=<board num>] - retrieve all posts
-        +bbnext /markread <number of posts or all>[=<board num>]
-    +bbnew will retrieve unread messages. If an argument is passed,
+        +bbnext - retrieve a single post
+        +bbnext <number of posts>[=<board num>] - retrieve posts
+        +bbnext/all[=<board num>] - retrieve all posts
+
+    This command will retrieve unread messages. If an argument is passed,
     it will retrieve up to the number of messages specified.
+
+    You can use bbnext/all (or bbcatchup) to instantly see all unread posts.
+
     """
 
     key = "bbnext"
-    aliases = ["+bbnext ", "@bbnext"]
+    aliases = ["+bbnext ", "@bbnext", "bbnew", "+bbnew", "+bbcatchup", "bbcatchup"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
@@ -268,7 +275,9 @@ class CmdBBNew(MuxCommand):
         if unread_count != 0:
             caller.msg("Marked posts as read.")
         else:
-            caller.msg("Already caught up on all bb messages.")
+            caller.msg("There are no unread posts on your subscribed bboards.")
+
+        
 
 
 class CmdBBRead(MuxCommand):
@@ -282,9 +291,11 @@ class CmdBBRead(MuxCommand):
         +bbread <Board Number>/<Message Number>
 
     The first command in the list returns a list of all the boards you are
-    currently subscribed to.
+    currently subscribed to. (You can also use +bblist for this.)
+
     The second command returns a list of all the posts made to the given  
     board.
+
     The third command returns a specific post on the given board.
 
     See also bbpost, bbedit, bbdel commands.
@@ -292,22 +303,108 @@ class CmdBBRead(MuxCommand):
     """
 
     key = "bbread"
-    aliases = ["+bbread", "@bbread", "bread", "+bread"]
+    aliases = ["+bbread", "@bbread", "bread", "+bread", "+bblist", "bblist"]
     help_category = "Comms"
     locks = "cmd:not pperm(bboard_banned)"
 
     def func(self):
         caller = self.caller
         args = self.args
-        bread = False
+
+        
+        
         if self.cmdstring == "bread" or self.cmdstring == "+bread":
-            bread = True
-        if bread:
-            caller.msg("I assumed you meant bbread, but just in case, here's bread: https://www.youtube.com/watch?v=bHK0uFb6Vzw \n")
+            caller.msg("I assumed you meant bbread, but just in case, here's bread: https://www.youtube.com/watch?v=bHK0uFb6Vzw ")
 
         if not args:
             list_bboards(caller)
             return
+        
+        if self.cmdstring == "bblist" or self.cmdstring == "+bblist":
+            #assuming I want the old bblist command
+            list_bboards(caller)
+            return
+        
+        # do the reading not listing 
+        arglist = args.split("/")
+        
+        if len(arglist) < 2:
+            board_to_check = access_bboard(caller, args)
+            if not board_to_check:
+                return
+            board_subs = board_to_check.has_subscriber.all()
+            if not caller in board_subs:
+                caller.msg(
+                    "You are not yet a subscriber to {0}.".format(board_to_check.db_name)
+                )
+                caller.msg("Use bbsub to subscribe to it.")
+                return
+            list_messages(caller, board_to_check, args)
+            return
+
+class CmdBBPost(MuxCommand):
+    """
+    Post to boards that you are subscribed to.
+
+    Usage:
+       +bbpost <Board Number>/<Subject>=<Message>
+
+    Use this syntax to post a new message to a bboard.
+
+    Example:
+       +bbpost 1/Greetings=This is my first post!
+       bbpost 2/It's OK=The plus sign is optional.%R%RMUSH format works!
+
+    Bulletin Boards are intended to be discussion groups divided
+    by topic for news announcements.
+
+    Most boards are considered OOC communication.
+
+    Group-related boards are considered IC communication and can be used
+    to share information between characters in those groups. This is a 
+    good way for groups to be connected about RP they may have missed while
+    offline. Please keep in mind that even if you can see a board OOCly,
+    you can only ICly use information that you know ICly, such as being 
+    a member of said group. Use boards responsibily!
+
+    To subscribe to a board, use 'bbsub'. To read the newest post on
+    a board, use bbnew.
+    
+    """
+
+    key = "bbpost"
+    aliases = ["+bbpost"]
+    help_category = "Comms"
+    locks = "cmd:not pperm(bboard_banned), perm(Player)"
+    # guests can read but only players should post.
+
+    def func(self):
+        """Implement the command"""
+        caller = self.caller
+        args = self.args
+        
+        if not args:
+            caller.msg("Syntax: +bbpost <Board Number>/<Subject>=<Message>")
+            return
+        
+        if not self.rhs:
+                caller.msg("Usage: +bbpost <Board Number>/<Subject>=<Message>")
+                return
+        lhs = self.lhs
+        arglist = lhs.split("/")
+        if len(arglist) < 2:
+            subject = "No Subject"
+        else:
+            subject = arglist[1]
+            board = access_bboard(caller, arglist[0], "write")
+            if not board:
+                return
+            message = self.rhs
+            message = sub_old_ansi(message)
+            # board.bb_post(caller, message, subject)
+            bbpost = BoardPost.objects.create(db_title=subject, db_board=board, posted_by=caller,body_text=message)
+            caller.msg(f"Created post {subject} to board {board}.")
+        return
 
 class CmdBBReadOrPost(MuxCommand):
     """
@@ -346,170 +443,6 @@ class CmdBBReadOrPost(MuxCommand):
         args = self.args
         switches = self.switches
         old = "old" in switches
-        if not args and not ("new" in switches or "catchup" in switches):
-            return list_bboards(caller, old)
-
-        # first, "@bb <board #>" use case
-        def board_check(reader, arguments):
-            board_to_check = access_bboard(reader, arguments)
-            if not board_to_check:
-                return
-            if not board_to_check.has_subscriber(reader):
-                reader.msg(
-                    "You are not yet a subscriber to {0}".format(board_to_check.key)
-                )
-                reader.msg("Use @bbsub to subscribe to it.")
-                return
-            list_messages(reader, board_to_check, arguments, old)
-
-        if not switches or old and len(switches) == 1:
-            arglist = args.split("/")
-            if len(arglist) < 2:
-                board_check(caller, args)
-                return
-            else:
-                if arglist[1] == "u":
-                    switches.append("new")
-                    # build arguments for bbnew command
-                    args = " all=%s" % arglist[0]
-                else:
-                    switches.append("read")
-        if "new" in switches or "catchup" in switches:
-            if "catchup" in switches:
-                caller.account.execute_cmd("+bbnew/markread" + args)
-                return
-            caller.account.execute_cmd("+bbnew" + args)
-            return
-        # both post/read share board #
-        arglist = args.split("/")
-        board = access_bboard(caller, arglist[0])
-        if not board:
-            return
-
-        if "read" in switches:
-            if len(arglist) < 2:
-                board_check(caller, args)
-                return
-            postrange = [arg.strip() for arg in arglist[1].split("-")]
-            if len(postrange) == 1:
-                try:
-                    post_num = int(arglist[1])
-                except ValueError:
-                    caller.msg("Invalid post number.")
-                    return
-                post = board.get_post(caller, post_num, old)
-                if not post:
-                    return
-                board.read_post(caller, post, old)
-                return
-            num_read = 0
-            try:
-                for post_num in range(int(postrange[0]), int(postrange[1]) + 1):
-                    try:
-                        post = board.get_post(caller, int(post_num))
-                        board.read_post(caller, post, old)
-                        num_read += 1
-                    except (TypeError, ValueError, AttributeError):
-                        continue
-            except (TypeError, ValueError, IndexError):
-                caller.msg("Posts in the range must be numbers.")
-                return
-            if not num_read:
-                caller.msg("No posts in range.")
-            return
-        if (
-            "del" in switches
-            or "archive" in switches
-            or "sticky" in switches
-            or "delete" in switches
-        ):
-            if "del" in switches or "delete" in switches:
-                if board.tags.get("only_staff_delete") and not caller.check_permstring(
-                    "builders"
-                ):
-                    self.msg("Only builders may delete from that board.")
-                    return
-                switchname = "del"
-                verb = "delete"
-                method = "delete_post"
-            elif "sticky" in switches:
-                switchname = "sticky"
-                verb = "sticky"
-                method = "sticky_post"
-            else:
-                switchname = "archive"
-                verb = "archive"
-                method = "archive_post"
-            if len(arglist) < 2:
-                caller.msg("Usage: @bb/%s <board #>/<post #>" % switchname)
-                return
-            try:
-                post_num = int(arglist[1])
-            except ValueError:
-                caller.msg("Invalid post number.")
-                return
-            post = board.get_post(caller, post_num, old)
-            if not post:
-                return
-            if not caller.account.check_permstring("Admins"):
-                if (caller not in post.db_sender_accounts.all() and not board.access(
-                    caller, "edit"
-                )) or caller.key.upper() != post.poster_name.upper():
-                    caller.msg("You cannot %s someone else's post, only your own." % verb)
-                    return
-            if getattr(board, method)(post):
-                caller.msg("Post %sd" % verb)
-               # inform_staff(
-               #     "%s has %sd post %s on board %s." % (caller, verb, post_num, board)
-               #  )
-            else:
-                caller.msg("Post %s failed for unknown reason." % verb)
-            return
-        if "edit" in switches:
-            lhs = self.lhs
-            arglist = lhs.split("/")
-            if len(arglist) < 2 or not self.rhs:
-                self.msg("Usage: @bb/edit <board #>/<post #>")
-                return
-            try:
-                post_num = int(arglist[1])
-            except ValueError:
-                self.msg("Invalid post number.")
-                return
-            board = access_bboard(caller, arglist[0], "write")
-            if not board:
-                return
-            post = board.get_post(caller, post_num)
-            if not post:
-                return
-            if not caller.account.check_permstring("Admins"):
-                if (caller not in post.db_sender_accounts.all() and not board.access(
-                    caller, "edit"
-                )) or caller.key.upper() != post.poster_name.upper():
-                    caller.msg("You cannot edit someone else's post, only your own.")
-                    return
-            if board.edit_post(self.caller, post, sub_old_ansi(self.rhs)):
-                self.msg("Post edited.")
-                # inform_staff(
-                #    "%s has edited post %s on board %s." % (caller, post_num, board)
-                # )
-            return
-        if "post" in switches:
-            if not self.rhs:
-                caller.msg("Usage: @bb/post <board #>/<subject> = <post message>")
-                return
-            lhs = self.lhs
-            arglist = lhs.split("/")
-            if len(arglist) < 2:
-                subject = "No Subject"
-            else:
-                subject = arglist[1]
-            board = access_bboard(caller, arglist[0], "write")
-            if not board:
-                return
-            message = self.rhs
-            message = sub_old_ansi(message)
-            board.bb_post(caller, message, subject)
 
 
 class CmdBBEdit(MuxCommand):
@@ -524,9 +457,7 @@ class CmdBBEdit(MuxCommand):
 
     Example:
       I'm a hungry boy who eats chips potato.
-
       +bbedit 2/13=eats chips potato/eats potato chips
-
       I'm a hungry boy who eats potato chips.
 
     """
@@ -540,7 +471,92 @@ class CmdBBEdit(MuxCommand):
         """Implement the command"""
 
         caller = self.caller
+        lhs = self.lhs
+        arglist = lhs.split("/")
+        if len(arglist) < 2 or not self.rhs:
+            self.msg("Usage: @bb/edit <board #>/<post #>")
+            return
+        try:
+            post_num = int(arglist[1])
+        except ValueError:
+            self.msg("Invalid post number.")
+            return
+        board = access_bboard(caller, arglist[0], "write")
+        if not board:
+            return
+        post = board.get_post(caller, post_num)
+        if not post:
+            return
+        if not caller.account.check_permstring("Admins"):
+            if (caller not in post.db_sender_accounts.all() and not board.access(
+                    caller, "edit"
+                )) or caller.key.upper() != post.poster_name.upper():
+                    caller.msg("You cannot edit someone else's post, only your own.")
+                    return
+            if board.edit_post(self.caller, post, sub_old_ansi(self.rhs)):
+                self.msg("Post edited.")
+
+
+class CmdBBDel(MuxCommand):
+
+    """
+    bbunsub - unsubscribe from a bulletin board
+
+    Usage:
+       bbunsub <board #>
+
+    Removes a bulletin board from your list of subscriptions.
+    """
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
         args = self.lhs
+        switchname = "del"
+        verb = "delete"
+        method = "delete_post"
+        switches = self.switches
+        board = args
+        if board.tags.get("only_staff_delete") and not caller.check_permstring(
+                    "builders"
+                ):
+                    self.msg("Only builders may delete from that board.")
+                    return
+            
+        elif "sticky" in switches:
+            switchname = "sticky"
+            verb = "sticky"
+            method = "sticky_post"
+        else:
+            switchname = "archive"
+            verb = "archive"
+            method = "archive_post"
+        if len(args) < 2:
+            caller.msg("Usage: @bb/%s <board #>/<post #>" % switchname)
+            return
+        try:
+            post_num = int(args[1])
+        except ValueError:
+            caller.msg("Invalid post number.")
+            return
+        post = board.get_post(caller, post_num)
+        if not post:
+            return
+        if not caller.account.check_permstring("Admins"):
+            if (caller not in post.db_sender_accounts.all() and not board.access(
+                    caller, "edit"
+                )) or caller.key.upper() != post.poster_name.upper():
+                    caller.msg("You cannot %s someone else's post, only your own." % verb)
+                    return
+            if getattr(board, method)(post):
+                caller.msg("Post %sd" % verb)
+               # inform_staff(
+               #     "%s has %sd post %s on board %s." % (caller, verb, post_num, board)
+               #  )
+            else:
+                caller.msg("Post %s failed for unknown reason." % verb)
+            return
 
 class CmdBBSub(MuxCommand):
     """

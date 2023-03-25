@@ -182,10 +182,21 @@ class CmdCreateWeapon(MuxCommand):
         types_list = divide_fx[0].split(" ")
         weapon_class = types_list[0]
         types_list.pop(0)
+
+        #elements and effect aren't parsing yet, but we can add to db a weapon of class.
+
         if effects_list:
-            caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+            new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=weapon_class, db_type_1=1, db_flag_1=1)
+            if new_weapon:
+                caller.msg("Added weapon |w%s|n: Class %s Types %s Effects %s" % (weapon_name, weapon_class, types_list, effects_list) )
+            else: 
+                caller.msg("Sorry, an error occured.")
         else:
-            caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+            new_weapon = Weapon.objects.create(db_name=weapon_name, db_class=weapon_class, db_type_1=1)
+            if new_weapon:
+                caller.msg("Added weapon |w%s|n: Class %s Types %s " % (weapon_name, weapon_class, types_list) )
+            else:
+                caller.msg("Sorry, an error occured.")
 
         
 
