@@ -1,10 +1,3 @@
-"""
-Comsystem command module.
-Comm commands are OOC commands and intended to be made available to
-the Player at all times (they go into the PlayerCmdSet). So we
-make sure to homogenize self.caller to always be the player object
-for easy handling.
-"""
 from evennia.utils import create
 from evennia.utils.create import create_object
 from typeclasses import prettytable
@@ -16,60 +9,56 @@ from commands.command import Command
 from evennia.commands.default.muxcommand import MuxCommand
 
 
-def get_boards(caller):
+def get_boards():
     """
     returns list of bulletin boards
     """
     bb_list = list(BulletinBoard.objects.all())
-    #bb_list = [ob for ob in bb_list if ob.access(caller, "read")]
+
     return bb_list
 
-
-def list_bboards(caller, old=False):
+def list_bboards(caller):
     """
     Helper function for listing all boards a player is subscribed
     to in some pretty format.
     """
-    bb_list = get_boards(caller)
+    bb_list = get_boards()
     if not bb_list:
         return
-    # set this on the account level, which involves change of model
+    # later set this on the account level, which involves change of model
     my_subs = []
     for bb in bb_list:
         if caller in bb.has_subscriber.all():
             my_subs.append(bb)
 
     # just display the subscribed bboards with no extra info
-    if old:
-        caller.msg("Displaying only archived posts.")
+    
     bbtable = EvTable(
-        "bb #", "Name", "Posts", "Subscribed"
+        "bb #", "Name", "New Posts", "Subscribed"
         )
     for bboard in bb_list:
         bb_number = bb_list.index(bboard)
         bb_name = bboard.db_name
-        # caller.msg("In list_bboards call: type is {0}".format(type(caller).__name__))
-        #unread_num = bboard.num_of_unread_posts(caller.account, old)
 
-        # placeholder:
-        unread_num = 0
+        unread_num = get_num_unread(caller, bboard)
         subbed = bboard in my_subs
-        #posts = bboard.archived_posts if old else bboard.posts
-        #if unread_num:
-            #unread_str = " (%s new)" % unread_num
-        #else:
-            #unread_str = ""
-        #bbtable.add_row(bb_number, bb_name, "%s%s" % (len(posts), unread_str))
+        
         bbtable.add_row(bb_number, bb_name, unread_num, subbed)
-    caller.msg("\n" + "=" * 60 + "\n%s" % bbtable)
+    caller.msg("\n" + "=" * 70 + "\n%s" % bbtable)
 
+def check_if_subbed(caller, board_to_check):
+    board_subs = board_to_check.has_subscriber.all()
+    if not caller in board_subs:
+        caller.msg("You are not yet a subscriber to {0}.".format(board_to_check.db_name))
+        caller.msg("Use bbsub to subscribe to it.")
+        return
 
 def access_bboard(caller, args, request="read"):
     """
     Helper function for searching for a single bboard with
     some error handling.
     """
-    bboards = get_boards(caller)
+    bboards = get_boards()
     if not bboards:
         return
     if args.isdigit():
@@ -93,13 +82,9 @@ def access_bboard(caller, args, request="read"):
                 % ", ".join(str(ob) for ob in boards)
             )
             return
-    '''
-    removing the check on accesses for now. Later on put back (so staff can have private board)
-
-    if not board.access(caller, request):
-        caller.msg("You do not have the required privileges to do that.")
+    if not check_access(caller, board):
+        caller.msg("You do not have the permissions to view that board.")
         return
-    '''
     # passed all checks, so return board
     return board
 
@@ -110,7 +95,7 @@ def get_all_posts(board):
         return 
     return posts
 
-def list_messages(caller, board, board_num):
+def list_messages(caller, board):
     """
     Helper function for printing all the posts on board
     to caller.
@@ -134,12 +119,12 @@ def list_messages(caller, board, board_num):
     # to do - posts track if they are read-by characters.
     # not working for now.
     
-    read_posts = get_unread_posts(caller)
+    unread_posts = get_unread_posts(caller)
     for post in posts:
-        unread = post not in read_posts
+        unread = post in unread_posts
         msgnum += 1
-        if str(board_num).isdigit():
-            bbmsgnum = str(board_num) + "/" + str(msgnum)
+        if str(board).isdigit():
+            bbmsgnum = str(board) + "/" + str(msgnum)
         else:
             bbmsgnum = board.db_name.capitalize() + "/" + str(msgnum)
         # if unread message, make the message white-bold
@@ -155,9 +140,21 @@ def list_messages(caller, board, board_num):
     caller.msg(str(msgtable))
     pass
 
+def get_num_unread(caller, board):
+    
+    post_list = list(BoardPost.objects.all())
+    unread = []
+    for post in post_list:
+        if board == post.db_board:
+            if caller in post.read_by.all():
+                continue
+            else:
+                unread.append(post)
+    unread_int = len(unread)
+    return unread_int
 
 def get_unread_posts(caller):
-    bb_list = get_boards(caller)
+    bb_list = get_boards()
     if not bb_list:
         return
     my_subs = []
@@ -165,7 +162,17 @@ def get_unread_posts(caller):
         if caller in bb.has_subscriber.all():
             my_subs.append(bb)
     msg = "New @bb posts in: "
+    post_list = list(BoardPost.objects.all())
     unread = []
+    for post in post_list:
+        if caller in post.read_by.all():
+            continue
+        else:
+            unread.append(post)
+    if len(unread) == 0:
+        caller.msg("There are no unread posts on your subscribed bboards.")
+        return 0
+    return unread
     for bb in my_subs:
         post = bb.get_latest_post()
         if not post:
@@ -177,6 +184,32 @@ def get_unread_posts(caller):
         caller.msg(msg)
     else:
         caller.msg("There are no unread posts on your subscribed bboards.")
+
+def check_access(caller, board):
+    # boards = get_boards()
+    player_groups = caller.db.groups()
+    board_groups = board.db_groups.all()
+    if not board_groups:
+        # assume all access
+        return True
+        #otherwise:
+    for group in board_groups:
+        if group in player_groups:
+            return True
+        else:
+            return False
+
+def read_post(board, post_num):
+    post = "**** %s ****" % board.db_name.capitalize()
+    post += "Subject: " + post_num.posted_by + "\n"
+    post += "Author: " + post_num.db_title + "\n\n"
+    post += post_num.body_text
+    return post
+
+'''
+to add- board timeout function for server using the board timeout value
+
+'''
 
 class CmdGetUnreadPosts(MuxCommand):
     """
@@ -218,7 +251,7 @@ class CmdBBNew(MuxCommand):
         """Implement the command"""
         caller = self.caller
         args = self.lhs
-        bb_list = get_boards(caller)
+        bb_list = get_boards()
         my_subs = []
 
         if not bb_list:
@@ -277,9 +310,6 @@ class CmdBBNew(MuxCommand):
         else:
             caller.msg("There are no unread posts on your subscribed bboards.")
 
-        
-
-
 class CmdBBRead(MuxCommand):
 
     """
@@ -311,8 +341,6 @@ class CmdBBRead(MuxCommand):
         caller = self.caller
         args = self.args
 
-        
-        
         if self.cmdstring == "bread" or self.cmdstring == "+bread":
             caller.msg("I assumed you meant bbread, but just in case, here's bread: https://www.youtube.com/watch?v=bHK0uFb6Vzw ")
 
@@ -327,20 +355,25 @@ class CmdBBRead(MuxCommand):
         
         # do the reading not listing 
         arglist = args.split("/")
+        board_num = arglist[0]
+        board_to_check = access_bboard(caller, board_num)
+        if not board_to_check:
+            return
+        check_if_subbed(caller, board_to_check)
+        check_access(caller, board_to_check)  
         
         if len(arglist) < 2:
-            board_to_check = access_bboard(caller, args)
-            if not board_to_check:
-                return
-            board_subs = board_to_check.has_subscriber.all()
-            if not caller in board_subs:
-                caller.msg(
-                    "You are not yet a subscriber to {0}.".format(board_to_check.db_name)
-                )
-                caller.msg("Use bbsub to subscribe to it.")
-                return
             list_messages(caller, board_to_check, args)
             return
+        
+        else:
+            #Build and read a post
+            post_num = arglist[1]
+            post = read_post(board_num, post_num)
+            caller.msg(post)
+
+
+        
 
 class CmdBBPost(MuxCommand):
     """

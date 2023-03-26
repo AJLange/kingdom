@@ -167,6 +167,10 @@ class Character(DefaultCharacter):
         singular = key
                 
         return singular, plural
+    
+    def get_groups(self):
+        
+        return self.db.groups
 
     def set_initial_combat(self):
         self.db.aimdice = 0
@@ -176,6 +180,8 @@ class Character(DefaultCharacter):
         self.db.active_weapon = "None"
         self.db.defending = 0
         return
+    
+
 
     """
     The Character defaults to reimplementing some of base Object's hook methods with the
