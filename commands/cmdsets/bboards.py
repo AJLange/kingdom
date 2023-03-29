@@ -526,11 +526,6 @@ class CmdBBDel(MuxCommand):
                 ):
                     self.msg("Only builders may delete from that board.")
                     return
-            
-        elif "sticky" in switches:
-            switchname = "sticky"
-            verb = "sticky"
-            method = "sticky_post"
         else:
             switchname = "archive"
             verb = "archive"
@@ -558,6 +553,45 @@ class CmdBBDel(MuxCommand):
             else:
                 caller.msg("Post %s failed for unknown reason." % verb)
             return
+
+
+class CmdBBStick(MuxCommand):
+    """
+    bbstick - Make a post a sticky post
+
+    Usage:
+       bbstick <board #>/<post #>
+
+    This staff only command will over-ride the timeout on a board,
+    keeping the indicated post alive on the board until it is manually
+    deleted.
+
+    """
+
+    key = "bbstick"
+    aliases = ["@bbstick", "+bbstick"]
+    help_category = "Comms"
+    locks = "cmd:not pperm(bboard_banned), perm(Builder)"
+
+    def func(self):
+        """Implement the command"""
+
+        caller = self.caller
+        args = self.args
+        errmsg = "Syntax: bbstick <board #>/<post #>"
+
+        if not args:
+            caller.msg("Stick which post?")
+            return
+        
+        arglist = args.split("/")
+        if len(arglist) < 2:
+            caller.msg(errmsg)
+            return
+        
+        board = access_bboard(arglist[0])
+        post_num = arglist[1]
+        #command parsed, go ahead and do the thing
 
 class CmdBBSub(MuxCommand):
     """
