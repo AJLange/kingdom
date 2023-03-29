@@ -51,7 +51,7 @@ class Character(DefaultCharacter):
         self.db.strength = "Normal"
         self.db.type = "Human"
         self.db.cookiecount = 0
-        self.db.stagequota = 10
+        self.db.stagequota = 6
         self.db.roomquota = 10
         self.db.craftquota = 10
 
@@ -66,7 +66,7 @@ class Character(DefaultCharacter):
 
         self.db.rollset = 1
         self.db.roomformat = 1
-
+        self.db.in_stage = False
 
         self.db.desc = "You see a character. Desc yourself with +mdesc and a new desc."
         self.db.multidesc = [("Default", "You see a character.")]

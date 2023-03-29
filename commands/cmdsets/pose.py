@@ -15,6 +15,18 @@ from commands.cmdsets import places
 from evennia.comms.models import TempMsg
 from evennia.server.sessionhandler import SESSIONS
 
+    
+
+def append_stage(self, stage, pose):
+    
+    if not stage:
+        return False
+    else:
+        #append my stage to the pose and return it
+        prefix = (f"From {stage}, \n")
+        pose = prefix + pose
+        return pose
+
 
 class CmdThink(BaseCommand):
     """
@@ -39,10 +51,7 @@ class CmdThink(BaseCommand):
             self.caller.msg(errmsg)
             return
         
-
-
 '''
-
 Emit is basic and uncapped and unlocked and will require more locks
 at a later time to do things like nospoof. Just making it work for
 right now.
@@ -94,17 +103,13 @@ class CmdOOCSay(MuxCommand):
 
             # Build the string to emit to neighbors.
             emit_string = "(OOC) %s says: %s" % (caller.name, speech)
-            caller.location.msg_contents(
-                emit_string, from_obj=caller, exclude=caller, options=options
-            )
+            caller.location.msg_contents(emit_string, from_obj=caller, exclude=caller, options=options)
         else:
             if nospace:
                 emit_string = "(OOC) %s %s" % (caller.name, speech)
             else:
                 emit_string = "(OOC) %s %s" % (caller.name, speech)
-            caller.location.msg_contents(
-                emit_string, exclude=None, options=options, from_obj=caller
-            )
+            caller.location.msg_contents(emit_string, exclude=None, options=options, from_obj=caller)
 
 
 class CmdEmit(MuxCommand):
@@ -200,27 +205,7 @@ class CmdEmit(MuxCommand):
         if do_global:
             do_global = has_perms
 
-            '''
 
-            Don't think we need event functionality, but here it lives
-
-        if events_only:
-            from datetime import datetime
-
-            events = RPEvent.objects.filter(
-                finished=False, gm_event=True, date__lte=datetime.now()
-            )
-            for event in events:
-                obj = event.location
-                if not obj:
-                    continue
-                obj.msg_contents(
-                    message, from_obj=caller, kwargs={"options": {"is_pose": True}}
-                )
-                caller.msg("Emitted to event %s and contents:\n%s" % (event, message))
-            return
-            '''
-            
         # normal emits by players are just sent to the room
         # right now this does not do anything with nospoof. add later in 
         # POT functionality.
@@ -229,7 +214,10 @@ class CmdEmit(MuxCommand):
             try:
                 message = self.args
                 message = sub_old_ansi(message)
-                self.caller.location.msg_contents(message)
+                in_stage = caller.db.in_stage
+                if in_stage:
+                    message = append_stage(message)
+                self.caller.location.msg_contents(message, from_obj=caller)
             except ValueError:
                 self.caller.msg("")
                 return
@@ -315,15 +303,18 @@ class CmdPose(BaseCommand):
 
         "This performs the actual command"
         errmsg = "Pose what?"
+        caller = self.caller
         if not self.args:
             self.caller.msg(errmsg)
             return
         try:
             message = self.args
             message = sub_old_ansi(message)
-            self.caller.location.msg_action(
-            self.caller, message
-        )
+            in_stage = caller.db.in_stage
+            # this won't work actually, but fix later
+            if in_stage:
+                message = append_stage(message)
+            caller.location.msg_action(caller, message)
         except ValueError:
             self.caller.msg(errmsg)
             return
@@ -351,7 +342,7 @@ class CmdSay(MuxCommand):
         # Update the pose timer if outside of OOC room
         # This assumes that the character's home is the OOC room, which it is by default
         if caller.location != caller.home:
-            caller.set_pose_time(time.time())
+            #caller.set_pose_time(time.time())
             caller.set_obs_mode(False)
 
         if not self.args:
@@ -370,13 +361,16 @@ class CmdSay(MuxCommand):
             return
 
         # Call the at_after_say hook on the character
+        in_stage = caller.db.in_stage
+        if in_stage:
+            message = append_stage(message)
         caller.at_say(message, msg_self=True)
 
         # If an event is running in the current room, then write to event log
-        if caller.location.db.active_event:
-            scene = Scene.objects.get(pk=self.caller.location.db.event_id)
-            scene.addLogEntry(LogEntry.EntryType.SAY, self.args, self.caller)
-            add_participant_to_scene(self.caller, scene)
+        #if caller.location.db.active_event:
+            #scene = Scene.objects.get(pk=self.caller.location.db.event_id)
+            #scene.addLogEntry(LogEntry.EntryType.SAY, self.args, self.caller)
+            #add_participant_to_scene(self.caller, scene)
 
 
 class CmdMegaSay(CmdSay):
@@ -978,5 +972,30 @@ class CmdAside(MuxCommand):
     help_category = "Comms"
 
     def func(self):
-        """note to self, actually code this."""
+
+        """Implement the command"""
+
+        caller = self.caller
+        args = self.raw.lstrip(" ")
+
+        if not args:
+            string = "Usage: aside <pose>"
+            caller.msg(string)
+            return
+
+        # normal emits by players are just sent to the room
+        # right now this does not do anything with nospoof. add later in 
+        # POT functionality.
+
+        try:
+            message = self.args
+            message = sub_old_ansi(message)
+            in_stage = caller.db.in_stage
+            if in_stage:
+                message = append_stage(message)
+            self.caller.location.msg_contents(message, from_obj=caller)
+        except ValueError:
+            self.caller.msg("")
+            return
+        
 

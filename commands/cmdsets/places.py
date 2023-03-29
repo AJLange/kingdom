@@ -105,9 +105,9 @@ class CmdMakeStage(MuxCommand):
             desc = sub_old_ansi(desc)
             new_obj.db.desc = desc
         
-        try:
+        if new_obj:
             caller.msg("You created the stage %s." % str(new_obj))
-        except:
+        else:
             caller.msg("Can't create %s." % str(new_obj))
             return
 
@@ -194,7 +194,7 @@ class CmdJoin(MuxCommand):
     Enters a particular stage.
 
     Usage:
-        join <stage #>
+        join <stage name>
 
     Enters a stage in the room.
     
@@ -206,37 +206,39 @@ class CmdJoin(MuxCommand):
     """
 
     key = "join"
+    alias = "+join"
     locks = "perm(Player))"
     help_category = "Scenes"
 
     def func(self):
         """Implements command"""
         caller = self.caller
+        # this line doesn't work probably
         all_stages = caller.location.stages
-        stage = caller.sitting_at_stage
+        
         args = self.args
-        if not args or not args.strip("#").strip().isdigit():
-            caller.msg("Usage: {wjoin <stage #>{n")
+        if not args:
+            caller.msg("Usage: {wjoin <stage name>{n")
             caller.msg("To see a list of stages: {wstages{n")
             return
-        if stage:
-            stage.leave(caller)
-        # The player probably only has this command if it's in their inventory
+        
         if not all_stages:
             caller.msg("This room has no stages.")
             return
-        args = args.strip("#").strip()
-        args = int(args) - 1
+        args = args.lstrip()
+
+        stage_name = args
+        if caller.db.in_stage:
+            caller.msg(f"You move from {caller.db.stage}.")
+
         if not (0 <= args < len(all_stages)):
             caller.msg("Number specified does not match any of the stages here.")
             return
         stage = all_stages[args]
-        occupants = stage.item_data.occupants
-        if len(occupants) >= stage.item_data.max_spots:
-            caller.msg("There is no room at %s." % stage.key)
-            return
+
         stage.join(caller)
         caller.msg(get_movement_message("join", stage))
+        caller.location.msg_contents(f"{caller} moves to {stage}.", from_obj=caller)
 
 
 class CmdListStages(MuxCommand):
@@ -258,8 +260,9 @@ class CmdListStages(MuxCommand):
     many people can be in the same stage, but scene-runners may set
     soft limits.
 
-    Logging out or disconnecting will require you to join a stage 
-    once more. To leave a stage on your own, use 'depart'.
+    To leave a stage, use the command 'depart.' You can also enter
+    a different stage.
+    
     """
 
     key = "stages"

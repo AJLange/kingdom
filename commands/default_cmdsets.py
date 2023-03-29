@@ -20,7 +20,7 @@ from evennia import default_cmds
 from evennia import CmdSet
 
 from commands.cmdsets.chargen import CmdStartChargen
-from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay
+from commands.cmdsets.pose import CmdThink, CmdPose, CmdMegaSay, CmdEmit, CmdOOCSay, CmdAside
 from commands.cmdsets.charinfo import CmdFinger, CmdSheet, CmdCookieCounter, CmdCookie, CmdOOCFinger, CmdEFinger
 from commands.cmdsets.scenes import CmdPot
 from commands.cmdsets.mail import CmdMail, CmdMailCharacter
@@ -71,6 +71,7 @@ class CharacterCmdSet(default_cmds.CharacterCmdSet):
         self.add(CmdPose())
         self.add(CmdMegaSay())
         self.add(CmdEmit())
+        self.add(CmdAside())
         self.add(CmdOOCSay())
         self.add(CmdFinger())
         self.add(CmdOOCFinger())
