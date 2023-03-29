@@ -83,7 +83,20 @@ def display_ticket(self, ticket):
 
 def find_file(self, value):
     #placeholder to see if a file is found matching check
-    pass
+    caller = self.caller
+    try:
+        int(value)
+    except ValueError:
+        caller.msg("Please use a number for a file.")
+        return 0
+    my_files = File.objects.filter(db_submitter=caller)
+    for file in my_files:
+        if file.id == value:
+            return file
+    caller.msg("404: file not found.")
+    return 0
+
+
 
 class CmdRequest(MuxCommand):
     """
@@ -397,8 +410,15 @@ class CmdCreateFile(MuxCommand):
         if "topic" in switches:
             num = self.lhs
             topic = self.rhs
+
             if not topic:
                 caller.msg(errmsg)
+                return
+            
+            #find this file
+            file = find_file(num)
+            if not file:
+                caller.msg(f"No file {num} found.")
                 return
             # seek matching topic
             file_topic = self.find_topic(topic)
@@ -415,6 +435,12 @@ class CmdCreateFile(MuxCommand):
             if not word:
                 caller.msg(errmsg)
                 return
+            
+            #find this file
+            file = find_file(num)
+            if not file:
+                caller.msg(f"No file {num} found.")
+                return
             #seek matching keyword
             keyword = self.find_keyword(word)
             #if keyword not found, create new keyword, warn caller
@@ -423,6 +449,23 @@ class CmdCreateFile(MuxCommand):
 
             # file the file in the topic.
             caller.msg(f"Added keyword {word} to file {num}.")
+
+        if "archive" in switches:
+            num = self.args
+            if not num:
+                caller.msg(errmsg)
+                return
+            #do archival
+            file = find_file(num)
+            if not file:
+                caller.msg(f"No file {num} found.")
+                return
+            if not file.up_to_date:
+                caller.msg("That file is already archived.")
+                return
+            else:
+                file.up_to_date = False
+                caller.msg(f"Archived file {num}, marking it obsolete.")
 
         if not switches:
             title = self.lhs
