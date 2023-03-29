@@ -96,7 +96,19 @@ def find_file(self, value):
     caller.msg("404: file not found.")
     return 0
 
-
+def search_all_files(self, value):
+    caller = self.caller
+    try:
+        int(value)
+    except ValueError:
+        caller.msg("Please use a number for a file.")
+        return 0
+    my_files = File.objects.all()
+    for file in my_files:
+        if file.id == value:
+            return file
+    caller.msg("404: file not found.")
+    return 0
 
 class CmdRequest(MuxCommand):
     """
@@ -332,6 +344,11 @@ class CmdCheckFiles(MuxCommand):
             if not person:
                 caller.msg(errmsg)
                 return
+            file = find_file(num)
+            if not file:
+                caller.msg(f"Didn't see a file {num} in your possession.")
+                return
+            # to do - do the sending
             caller.msg(f"Sent file {num} to {person}.")
             return
         
@@ -341,6 +358,11 @@ class CmdCheckFiles(MuxCommand):
             if not group:
                 caller.msg(errmsg)
                 return
+            file = find_file(num)
+            if not file:
+                caller.msg(f"Didn't see a file {num} in your possession.")
+                return
+            #to do - do the posting
             caller.msg(f"Shared file {num} to {group}.")
             return
         
@@ -353,7 +375,11 @@ class CmdCheckFiles(MuxCommand):
                     file_num = int(file)
                 except ValueError:
                     caller.msg(errmsg)
-                caller.msg(f"Looking for file {file_num}.")
+                    return
+                file = find_file(file_num)
+                if not file:
+                    caller.msg(f"No file {file_num} found in your possession.")
+                    return
 
         else:
             caller.msg(errmsg)
@@ -416,7 +442,7 @@ class CmdCreateFile(MuxCommand):
                 return
             
             #find this file
-            file = find_file(num)
+            file = search_all_files(num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return
@@ -437,7 +463,7 @@ class CmdCreateFile(MuxCommand):
                 return
             
             #find this file
-            file = find_file(num)
+            file = search_all_files(num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return
@@ -456,7 +482,7 @@ class CmdCreateFile(MuxCommand):
                 caller.msg(errmsg)
                 return
             #do archival
-            file = find_file(num)
+            file = search_all_files(num)
             if not file:
                 caller.msg(f"No file {num} found.")
                 return
